@@ -4,7 +4,8 @@ import { Route, Routes } from "react-router-dom";
 import IngredientePage from "./pages/ingredientes/IngredientePage";
 import InsumoPage from "./pages/productos/InsumoPage";
 import CategoriaPage from "./pages/categorias/CategoriaPage";
-import { IngredienteFormulario } from "./pages/ingredientes/IngredienteForm";
+import { IngredienteFormulario } from "./pages/ingredientes/IngredienteFormulario";
+import CategoriaFormulario from "./pages/categorias/CategoriaFormulario";
 
 function App() {
   return (
@@ -17,9 +18,17 @@ function App() {
 
         <Route path="/ingredientes" element={<IngredientePage />} />
         <Route path="/ingredientes/nuevo" element={<IngredienteFormulario />} />
-        {/* <Route path="/ingredientes/editar/:id" element={<IngredienteForm />} /> */}
+        <Route
+          path="/ingredientes/editar/:id"
+          element={<IngredienteFormulario />}
+        />
 
         <Route path="/categorias" element={<CategoriaPage />} />
+        <Route path="/categorias/nuevo" element={<CategoriaFormulario />} />
+        <Route
+          path="/categorias/editar/:id"
+          element={<CategoriaFormulario />}
+        />
       </Route>
     </Routes>
   );
