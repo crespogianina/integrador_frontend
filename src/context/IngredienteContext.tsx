@@ -7,6 +7,8 @@ import {
 } from "react";
 import type { IngredienteRead, IngredienteCreate } from "../models/Ingrediente";
 import { IngredientesReducer } from "../reducers/ingredienteReducer";
+import { API_BASE, jsonAuthHeaders } from "../config/api";
+import { useAuth } from "./AuthContext";
 
 export interface ListaIngrediente {
   data: IngredienteRead[];
@@ -29,11 +31,12 @@ interface ContextType {
   setIngredienteEditar: (i: IngredienteRead | null) => void;
 }
 
-const API = "http://localhost:8000/ingredientes/";
+const INGREDIENTES_PATH = `${API_BASE}/ingredientes/`;
 
 const IngredienteContext = createContext<ContextType | null>(null);
 
 export function IngredientesProvider({ children }: { children: ReactNode }) {
+  const { token } = useAuth();
   const [state, dispatch] = useReducer(IngredientesReducer, []);
   const [ingredienteEditar, setIngredienteEditar] =
     useState<IngredienteRead | null>(null);
@@ -49,9 +52,9 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   // }, []);
 
   async function agregar(data: IngredienteCreate) {
-    const res = await fetch(API, {
+    const res = await fetch(INGREDIENTES_PATH, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: jsonAuthHeaders(token),
       body: JSON.stringify(data),
     });
 
@@ -60,19 +63,25 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   }
 
   async function eliminar(id: number) {
-    await fetch(`${API}${id}`, { method: "DELETE" });
+    await fetch(`${INGREDIENTES_PATH}${id}`, {
+      method: "DELETE",
+      headers: jsonAuthHeaders(token),
+    });
     dispatch({ type: "ELIMINAR", payload: id });
   }
 
   async function resetear() {
-    await fetch(API, { method: "DELETE" });
+    await fetch(INGREDIENTES_PATH, {
+      method: "DELETE",
+      headers: jsonAuthHeaders(token),
+    });
     dispatch({ type: "RESET", payload: [] });
   }
 
   async function editar(data: IngredienteRead) {
-    const res = await fetch(`${API}${data.id}`, {
+    const res = await fetch(`${INGREDIENTES_PATH}${data.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: jsonAuthHeaders(token),
       body: JSON.stringify(data),
     });
 
@@ -89,13 +98,13 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   ) {
     const offset = (page - 1) * limit;
 
-    let url = `${API}?offset=${offset}&limit=${limit}`;
+    let url = `${INGREDIENTES_PATH}?offset=${offset}&limit=${limit}`;
 
     if (es_alergeno !== undefined && es_alergeno !== "") {
       url += `&es_alergeno=${es_alergeno}`;
     }
 
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: jsonAuthHeaders(token) });
     const data: ListaIngrediente = await res.json();
 
     dispatch({ type: "SET", payload: data.data });

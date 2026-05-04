@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Filtros, { type Filter } from "../../components/Filtros";
 import Tabla, { type Column } from "../../components/Tabla";
 import { useIngredientes } from "../../context/IngredienteContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { IngredienteRead } from "../../models/Ingrediente";
 
@@ -20,6 +21,8 @@ const initialFiltros = {
 
 export default function IngredientePage() {
   const navigate = useNavigate();
+  const { hasRol } = useAuth();
+  const puedeMutar = hasRol("ADMIN");
 
   const {
     ingredientes,
@@ -95,9 +98,9 @@ export default function IngredientePage() {
               data={ingredientes || []}
               columns={ingredientesColumnas}
               getRowId={(ingrediente) => ingrediente.id}
-              onAdd={handleCreate}
-              onEdit={(ingrediente) => handleEdit(ingrediente)}
-              onDelete={(ingrediente) => handleDelete(ingrediente.id)}
+              onAdd={puedeMutar ? handleCreate : undefined}
+              onEdit={puedeMutar ? handleEdit : undefined}
+              onDelete={puedeMutar ? (i) => handleDelete(i.id) : undefined}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}

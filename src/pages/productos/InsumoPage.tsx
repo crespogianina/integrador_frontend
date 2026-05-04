@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Tabla from "../../components/Tabla";
 import Filtros from "../../components/Filtros";
 
@@ -12,102 +12,17 @@ type Insumo = {
   estado: "Activo" | "Inactivo";
 };
 
-//cambiarlo por producto pero va despues
+// cambiarlo por producto pero va despues
 
 export default function InsumoPage() {
-  const [insumos, setInsumos] = useState<Insumo[]>([]);
-  const [form, setForm] = useState<Omit<Insumo, "id">>();
-  const [editandoId, setEditandoId] = useState<number | null>(null);
-
-  const [busqueda, setBusqueda] = useState("");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("");
-  const [estadoFiltro, setEstadoFiltro] = useState("");
+  const [insumos] = useState<Insumo[]>([]);
 
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 5;
 
-  const insumosFiltrados = useMemo(() => {
-    return insumos.filter((insumo) => {
-      const coincideNombre = insumo.nombre
-        .toLowerCase()
-        .includes(busqueda.toLowerCase());
-
-      const coincideCategoria =
-        !categoriaFiltro || insumo.categoria === categoriaFiltro;
-
-      const coincideEstado = !estadoFiltro || insumo.estado === estadoFiltro;
-
-      return coincideNombre && coincideCategoria && coincideEstado;
-    });
-  }, [insumos, busqueda, categoriaFiltro, estadoFiltro]);
-
-  const totalPaginas = Math.ceil(insumosFiltrados.length / elementosPorPagina);
-
-  const insumosPaginados = insumosFiltrados.slice(
-    (paginaActual - 1) * elementosPorPagina,
-    paginaActual * elementosPorPagina,
-  );
-
-  function handleChange(
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) {
-    // const { name, value } = event.target;
-    // setForm({
-    //   ...form,
-    //   [name]: name === "stock" || name === "precio" ? Number(value) : value,
-    // });
-  }
-
-  function handleSubmit(event: React.FormEvent) {
-    // event.preventDefault();
-    // if (!form.nombre || !form.categoria || !form.unidad) {
-    //   alert("Completa los campos obligatorios");
-    //   return;
-    // }
-    // if (editandoId) {
-    //   setInsumos((prev) =>
-    //     prev.map((insumo) =>
-    //       insumo.id === editandoId ? { ...form, id: editandoId } : insumo,
-    //     ),
-    //   );
-    //   setEditandoId(null);
-    // } else {
-    //   const nuevoInsumo: Insumo = {
-    //     ...form,
-    //     id: Date.now(),
-    //   };
-    //   setInsumos((prev) => [...prev, nuevoInsumo]);
-    // }
-    // setForm(insumoVacio);
-  }
-
-  function editarInsumo(insumo: Insumo) {
-    // setForm({
-    //   nombre: insumo.nombre,
-    //   categoria: insumo.categoria,
-    //   stock: insumo.stock,
-    //   unidad: insumo.unidad,
-    //   precio: insumo.precio,
-    //   estado: insumo.estado,
-    // });
-    // setEditandoId(insumo.id);
-  }
-
-  function eliminarInsumo(id: number) {
-    // const confirmar = confirm("¿Seguro que querés eliminar este insumo?");
-    // if (!confirmar) return;
-    // setInsumos((prev) => prev.filter((insumo) => insumo.id !== id));
-  }
-
-  function limpiarFiltros() {
-    // setBusqueda("");
-    // setCategoriaFiltro("");
-    // setEstadoFiltro("");
-    // setPaginaActual(1);
-  }
-
-  const categorias = Array.from(
-    new Set(insumos.map((insumo) => insumo.categoria)),
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(insumos.length / elementosPorPagina),
   );
 
   const [filters, setFilters] = useState({
@@ -140,8 +55,6 @@ export default function InsumoPage() {
               }
               onClear={() => setFilters({ nombre: "", categoria: "" })}
             />
-
-            {/* Tabla\ */}
 
             <Tabla
               title="Ingredientes"

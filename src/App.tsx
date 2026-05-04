@@ -5,20 +5,32 @@ import IngredientePage from "./pages/ingredientes/IngredientePage";
 import InsumoPage from "./pages/productos/InsumoPage";
 import CategoriaPage from "./pages/categorias/CategoriaPage";
 import { IngredienteFormulario } from "./pages/ingredientes/IngredienteForm";
+import PrivateRoute from "./routes/PrivateRouter";
+import RootRedirect from "./routes/RootRedirect";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
 
-      <Route element={<Layout />}>
+      <Route
+        element={
+          <PrivateRoute>
+            <Layout />
+          </PrivateRoute>
+        }
+      >
         <Route path="/productos" element={<InsumoPage />} />
-
         <Route path="/ingredientes" element={<IngredientePage />} />
-        <Route path="/ingredientes/nuevo" element={<IngredienteFormulario />} />
-        {/* <Route path="/ingredientes/editar/:id" element={<IngredienteForm />} /> */}
-
+        <Route
+          path="/ingredientes/nuevo"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <IngredienteFormulario />
+            </PrivateRoute>
+          }
+        />
         <Route path="/categorias" element={<CategoriaPage />} />
       </Route>
     </Routes>
