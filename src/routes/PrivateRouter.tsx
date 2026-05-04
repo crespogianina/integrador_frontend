@@ -1,22 +1,22 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-type Rol = "ADMIN" | "CONSULTA";
+import type { Rol } from "../types/auth";
 
 type PrivateRouteProps = {
   children: React.ReactNode;
-  rol?: Rol;
+  /** Si se define, solo ese rol puede acceder */
+  roles?: Rol | Rol[];
 };
 
-export default function PrivateRoute({ children, rol }: PrivateRouteProps) {
-  const { user } = useAuth();
+export default function PrivateRoute({ children, roles }: PrivateRouteProps) {
+  const { user, hasRol } = useAuth();
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (rol && user.rol !== rol) {
-    return <Navigate to="/" />;
+  if (roles !== undefined && !hasRol(roles)) {
+    return <Navigate to="/productos" replace />;
   }
 
   return children;

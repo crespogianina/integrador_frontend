@@ -7,14 +7,22 @@ import { IngredienteFormulario } from "./pages/ingredientes/IngredienteFormulari
 import CategoriaFormulario from "./pages/categorias/CategoriaFormulario";
 import ProductoPage from "./pages/productos/ProductoPage";
 import ProductoFormulario from "./pages/productos/ProductoFormulario";
+import PrivateRoute from "./routes/PrivateRouter";
+import RootRedirect from "./routes/RootRedirect";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
 
-      <Route element={<Layout />}>
+      <Route
+        element={
+          <PrivateRoute>
+            <Layout />
+          </PrivateRoute>
+        }
+      >
         <Route path="/productos" element={<ProductoPage />} />
         <Route path="/productos/nuevo" element={<ProductoFormulario />} />
         <Route path="/productos/editar/:id" element={<ProductoFormulario />} />
@@ -38,3 +46,10 @@ function App() {
 }
 
 export default App;
+
+// usuario machete
+// {
+//   "email": "giani@gmail.com",
+//   "password": "1234",
+//   "rol": "ADMIN"
+// }
