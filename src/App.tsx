@@ -2,36 +2,35 @@ import Login from "./pages/Login";
 import Layout from "./components/Layout";
 import { Route, Routes } from "react-router-dom";
 import IngredientePage from "./pages/ingredientes/IngredientePage";
-import InsumoPage from "./pages/productos/InsumoPage";
 import CategoriaPage from "./pages/categorias/CategoriaPage";
-import { IngredienteFormulario } from "./pages/ingredientes/IngredienteForm";
-import PrivateRoute from "./routes/PrivateRouter";
-import RootRedirect from "./routes/RootRedirect";
+import { IngredienteFormulario } from "./pages/ingredientes/IngredienteFormulario";
+import CategoriaFormulario from "./pages/categorias/CategoriaFormulario";
+import ProductoPage from "./pages/productos/ProductoPage";
+import ProductoFormulario from "./pages/productos/ProductoFormulario";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
 
-      <Route
-        element={
-          <PrivateRoute>
-            <Layout />
-          </PrivateRoute>
-        }
-      >
-        <Route path="/productos" element={<InsumoPage />} />
+      <Route element={<Layout />}>
+        <Route path="/productos" element={<ProductoPage />} />
+        <Route path="/productos/nuevo" element={<ProductoFormulario />} />
+        <Route path="/productos/editar/:id" element={<ProductoFormulario />} />
+
         <Route path="/ingredientes" element={<IngredientePage />} />
+        <Route path="/ingredientes/nuevo" element={<IngredienteFormulario />} />
         <Route
-          path="/ingredientes/nuevo"
-          element={
-            <PrivateRoute roles="ADMIN">
-              <IngredienteFormulario />
-            </PrivateRoute>
-          }
+          path="/ingredientes/editar/:id"
+          element={<IngredienteFormulario />}
         />
+
         <Route path="/categorias" element={<CategoriaPage />} />
+        <Route path="/categorias/nuevo" element={<CategoriaFormulario />} />
+        <Route
+          path="/categorias/editar/:id"
+          element={<CategoriaFormulario />}
+        />
       </Route>
     </Routes>
   );

@@ -1,28 +1,32 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import type { Filter } from "../../components/Filtros";
-import type { CategoriaRead } from "../../models/Categoria";
 import type { Column } from "../../components/Tabla";
-import { useCategorias } from "../../context/CategoriaContext";
+import { useNavigate } from "react-router-dom";
+import { useProductos } from "../../context/ProductoContext";
+import type { Filter } from "../../components/Filtros";
 import Filtros from "../../components/Filtros";
 import Tabla from "../../components/Tabla";
+import type { ProductoRead } from "../../models/Producto";
 
-const categoriaColumnas: Column<CategoriaRead>[] = [
+const productosColumnas: Column<ProductoRead>[] = [
   //   { header: "ID", accessor: "id" },
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripcion", accessor: "descripcion" },
+  { header: "Stock", accessor: "stock_cantidad" },
+  { header: "Precio Base", accessor: "precio_base" },
+  { header: "Disponible", accessor: "disponible" },
 ];
 
 const initialFiltros = {
   nombre: "",
   descripcion: "",
+  disponible: "",
 };
 
-export default function CategoriaPage() {
+export default function ProductoPage() {
   const navigate = useNavigate();
 
-  const { categorias, eliminar, setCategoriaEditar, cargarCategorias, total } =
-    useCategorias();
+  const { productos, eliminar, setProductoEditar, cargarProductos, total } =
+    useProductos();
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
@@ -30,7 +34,7 @@ export default function CategoriaPage() {
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 10;
   const totalPaginas = Math.ceil(total / elementosPorPagina);
-  const categoriasFiltros: Filter[] = [
+  const productosFiltros: Filter[] = [
     {
       name: "nombre",
       value: filtros.nombre,
@@ -45,6 +49,16 @@ export default function CategoriaPage() {
       placeholder: "Buscar por descripcion",
       label: "Descripción",
     },
+    {
+      name: "disponible",
+      value: filtros.disponible,
+      type: "select",
+      label: "Disponible",
+      options: [
+        { label: "Esta disponible", value: "true" },
+        { label: "No esta disponible", value: "false" },
+      ],
+    },
   ];
 
   useEffect(() => {
@@ -57,23 +71,28 @@ export default function CategoriaPage() {
   }, [filtros]);
 
   useEffect(() => {
-    cargarCategorias(
+    cargarProductos(
       paginaActual,
       elementosPorPagina,
       filtrosDebounced.nombre,
       filtrosDebounced.descripcion,
+      filtrosDebounced.disponible,
     );
-  }, [paginaActual, filtrosDebounced.nombre, filtrosDebounced.descripcion]);
+  }, [
+    paginaActual,
+    filtrosDebounced.nombre,
+    filtrosDebounced.descripcion,
+    filtrosDebounced.disponible,
+  ]);
 
-  const handleEdit = (categoria: CategoriaRead) => {
-    setCategoriaEditar(categoria);
-    console.log(categoria.id);
-    navigate(`/categorias/editar/${categoria.id}`);
+  const handleEdit = (producto: ProductoRead) => {
+    setProductoEditar(producto);
+    navigate(`/productos/editar/${producto.id}`);
   };
 
   const handleCreate = () => {
-    setCategoriaEditar(null);
-    navigate("/categorias/nuevo");
+    setProductoEditar(null);
+    navigate("/productos/nuevo");
   };
 
   const handleDelete = (id: number) => {
@@ -86,7 +105,7 @@ export default function CategoriaPage() {
         <div className="">
           <section className="space-y-4">
             <Filtros
-              filters={categoriasFiltros}
+              filters={productosFiltros}
               onChange={(name, value) =>
                 setFiltros((prev) => ({ ...prev, [name]: value }))
               }
@@ -94,14 +113,14 @@ export default function CategoriaPage() {
             />
 
             <Tabla
-              title="Categorias"
+              title="Productos"
               total={total}
-              data={categorias || []}
-              columns={categoriaColumnas}
-              getRowId={(categoria) => categoria.id}
+              data={productos || []}
+              columns={productosColumnas}
+              getRowId={(producto) => producto.id}
               onAdd={handleCreate}
-              onEdit={(categoria) => handleEdit(categoria)}
-              onDelete={(categoria) => handleDelete(categoria.id)}
+              onEdit={(producto) => handleEdit(producto)}
+              onDelete={(producto) => handleDelete(producto.id)}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}

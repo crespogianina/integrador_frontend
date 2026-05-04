@@ -11,8 +11,6 @@ const initialStateLoginForm: LoginForm = {
 export default function Login() {
   const navigate = useNavigate();
 
-  const { login, isAuthenticated } = useAuth();
-
   const [formulario, setFormulario] = useState<LoginForm>(
     initialStateLoginForm,
   );
@@ -20,11 +18,7 @@ export default function Login() {
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/productos", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+  const { login } = useAuth();
 
   const handleChange = (
     evento: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,

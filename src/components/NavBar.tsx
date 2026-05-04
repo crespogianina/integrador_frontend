@@ -23,10 +23,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
       <nav className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link to="/productos" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
-            🍔
-          </span>
+        <Link to="/ingredientes" className="flex items-center gap-2">
           <span className="text-lg font-bold text-slate-800">Food Store</span>
         </Link>
 
