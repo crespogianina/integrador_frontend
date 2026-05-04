@@ -64,7 +64,7 @@ export default function IngredientePage() {
 
   const handleEdit = (ingrediente: IngredienteRead) => {
     setIngredienteEditar(ingrediente);
-    navigate("/ingredientes/nuevo");
+    navigate(`/ingredientes/editar/${ingrediente.id}`);
   };
 
   const handleCreate = () => {

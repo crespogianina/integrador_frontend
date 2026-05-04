@@ -3,16 +3,20 @@ export type Filter = {
   value: string;
   type: "input" | "select";
   placeholder?: string;
-  options?: { label: string; value: string }[];
+  options?: Option[];
 };
+export interface Option {
+  label: string;
+  value: string;
+}
 
-type Props = {
+type FilterProps = {
   filters: Filter[];
   onChange: (name: string, value: string) => void;
   onClear: () => void;
 };
 
-export default function Filtros({ filters, onChange, onClear }: Props) {
+export default function Filtros({ filters, onChange, onClear }: FilterProps) {
   return (
     <div className="rounded-2xl bg-white p-5 shadow">
       <h2 className="mb-4 text-xl font-semibold">Filtros</h2>
