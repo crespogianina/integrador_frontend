@@ -30,6 +30,7 @@ export default function IngredientePage() {
   } = useIngredientes();
 
   const [filtros, setFiltros] = useState(initialFiltros);
+  const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
 
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 10;
@@ -40,17 +41,20 @@ export default function IngredientePage() {
       value: filtros.nombre,
       type: "input",
       placeholder: "Buscar por nombre",
+      label: "Nombre",
     },
     {
-      name: "description",
+      name: "descripcion",
       value: filtros.descripcion,
       type: "input",
       placeholder: "Buscar por descripcion",
+      label: "Descripción",
     },
     {
       name: "es_alergeno",
       value: filtros.es_alergeno,
       type: "select",
+      label: "Alergeno",
       options: [
         { label: "Es alergeno", value: "true" },
         { label: "No es alergeno", value: "false" },
@@ -59,8 +63,28 @@ export default function IngredientePage() {
   ];
 
   useEffect(() => {
-    cargarIngredientes(paginaActual, elementosPorPagina, filtros.es_alergeno);
-  }, [paginaActual, filtros.es_alergeno]);
+    const timeout = setTimeout(() => {
+      setFiltrosDebounced(filtros);
+      setPaginaActual(1);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [filtros]);
+
+  useEffect(() => {
+    cargarIngredientes(
+      paginaActual,
+      elementosPorPagina,
+      filtrosDebounced.es_alergeno,
+      filtrosDebounced.nombre,
+      filtrosDebounced.descripcion,
+    );
+  }, [
+    paginaActual,
+    filtrosDebounced.es_alergeno,
+    filtrosDebounced.descripcion,
+    filtrosDebounced.nombre,
+  ]);
 
   const handleEdit = (ingrediente: IngredienteRead) => {
     setIngredienteEditar(ingrediente);

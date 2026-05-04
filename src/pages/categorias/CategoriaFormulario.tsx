@@ -16,7 +16,6 @@ export default function CategoriaFormulario() {
 
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
-
   useEffect(() => {
     if (categoriaEditar) {
       setFormulario({
