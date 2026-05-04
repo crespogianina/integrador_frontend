@@ -76,45 +76,44 @@ export default function Tabla<T>({
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {data?.length &&
-              data.map((item) => (
-                <tr key={getRowId(item)} className="hover:bg-slate-50">
-                  {columns.map((column) => (
-                    <td
-                      key={String(column.accessor)}
-                      className="px-4 py-3 text-slate-600"
-                    >
-                      {String(item[column.accessor])}
-                    </td>
-                  ))}
+            {data.map((item) => (
+              <tr key={getRowId(item)} className="hover:bg-slate-50">
+                {columns.map((column) => (
+                  <td
+                    key={String(column.accessor)}
+                    className="px-4 py-3 text-slate-600"
+                  >
+                    {String(item[column.accessor])}
+                  </td>
+                ))}
 
-                  {(onEdit || onDelete) && (
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        {onEdit && (
-                          <button
-                            type="button"
-                            onClick={() => onEdit(item)}
-                            className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
-                          >
-                            Editar
-                          </button>
-                        )}
+                {(onEdit || onDelete) && (
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      {onEdit && (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
+                        >
+                          Editar
+                        </button>
+                      )}
 
-                        {onDelete && (
-                          <button
-                            type="button"
-                            onClick={() => onDelete(item)}
-                            className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
-                          >
-                            Eliminar
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
+                      {onDelete && (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(item)}
+                          className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
+                        >
+                          Eliminar
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))}
 
             {data.length === 0 && (
               <tr>

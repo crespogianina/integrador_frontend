@@ -2,10 +2,11 @@ import Login from "./pages/Login";
 import Layout from "./components/Layout";
 import { Route, Routes } from "react-router-dom";
 import IngredientePage from "./pages/ingredientes/IngredientePage";
-import InsumoPage from "./pages/productos/InsumoPage";
 import CategoriaPage from "./pages/categorias/CategoriaPage";
 import { IngredienteFormulario } from "./pages/ingredientes/IngredienteFormulario";
 import CategoriaFormulario from "./pages/categorias/CategoriaFormulario";
+import ProductoPage from "./pages/productos/ProductoPage";
+import ProductoFormulario from "./pages/productos/ProductoFormulario";
 
 function App() {
   return (
@@ -14,7 +15,9 @@ function App() {
       <Route path="/login" element={<Login />} />
 
       <Route element={<Layout />}>
-        <Route path="/productos" element={<InsumoPage />} />
+        <Route path="/productos" element={<ProductoPage />} />
+        <Route path="/productos/nuevo" element={<ProductoFormulario />} />
+        <Route path="/productos/editar/:id" element={<ProductoFormulario />} />
 
         <Route path="/ingredientes" element={<IngredientePage />} />
         <Route path="/ingredientes/nuevo" element={<IngredienteFormulario />} />

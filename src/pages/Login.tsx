@@ -27,7 +27,7 @@ export default function Login() {
     if (!validarErrores()) return;
 
     login(formulario);
-    navigate(`/insumos`);
+    navigate(`/ingredientes`);
   };
 
   const handleChange = (

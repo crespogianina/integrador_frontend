@@ -5,49 +5,50 @@ import {
   type ReactNode,
   useReducer,
 } from "react";
-import type { CategoriaRead, CategoriaCreate } from "../models/Categoria";
-import { CategoriasReducer } from "../reducers/categoriaReducer";
-export interface ListaCategoria {
-  data: CategoriaRead[];
+import { ProductosReducer } from "../reducers/productoReducer";
+import type { ProductoCreate, ProductoRead } from "../models/Producto";
+export interface ListaProducto {
+  data: ProductoRead[];
   total: number;
 }
 
 interface ContextType {
-  categorias: CategoriaRead[];
+  productos: ProductoRead[];
   total: number;
-  agregar: (i: CategoriaCreate) => void;
-  cargarCategorias: (
+  agregar: (i: ProductoCreate) => void;
+  cargarProductos: (
     page: number,
     limit: number,
     nombre?: string,
     descripcion?: string,
+    disponible?: string,
   ) => void;
   eliminar: (id: number) => void;
   resetear: () => void;
-  editar: (i: CategoriaRead) => void;
-  categoriaEditar: CategoriaRead | null;
-  setCategoriaEditar: (i: CategoriaRead | null) => void;
+  editar: (i: ProductoRead) => void;
+  productoEditar: ProductoRead | null;
+  setProductoEditar: (i: ProductoRead | null) => void;
 }
 
-const API = "http://localhost:8000/categorias/";
+const API = "http://localhost:8000/productos/";
 
-const CategoriaContext = createContext<ContextType | null>(null);
+const ProductoContext = createContext<ContextType | null>(null);
 
-export function CategoriasProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(CategoriasReducer, []);
-  const [categoriaEditar, setCategoriaEditar] = useState<CategoriaRead | null>(
+export function ProductosProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(ProductosReducer, []);
+  const [productoEditar, setProductoEditar] = useState<ProductoRead | null>(
     null,
   );
   const [total, setTotal] = useState(0);
 
-  async function agregar(data: CategoriaCreate) {
+  async function agregar(data: ProductoCreate) {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
-    const nuevo: CategoriaRead = await res.json();
+    const nuevo: ProductoRead = await res.json();
     dispatch({ type: "AGREGAR", payload: nuevo });
   }
 
@@ -61,7 +62,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "RESET", payload: [] });
   }
 
-  async function editar(data: CategoriaRead) {
+  async function editar(data: ProductoRead) {
     const res = await fetch(`${API}${data.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -71,14 +72,15 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     const actualizado = await res.json();
 
     dispatch({ type: "EDITAR", payload: actualizado });
-    setCategoriaEditar(null);
+    setProductoEditar(null);
   }
 
-  async function cargarCategorias(
+  async function cargarProductos(
     page: number,
     limit: number,
     nombre?: string,
     descripcion?: string,
+    disponible?: string,
   ) {
     const offset = (page - 1) * limit;
 
@@ -95,40 +97,48 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
       params.append("descripcion", descripcion.trim());
     }
 
+    if (disponible?.trim()) {
+      params.append("descripcion", disponible.trim());
+    }
+
+    // if (disponible) {
+    //   params.append("disponible", String(disponible));
+    // }
+
     const res = await fetch(`${API}?${params.toString()}`);
 
     if (!res.ok) {
-      throw new Error("Error al cargar categorías");
+      throw new Error("Error al cargar productos");
     }
 
-    const data: ListaCategoria = await res.json();
+    const data: ListaProducto = await res.json();
 
     dispatch({ type: "SET", payload: data.data });
     setTotal(data.total);
   }
 
   return (
-    <CategoriaContext.Provider
+    <ProductoContext.Provider
       value={{
-        categorias: state,
+        productos: state,
         agregar,
         eliminar,
         resetear,
         editar,
-        categoriaEditar,
-        cargarCategorias,
-        setCategoriaEditar,
+        productoEditar,
+        cargarProductos,
+        setProductoEditar,
         total,
       }}
     >
       {children}
-    </CategoriaContext.Provider>
+    </ProductoContext.Provider>
   );
 }
 
-export function useCategorias() {
-  const context = useContext(CategoriaContext);
+export function useProductos() {
+  const context = useContext(ProductoContext);
   if (!context)
-    throw new Error("useCategorias debe usarse dentro de CategoriaProvider");
+    throw new Error("useProductos debe usarse dentro de ProductoProvider");
   return context;
 }

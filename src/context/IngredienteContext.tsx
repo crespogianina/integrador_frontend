@@ -21,6 +21,8 @@ interface ContextType {
     page: number,
     limit: number,
     es_alergeno?: string,
+    nombre?: string,
+    descripcion?: string,
   ) => void;
   eliminar: (id: number) => void;
   resetear: () => void;
@@ -77,16 +79,34 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     page: number,
     limit: number,
     es_alergeno?: string,
+    nombre?: string,
+    descripcion?: string,
   ) {
     const offset = (page - 1) * limit;
 
-    let url = `${API}?offset=${offset}&limit=${limit}`;
+    const params = new URLSearchParams({
+      offset: String(offset),
+      limit: String(limit),
+    });
 
-    if (es_alergeno !== undefined && es_alergeno !== "") {
-      url += `&es_alergeno=${es_alergeno}`;
+    if (es_alergeno) {
+      params.append("es_alergeno", es_alergeno);
     }
 
-    const res = await fetch(url);
+    if (nombre?.trim()) {
+      params.append("nombre", nombre.trim());
+    }
+
+    if (descripcion?.trim()) {
+      params.append("descripcion", descripcion.trim());
+    }
+
+    const res = await fetch(`${API}?${params.toString()}`);
+
+    if (!res.ok) {
+      throw new Error("Error al cargar ingredientes");
+    }
+
     const data: ListaIngrediente = await res.json();
 
     dispatch({ type: "SET", payload: data.data });
@@ -116,7 +136,7 @@ export function useIngredientes() {
   const context = useContext(IngredienteContext);
   if (!context)
     throw new Error(
-      "useIngredientess debe usarse dentro de IngredientesProvider",
+      "useIngredientes debe usarse dentro de IngredientesProvider",
     );
   return context;
 }
