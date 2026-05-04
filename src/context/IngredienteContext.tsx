@@ -110,7 +110,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       params.append("descripcion", descripcion.trim());
     }
 
-    const res = await fetch(`${API}?${params.toString()}`);
+    const res = await fetch(`${INGREDIENTES_PATH}?${params.toString()}`);
 
     if (!res.ok) {
       throw new Error("Error al cargar ingredientes");
