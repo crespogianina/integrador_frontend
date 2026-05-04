@@ -4,14 +4,18 @@ import { useAuth } from "../context/AuthContext";
 import type { LoginForm } from "../types/auth";
 
 const initialStateLoginForm: LoginForm = {
-  username: "",
+  email: "",
   password: "",
 };
 
 export default function Login() {
   const navigate = useNavigate();
+
   const { login, isAuthenticated } = useAuth();
-  const [formulario, setFormulario] = useState<LoginForm>(initialStateLoginForm);
+
+  const [formulario, setFormulario] = useState<LoginForm>(
+    initialStateLoginForm,
+  );
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -33,12 +37,11 @@ export default function Login() {
 
   const validarErrores = () => {
     const nuevosErrores: Record<string, string> = {};
-    const usuario = formulario.username.trim();
 
-    if (!usuario) {
-      nuevosErrores.username = "Debe ingresar un usuario";
-    } else if (usuario.length < 2) {
-      nuevosErrores.username = "El usuario debe tener al menos 2 caracteres";
+    if (!formulario.email?.length) {
+      nuevosErrores.email = "Debe ingresar un email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulario.email)) {
+      nuevosErrores.email = "El email no es válido";
     }
 
     if (!formulario.password) {
@@ -51,15 +54,17 @@ export default function Login() {
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorServidor(null);
 
+    setErrorServidor(null);
     if (!validarErrores()) return;
 
     setEnviando(true);
+
     const resultado = await login({
-      username: formulario.username.trim(),
+      email: formulario.email.trim(),
       password: formulario.password,
     });
+
     setEnviando(false);
 
     if (resultado.ok) {
@@ -88,20 +93,20 @@ export default function Login() {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Usuario
+              Email
             </label>
 
             <input
               type="text"
-              placeholder="Ingresa tu usuario"
-              name="username"
-              autoComplete="username"
-              value={formulario.username}
+              placeholder="Ingresa tu correo"
+              name="email"
+              autoComplete="email"
+              value={formulario.email}
               onChange={handleChange}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
             />
-            {errores.username && (
-              <p className="mt-1 text-sm text-red-500">{errores.username}</p>
+            {errores.email && (
+              <p className="mt-1 text-sm text-red-500">{errores.email}</p>
             )}
           </div>
 

@@ -9,45 +9,8 @@ import { API_BASE } from "../config/api";
 import { parseUserFromJwt } from "../lib/jwtUser";
 import type { AuthUser, LoginForm, LoginResult, Rol } from "../types/auth";
 
-function isRol(value: unknown): value is Rol {
-  return value === "ADMIN" || value === "CONSULTA";
-}
-
-function normalizeApiUser(raw: unknown): AuthUser | null {
-  if (!raw || typeof raw !== "object") return null;
-  const o = raw as Record<string, unknown>;
-  const id = typeof o.id === "number" ? o.id : null;
-  const username = typeof o.username === "string" ? o.username : null;
-  const rol = o.rol;
-  if (id == null || username == null || !isRol(rol)) return null;
-  return { id, username, rol };
-}
-
-function readInitialAuth(): { user: AuthUser | null; token: string | null } {
-  const token = localStorage.getItem("token");
-  if (!token) return { user: null, token: null };
-
-  const rawUser = localStorage.getItem("user");
-  if (rawUser) {
-    try {
-      const parsed = JSON.parse(rawUser) as unknown;
-      const u = normalizeApiUser(parsed);
-      if (u) return { user: u, token };
-    } catch {
-      /* continuar con JWT */
-    }
-  }
-
-  const fromJwt = parseUserFromJwt(token);
-  if (fromJwt) {
-    localStorage.setItem("user", JSON.stringify(fromJwt));
-    return { user: fromJwt, token };
-  }
-
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  return { user: null, token: null };
-}
+const TOKEN_KEY = "token";
+const USER_KEY = "user";
 
 type AuthContextType = {
   user: AuthUser | null;
@@ -61,69 +24,167 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function isRol(value: unknown): value is Rol {
+  return (
+    value === "ADMIN" ||
+    value === "STOCK" ||
+    value === "PEDIDOS" ||
+    value === "CLIENT"
+  );
+}
+
+function normalizeApiUser(raw: unknown): AuthUser | null {
+  if (!raw || typeof raw !== "object") return null;
+
+  const data = raw as Record<string, unknown>;
+
+  const id = typeof data.id === "number" ? data.id : null;
+  const email = typeof data.email === "string" ? data.email : null;
+  const rol = data.rol;
+
+  if (id === null || email === null || !isRol(rol)) {
+    return null;
+  }
+
+  return {
+    id,
+    email,
+    rol,
+  };
+}
+
+function saveAuth(token: string, user: AuthUser): void {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function clearAuth(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+
+function readInitialAuth(): {
+  user: AuthUser | null;
+  token: string | null;
+} {
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  if (!token) {
+    return { user: null, token: null };
+  }
+
+  const rawUser = localStorage.getItem(USER_KEY);
+
+  if (rawUser) {
+    try {
+      const parsed = JSON.parse(rawUser);
+      const user = normalizeApiUser(parsed);
+
+      if (user) {
+        return { user, token };
+      }
+    } catch {
+      clearAuth();
+    }
+  }
+
+  const userFromJwt = parseUserFromJwt(token);
+
+  if (userFromJwt) {
+    saveAuth(token, userFromJwt);
+    return { user: userFromJwt, token };
+  }
+
+  clearAuth();
+
+  return { user: null, token: null };
+}
+
+async function getErrorMessage(response: Response): Promise<string> {
+  try {
+    const error = await response.json();
+
+    if (typeof error.detail === "string") {
+      return error.detail;
+    }
+
+    if (Array.isArray(error.detail) && error.detail[0]?.msg) {
+      return error.detail[0].msg;
+    }
+
+    if (typeof error.message === "string") {
+      return error.message;
+    }
+  } catch {
+    return "Credenciales inválidas o error del servidor";
+  }
+
+  return "Credenciales inválidas o error del servidor";
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const initial = readInitialAuth();
-  const [user, setUser] = useState<AuthUser | null>(initial.user);
-  const [token, setToken] = useState<string | null>(initial.token);
+  const initialAuth = readInitialAuth();
+
+  const [user, setUser] = useState<AuthUser | null>(initialAuth.user);
+  const [token, setToken] = useState<string | null>(initialAuth.token);
 
   const login = useCallback(async (form: LoginForm): Promise<LoginResult> => {
-    const username = form.username.trim();
-    const password = form.password;
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
 
-    const response = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-
-    if (!response.ok) {
-      let message = "Credenciales inválidas o error del servidor";
-      try {
-        const err = (await response.json()) as { detail?: unknown };
-        if (typeof err.detail === "string") {
-          message = err.detail;
-        } else if (Array.isArray(err.detail) && err.detail[0]) {
-          const first = err.detail[0] as { msg?: string };
-          if (typeof first?.msg === "string") message = first.msg;
-        }
-      } catch {
-        /* mensaje por defecto */
+      if (!response.ok) {
+        return {
+          ok: false,
+          message: await getErrorMessage(response),
+        };
       }
-      return { ok: false, message };
-    }
 
-    const data = (await response.json()) as {
-      token?: string;
-      access_token?: string;
-      user?: unknown;
-    };
+      const data = await response.json();
 
-    const accessToken = data.token ?? data.access_token;
-    if (!accessToken || typeof accessToken !== "string") {
-      return { ok: false, message: "Respuesta del servidor sin token" };
-    }
+      const accessToken = data.access_token ?? data.token;
 
-    let nextUser = normalizeApiUser(data.user);
-    if (!nextUser) {
-      nextUser = parseUserFromJwt(accessToken);
-    }
-    if (!nextUser) {
+      if (!accessToken || typeof accessToken !== "string") {
+        return {
+          ok: false,
+          message: "Respuesta del servidor sin token",
+        };
+      }
+
+      const nextUser =
+        normalizeApiUser(data.user) ?? parseUserFromJwt(accessToken);
+
+      if (!nextUser) {
+        return {
+          ok: false,
+          message: "No se pudo leer el usuario",
+        };
+      }
+
+      saveAuth(accessToken, nextUser);
+
+      setToken(accessToken);
+      setUser(nextUser);
+
+      return { ok: true };
+    } catch {
       return {
         ok: false,
-        message: "No se pudo leer el usuario (token o datos incompletos)",
+        message: "No se pudo conectar con el servidor",
       };
     }
-
-    localStorage.setItem("token", accessToken);
-    localStorage.setItem("user", JSON.stringify(nextUser));
-    setToken(accessToken);
-    setUser(nextUser);
-    return { ok: true };
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const logout = useCallback((): void => {
+    clearAuth();
     setToken(null);
     setUser(null);
   }, []);
@@ -132,15 +193,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = Boolean(user && token);
 
   const hasRol = useCallback(
-    (roles: Rol | Rol[]) => {
+    (roles: Rol | Rol[]): boolean => {
       if (!user) return false;
-      const list = Array.isArray(roles) ? roles : [roles];
-      return list.includes(user.rol);
+
+      const rolesPermitidos = Array.isArray(roles) ? roles : [roles];
+
+      return rolesPermitidos.includes(user.rol);
     },
     [user],
   );
 
-  const value = useMemo(
+  const value = useMemo<AuthContextType>(
     () => ({
       user,
       token,
@@ -153,12 +216,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user, token, rol, isAuthenticated, hasRol, login, logout],
   );
 
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
 
   if (!context) {
