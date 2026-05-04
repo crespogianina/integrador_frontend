@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import Tabla from "../components/Tabla";
-import Filters from "../components/Filtros";
+import Tabla from "../../components/Tabla";
+import Filtros from "../../components/Filtros";
 
 type Insumo = {
   id: number;
@@ -110,121 +110,56 @@ export default function InsumoPage() {
     new Set(insumos.map((insumo) => insumo.categoria)),
   );
 
+  const [filters, setFilters] = useState({
+    nombre: "",
+    categoria: "",
+  });
+
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
       <section className="mx-auto max-w-6xl space-y-6">
         <div className="">
           <section className="space-y-4">
-            <Filters
+            <Filtros
               filters={[
                 {
+                  name: "nombre",
+                  value: filters.nombre,
                   type: "input",
-                  value: busqueda,
-                  placeholder: "Buscar por nombre...",
-                  onChange: (value) => {
-                    setBusqueda(value);
-                    setPaginaActual(1);
-                  },
+                  placeholder: "Buscar nombre",
                 },
                 {
+                  name: "categoria",
+                  value: filters.categoria,
                   type: "select",
-                  value: categoriaFiltro,
-                  onChange: (value) => {
-                    setCategoriaFiltro(value);
-                    setPaginaActual(1);
-                  },
-                  options: [
-                    { label: "Todas las categorías", value: "" },
-                    ...categorias.map((categoria) => ({
-                      label: categoria,
-                      value: categoria,
-                    })),
-                  ],
-                },
-                {
-                  type: "select",
-                  value: estadoFiltro,
-                  onChange: (value) => {
-                    setEstadoFiltro(value);
-                    setPaginaActual(1);
-                  },
-                  options: [
-                    { label: "Todos los estados", value: "" },
-                    { label: "Activo", value: "Activo" },
-                    { label: "Inactivo", value: "Inactivo" },
-                  ],
+                  options: [],
                 },
               ]}
-              onClear={limpiarFiltros}
+              onChange={(name, value) =>
+                setFilters((prev) => ({ ...prev, [name]: value }))
+              }
+              onClear={() => setFilters({ nombre: "", categoria: "" })}
             />
 
             {/* Tabla\ */}
 
             <Tabla
-              title="Listado de insumos"
-              total={insumosFiltrados.length}
-              data={insumosPaginados}
-              getRowId={(insumo) => insumo.id}
+              title="Ingredientes"
+              total={insumos.length}
+              data={insumos}
               columns={[
-                {
-                  header: "Nombre",
-                  accessor: "nombre",
-                  className: "font-medium text-slate-800",
-                },
-                {
-                  header: "Categoría",
-                  accessor: "categoria",
-                },
-                {
-                  header: "Stock",
-                  accessor: "stock",
-                  render: (insumo) => `${insumo.stock} ${insumo.unidad}`,
-                },
-                {
-                  header: "Precio",
-                  accessor: "precio",
-                  render: (insumo) => `$${insumo.precio}`,
-                },
-                {
-                  header: "Estado",
-                  accessor: "estado",
-                  render: (insumo) => (
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        insumo.estado === "Activo"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {insumo.estado}
-                    </span>
-                  ),
-                },
+                { header: "ID", accessor: "id" },
+                { header: "Nombre", accessor: "nombre" },
               ]}
-              renderActions={(insumo) => (
-                <>
-                  <button
-                    onClick={() => editarInsumo(insumo)}
-                    className="rounded-lg bg-amber-100 px-3 py-1 font-medium text-amber-700 hover:bg-amber-200"
-                  >
-                    Editar
-                  </button>
-
-                  <button
-                    onClick={() => eliminarInsumo(insumo.id)}
-                    className="rounded-lg bg-red-100 px-3 py-1 font-medium text-red-700 hover:bg-red-200"
-                  >
-                    Eliminar
-                  </button>
-                </>
-              )}
-              pagination={{
-                page: paginaActual,
-                totalPages: totalPaginas,
-                onPrevious: () => setPaginaActual((prev) => prev - 1),
-                onNext: () => setPaginaActual((prev) => prev + 1),
-                onPageChange: (page) => setPaginaActual(page),
-              }}
+              getRowId={(item) => item.id}
+              onAdd={() => console.log("Agregar")}
+              onEdit={(item) => console.log("Editar", item)}
+              onDelete={(item) => console.log("Eliminar", item)}
+              page={paginaActual}
+              totalPages={totalPaginas}
+              onPrevious={() => setPaginaActual(paginaActual - 1)}
+              onNext={() => setPaginaActual(paginaActual + 1)}
+              onPageChange={(page) => setPaginaActual(page)}
             />
           </section>
         </div>
