@@ -50,7 +50,8 @@ export default function CategoriaPage() {
 
   const handleEdit = (categoria: CategoriaRead) => {
     setCategoriaEditar(categoria);
-    navigate("/categorias/nuevo");
+    console.log(categoria.id);
+    navigate(`/categorias/editar/${categoria.id}`);
   };
 
   const handleCreate = () => {

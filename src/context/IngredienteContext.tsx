@@ -39,15 +39,6 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     useState<IngredienteRead | null>(null);
   const [total, setTotal] = useState(0);
 
-  // useEffect(() => {
-  //   fetch(API)
-  //     .then((res) => res.json())
-  //     .then((data: ListaIngrediente) => {
-  //       total = data.total;
-  //       dispatch({ type: "SET", payload: data.data });
-  //     });
-  // }, []);
-
   async function agregar(data: IngredienteCreate) {
     const res = await fetch(API, {
       method: "POST",
