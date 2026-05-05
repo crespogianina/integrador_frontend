@@ -5,6 +5,7 @@ import type { CategoriaRead } from "../../models/Categoria";
 import { useCategorias } from "../../context/CategoriaContext";
 import Filtros from "../../components/Filtros";
 import CardGrid from "../../components/CardGrid";
+import { useAuth } from "../../context/AuthContext";
 
 const initialFiltros = {
   nombre: "",
@@ -13,6 +14,9 @@ const initialFiltros = {
 
 export default function CategoriaPage() {
   const navigate = useNavigate();
+
+  const { hasRol } = useAuth();
+  const puedeModificar = hasRol("ADMIN");
 
   const { categorias, eliminar, setCategoriaEditar, cargarCategorias, total } =
     useCategorias();
@@ -116,9 +120,13 @@ export default function CategoriaPage() {
                   {c.parent_id === null ? "Principal" : "Subcategoría"}
                 </span>
               )}
-              onAdd={handleCreate}
-              onEdit={handleEdit}
-              onDelete={(c) => handleDelete(c.id)}
+              onAdd={puedeModificar ? handleCreate : undefined}
+              onEdit={puedeModificar ? handleEdit : undefined}
+              onDelete={
+                puedeModificar
+                  ? (categoria) => handleDelete(categoria.id)
+                  : undefined
+              }
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}

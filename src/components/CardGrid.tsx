@@ -9,6 +9,7 @@ type CardGridProps<T> = {
   data: T[];
   getRowId: (item: T) => string | number;
   getTitle: (item: T) => string;
+  getImage?: (item: T) => string | null;
   getDescription?: (item: T) => string | null | undefined;
   fields?: CardField<T>[];
   badge?: (item: T) => React.ReactNode;

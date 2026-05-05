@@ -5,6 +5,7 @@ import type { Filter } from "../../components/Filtros";
 import Filtros from "../../components/Filtros";
 import type { ProductoRead } from "../../models/Producto";
 import CardGrid from "../../components/CardGrid";
+import { useAuth } from "../../context/AuthContext";
 
 const initialFiltros = {
   nombre: "",
@@ -14,6 +15,9 @@ const initialFiltros = {
 
 export default function ProductoPage() {
   const navigate = useNavigate();
+
+  const { hasRol } = useAuth();
+  const puedeModificar = hasRol("ADMIN");
 
   const { productos, eliminar, setProductoEditar, cargarProductos, total } =
     useProductos();
@@ -164,9 +168,13 @@ export default function ProductoPage() {
                       : "Sin ingredientes",
                 },
               ]}
-              onAdd={handleCreate}
-              onEdit={handleEdit}
-              onDelete={(producto) => handleDelete(producto.id)}
+              onAdd={puedeModificar ? handleCreate : undefined}
+              onEdit={puedeModificar ? handleEdit : undefined}
+              onDelete={
+                puedeModificar
+                  ? (producto) => handleDelete(producto.id)
+                  : undefined
+              }
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}

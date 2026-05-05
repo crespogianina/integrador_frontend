@@ -4,6 +4,7 @@ import { useIngredientes } from "../../context/IngredienteContext";
 import { useNavigate } from "react-router-dom";
 import type { IngredienteRead } from "../../models/Ingrediente";
 import CardGrid from "../../components/CardGrid";
+import { useAuth } from "../../context/AuthContext";
 
 const initialFiltros = {
   nombre: "",
@@ -13,6 +14,9 @@ const initialFiltros = {
 
 export default function IngredientePage() {
   const navigate = useNavigate();
+
+  const { hasRol } = useAuth();
+  const puedeModificar = hasRol("ADMIN");
 
   const {
     ingredientes,
@@ -143,9 +147,13 @@ export default function IngredientePage() {
                   </span>
                 )
               }
-              onAdd={handleCreate}
-              onEdit={handleEdit}
-              onDelete={(i) => handleDelete(i.id)}
+              onAdd={puedeModificar ? handleCreate : undefined}
+              onEdit={puedeModificar ? handleEdit : undefined}
+              onDelete={
+                puedeModificar
+                  ? (ingrediente) => handleDelete(ingrediente.id)
+                  : undefined
+              }
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}

@@ -24,21 +24,57 @@ function App() {
         }
       >
         <Route path="/productos" element={<ProductoPage />} />
-        <Route path="/productos/nuevo" element={<ProductoFormulario />} />
-        <Route path="/productos/editar/:id" element={<ProductoFormulario />} />
+        <Route
+          path="/productos/nuevo"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <ProductoFormulario />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/productos/editar/:id"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <ProductoFormulario />
+            </PrivateRoute>
+          }
+        />
 
         <Route path="/ingredientes" element={<IngredientePage />} />
-        <Route path="/ingredientes/nuevo" element={<IngredienteFormulario />} />
+        <Route
+          path="/ingredientes/nuevo"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <IngredienteFormulario />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/ingredientes/editar/:id"
-          element={<IngredienteFormulario />}
+          element={
+            <PrivateRoute roles="ADMIN">
+              <IngredienteFormulario />
+            </PrivateRoute>
+          }
         />
 
         <Route path="/categorias" element={<CategoriaPage />} />
-        <Route path="/categorias/nuevo" element={<CategoriaFormulario />} />
+        <Route
+          path="/categorias/nuevo"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <CategoriaFormulario />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/categorias/editar/:id"
-          element={<CategoriaFormulario />}
+          element={
+            <PrivateRoute roles="ADMIN">
+              <CategoriaFormulario />
+            </PrivateRoute>
+          }
         />
       </Route>
     </Routes>
@@ -52,4 +88,10 @@ export default App;
 //   "email": "giani@gmail.com",
 //   "password": "1234",
 //   "rol": "ADMIN"
+// }
+
+// {
+//   "email": "test@example.com",
+//   "password": "1234",
+//   "rol": "CLIENT"
 // }

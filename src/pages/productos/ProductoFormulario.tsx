@@ -141,12 +141,10 @@ export default function ProductoFormulario() {
   const marcarCategoriaPrincipal = (categoriaId: number) => {
     setFormulario((prev) => ({
       ...prev,
-      categoriaPrincipal: String(categoriaId),
-    }));
-
-    setErrores((prev) => ({
-      ...prev,
-      categoriaPrincipal: "",
+      categoriaPrincipal:
+        prev.categoriaPrincipal === String(categoriaId)
+          ? ""
+          : String(categoriaId),
     }));
   };
 
@@ -258,23 +256,20 @@ export default function ProductoFormulario() {
             <h2 className="text-xl font-semibold text-slate-800">
               {id ? "Editar producto" : "Nuevo producto"}
             </h2>
+
             <p className="mt-1 text-sm text-slate-500">
-              Complete los datos del producto, sus categorías, ingredientes e
-              imágenes.
+              Complete los datos del producto, sus categorías, ingredientes.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
             <section className="rounded-2xl border border-slate-200 p-5">
-              <p className="mb-5 text-sm text-slate-500">
-                Datos principales del producto.
-              </p>
-
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Nombre
                   </label>
+
                   <input
                     name="nombre"
                     value={formulario.nombre}
@@ -282,6 +277,7 @@ export default function ProductoFormulario() {
                     placeholder="Ej: Hamburguesa"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
+
                   {errores.nombre && (
                     <p className="mt-1 text-sm text-red-500">
                       {errores.nombre}
@@ -293,6 +289,7 @@ export default function ProductoFormulario() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Precio
                   </label>
+
                   <input
                     name="precio_base"
                     type="number"
@@ -303,6 +300,7 @@ export default function ProductoFormulario() {
                     placeholder="Ej: 100"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
+
                   {errores.precio_base && (
                     <p className="mt-1 text-sm text-red-500">
                       {errores.precio_base}
@@ -314,6 +312,7 @@ export default function ProductoFormulario() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Descripción
                   </label>
+
                   <textarea
                     name="descripcion"
                     value={formulario.descripcion}
@@ -321,6 +320,7 @@ export default function ProductoFormulario() {
                     placeholder="Descripción del producto"
                     className="min-h-28 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
+
                   {errores.descripcion && (
                     <p className="mt-1 text-sm text-red-500">
                       {errores.descripcion}
@@ -332,6 +332,7 @@ export default function ProductoFormulario() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Stock
                   </label>
+
                   <input
                     name="stock_cantidad"
                     type="number"
@@ -341,6 +342,7 @@ export default function ProductoFormulario() {
                     placeholder="Ej: 20"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
+
                   {errores.stock_cantidad && (
                     <p className="mt-1 text-sm text-red-500">
                       {errores.stock_cantidad}
@@ -366,9 +368,6 @@ export default function ProductoFormulario() {
               <h3 className="text-base font-semibold text-slate-800">
                 Imágenes del producto
               </h3>
-              <p className="mb-4 text-sm text-slate-500">
-                Por ahora se guardan los nombres de archivo en imagenes_url.
-              </p>
 
               <input
                 type="file"
@@ -420,8 +419,9 @@ export default function ProductoFormulario() {
               <h3 className="text-base font-semibold text-slate-800">
                 Categorías
               </h3>
+
               <p className="text-sm text-slate-500">
-                Seleccioná una o más categorías y marcá una como principal.
+                Selecciona una o más categorías y marcá una como principal.
               </p>
 
               {errores.categorias && (
@@ -439,6 +439,7 @@ export default function ProductoFormulario() {
               <div className="mt-4 flex flex-wrap gap-3">
                 {categorias.map((categoria) => {
                   const selected = formulario.categorias.includes(categoria.id);
+
                   const esPrincipal =
                     formulario.categoriaPrincipal === String(categoria.id);
 
@@ -476,7 +477,9 @@ export default function ProductoFormulario() {
                               : "bg-slate-200 text-slate-600 hover:bg-slate-300"
                           }`}
                         >
-                          {esPrincipal ? "Principal" : "Marcar principal"}
+                          {esPrincipal
+                            ? "Quitar principal"
+                            : "Marcar principal"}
                         </button>
                       )}
                     </div>
@@ -490,7 +493,7 @@ export default function ProductoFormulario() {
                 Ingredientes
               </h3>
               <p className="text-sm text-slate-500">
-                Seleccioná los ingredientes y marcá cuáles son removibles.
+                Selecciona los ingredientes y marcá cuáles son removibles.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-3">

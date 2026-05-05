@@ -4,7 +4,6 @@ import type { Rol } from "../types/auth";
 
 type PrivateRouteProps = {
   children: React.ReactNode;
-  /** Si se define, solo ese rol puede acceder */
   roles?: Rol | Rol[];
 };
 
