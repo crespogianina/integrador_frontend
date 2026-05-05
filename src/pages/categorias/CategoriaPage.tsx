@@ -2,16 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { Filter } from "../../components/Filtros";
 import type { CategoriaRead } from "../../models/Categoria";
-import type { Column } from "../../components/Tabla";
 import { useCategorias } from "../../context/CategoriaContext";
 import Filtros from "../../components/Filtros";
-import Tabla from "../../components/Tabla";
-
-const categoriaColumnas: Column<CategoriaRead>[] = [
-  //   { header: "ID", accessor: "id" },
-  { header: "Nombre", accessor: "nombre" },
-  { header: "Descripcion", accessor: "descripcion" },
-];
+import CardGrid from "../../components/CardGrid";
 
 const initialFiltros = {
   nombre: "",
@@ -111,20 +104,26 @@ export default function CategoriaPage() {
               onClear={() => setFiltros(initialFiltros)}
             />
 
-            <Tabla
-              title="Categorias"
+            <CardGrid
+              title="Categorías"
               total={total}
               data={categorias || []}
-              columns={categoriaColumnas}
-              getRowId={(categoria) => categoria.id}
+              getRowId={(c) => c.id}
+              getTitle={(c) => c.nombre}
+              getDescription={(c) => c.descripcion}
+              badge={(c) => (
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                  {c.parent_id === null ? "Principal" : "Subcategoría"}
+                </span>
+              )}
               onAdd={handleCreate}
-              onEdit={(categoria) => handleEdit(categoria)}
-              onDelete={(categoria) => handleDelete(categoria.id)}
+              onEdit={handleEdit}
+              onDelete={(c) => handleDelete(c.id)}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}
               onNext={() => setPaginaActual(paginaActual + 1)}
-              onPageChange={(page) => setPaginaActual(page)}
+              onPageChange={setPaginaActual}
             />
           </section>
         </div>

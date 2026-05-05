@@ -1,17 +1,9 @@
 import { useEffect, useState } from "react";
 import Filtros, { type Filter } from "../../components/Filtros";
-import Tabla, { type Column } from "../../components/Tabla";
 import { useIngredientes } from "../../context/IngredienteContext";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { IngredienteRead } from "../../models/Ingrediente";
-
-const ingredientesColumnas: Column<IngredienteRead>[] = [
-  //   { header: "ID", accessor: "id" },
-  { header: "Nombre", accessor: "nombre" },
-  { header: "Descripcion", accessor: "descripcion" },
-  { header: "Es alergeno", accessor: "es_alergeno" },
-];
+import CardGrid from "../../components/CardGrid";
 
 const initialFiltros = {
   nombre: "",
@@ -133,12 +125,24 @@ export default function IngredientePage() {
               onClear={() => setFiltros(initialFiltros)}
             />
 
-            <Tabla
+            <CardGrid
               title="Ingredientes"
               total={total}
               data={ingredientes || []}
-              columns={ingredientesColumnas}
-              getRowId={(ingrediente) => ingrediente.id}
+              getRowId={(i) => i.id}
+              getTitle={(i) => i.nombre}
+              getDescription={(i) => i.descripcion}
+              badge={(i) =>
+                i.es_alergeno ? (
+                  <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                    Alérgeno
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    No alérgeno
+                  </span>
+                )
+              }
               onAdd={handleCreate}
               onEdit={handleEdit}
               onDelete={(i) => handleDelete(i.id)}
@@ -146,7 +150,7 @@ export default function IngredientePage() {
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}
               onNext={() => setPaginaActual(paginaActual + 1)}
-              onPageChange={(page) => setPaginaActual(page)}
+              onPageChange={setPaginaActual}
             />
           </section>
         </div>

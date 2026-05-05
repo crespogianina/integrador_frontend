@@ -3,7 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useProductos } from "../../context/ProductoContext";
 import { useCategorias } from "../../context/CategoriaContext";
 import { useIngredientes } from "../../context/IngredienteContext";
-import type { ProductoCreate } from "../../models/Producto";
+import type { ProductoCreate, ProductoRead } from "../../models/Producto";
+
+const API_PRODUCTOS = "http://localhost:8000/productos";
 
 const initialState = {
   nombre: "",
@@ -28,40 +30,63 @@ export default function ProductoFormulario() {
 
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
-  const [errorRequest, setErrorRequest] = useState<string>("");
+  const [errorRequest, setErrorRequest] = useState("");
 
-  const imagenes = formulario.imagenes_url;
   useEffect(() => {
     cargarCategorias(1, 50);
     cargarIngredientes(1, 50, "");
   }, []);
 
   useEffect(() => {
+    if (!errorRequest) return;
+
+    const timer = setTimeout(() => {
+      setErrorRequest("");
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [errorRequest]);
+
+  useEffect(() => {
     if (!id) return;
 
     async function cargarProducto() {
-      const res = await fetch(`http://localhost:8000/productos/${id}`);
-      const producto = await res.json();
+      try {
+        const res = await fetch(`${API_PRODUCTOS}/${id}`);
 
-      setFormulario({
-        nombre: producto.nombre ?? "",
-        descripcion: producto.descripcion ?? "",
-        precio_base: String(producto.precio_base ?? ""),
-        stock_cantidad: String(producto.stock_cantidad ?? ""),
-        disponible: producto.disponible ?? true,
-        imagenes_url: producto.imagenes_url ?? [],
-        categorias: producto.categorias?.map((c: any) => c.categoria_id) ?? [],
-        categoriaPrincipal:
-          producto.categorias
-            ?.find((c: any) => c.es_principal)
-            ?.categoria_id?.toString() ?? "",
-        ingredientes:
-          producto.ingredientes?.map((i: any) => i.ingrediente_id) ?? [],
-        ingredientesRemovibles:
-          producto.ingredientes
-            ?.filter((i: any) => i.es_removible)
-            .map((i: any) => i.ingrediente_id) ?? [],
-      });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => null);
+          throw new Error(errorData?.detail || "Error al cargar el producto");
+        }
+
+        const producto: ProductoRead = await res.json();
+
+        setFormulario({
+          nombre: producto.nombre ?? "",
+          descripcion: producto.descripcion ?? "",
+          precio_base: String(producto.precio_base ?? ""),
+          stock_cantidad: String(producto.stock_cantidad ?? ""),
+          disponible: producto.disponible ?? true,
+          imagenes_url: producto.imagenes_url ?? [],
+
+          categorias: producto.categorias?.map((c) => c.id) ?? [],
+          categoriaPrincipal:
+            producto.categorias?.find((c) => c.es_principal)?.id.toString() ??
+            "",
+
+          ingredientes: producto.ingredientes?.map((i) => i.id) ?? [],
+          ingredientesRemovibles:
+            producto.ingredientes
+              ?.filter((i) => i.es_removible)
+              .map((i) => i.id) ?? [],
+        });
+      } catch (error) {
+        setErrorRequest(
+          error instanceof Error
+            ? error.message
+            : "Error al cargar el producto",
+        );
+      }
     }
 
     cargarProducto();
@@ -100,7 +125,7 @@ export default function ProductoFormulario() {
         ...prev,
         categorias: nuevasCategorias,
         categoriaPrincipal:
-          prev.categoriaPrincipal === String(categoriaId) && !checked
+          !checked && prev.categoriaPrincipal === String(categoriaId)
             ? ""
             : prev.categoriaPrincipal,
       };
@@ -109,6 +134,19 @@ export default function ProductoFormulario() {
     setErrores((prev) => ({
       ...prev,
       categorias: "",
+      categoriaPrincipal: "",
+    }));
+  };
+
+  const marcarCategoriaPrincipal = (categoriaId: number) => {
+    setFormulario((prev) => ({
+      ...prev,
+      categoriaPrincipal: String(categoriaId),
+    }));
+
+    setErrores((prev) => ({
+      ...prev,
+      categoriaPrincipal: "",
     }));
   };
 
@@ -118,8 +156,21 @@ export default function ProductoFormulario() {
       ingredientes: checked
         ? [...prev.ingredientes, ingredienteId]
         : prev.ingredientes.filter((id) => id !== ingredienteId),
+
       ingredientesRemovibles: checked
         ? prev.ingredientesRemovibles
+        : prev.ingredientesRemovibles.filter((id) => id !== ingredienteId),
+    }));
+  };
+
+  const handleIngredienteRemovible = (
+    ingredienteId: number,
+    checked: boolean,
+  ) => {
+    setFormulario((prev) => ({
+      ...prev,
+      ingredientesRemovibles: checked
+        ? [...prev.ingredientesRemovibles, ingredienteId]
         : prev.ingredientesRemovibles.filter((id) => id !== ingredienteId),
     }));
   };
@@ -139,12 +190,20 @@ export default function ProductoFormulario() {
       nuevosErrores.precio_base = "El precio debe ser mayor a 0";
     }
 
-    if (!formulario.stock_cantidad || Number(formulario.stock_cantidad) < 0) {
+    if (
+      formulario.stock_cantidad === "" ||
+      Number(formulario.stock_cantidad) < 0
+    ) {
       nuevosErrores.stock_cantidad = "El stock no puede ser negativo";
     }
 
     if (formulario.categorias.length === 0) {
       nuevosErrores.categorias = "Debe seleccionar al menos una categoría";
+    }
+
+    if (formulario.categorias.length > 0 && !formulario.categoriaPrincipal) {
+      nuevosErrores.categoriaPrincipal =
+        "Debe marcar una categoría como principal";
     }
 
     setErrores(nuevosErrores);
@@ -162,7 +221,7 @@ export default function ProductoFormulario() {
       precio_base: Number(formulario.precio_base),
       stock_cantidad: Number(formulario.stock_cantidad),
       disponible: formulario.disponible,
-      imagenes_url: imagenes,
+      imagenes_url: formulario.imagenes_url,
       categorias: formulario.categorias.map((categoriaId) => ({
         categoria_id: categoriaId,
         es_principal: formulario.categoriaPrincipal === String(categoriaId),
@@ -186,9 +245,7 @@ export default function ProductoFormulario() {
       navigate("/productos");
     } catch (error) {
       setErrorRequest(
-        error instanceof Error
-          ? error.message
-          : "Error al guardar el prooducto",
+        error instanceof Error ? error.message : "Error al guardar el producto",
       );
     }
   };
@@ -209,11 +266,9 @@ export default function ProductoFormulario() {
 
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
             <section className="rounded-2xl border border-slate-200 p-5">
-              <div className="mb-5">
-                <p className="text-sm text-slate-500">
-                  Datos principales del producto.
-                </p>
-              </div>
+              <p className="mb-5 text-sm text-slate-500">
+                Datos principales del producto.
+              </p>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
@@ -242,6 +297,7 @@ export default function ProductoFormulario() {
                     name="precio_base"
                     type="number"
                     min="0"
+                    step="0.01"
                     value={formulario.precio_base}
                     onChange={handleChange}
                     placeholder="Ej: 100"
@@ -305,15 +361,14 @@ export default function ProductoFormulario() {
                 </div>
               </div>
             </section>
+
             <section className="rounded-2xl border border-slate-200 p-5">
-              <div className="mb-5">
-                <h3 className="text-base font-semibold text-slate-800">
-                  Imágenes del producto
-                </h3>
-                <p className="text-sm text-slate-500">
-                  Seleccioná imágenes desde tu computadora.
-                </p>
-              </div>
+              <h3 className="text-base font-semibold text-slate-800">
+                Imágenes del producto
+              </h3>
+              <p className="mb-4 text-sm text-slate-500">
+                Por ahora se guardan los nombres de archivo en imagenes_url.
+              </p>
 
               <input
                 type="file"
@@ -321,7 +376,6 @@ export default function ProductoFormulario() {
                 accept="image/*"
                 onChange={(e) => {
                   const files = Array.from(e.target.files ?? []);
-
                   const nombresArchivos = files.map((file) => file.name);
 
                   setFormulario((prev) => ({
@@ -334,15 +388,14 @@ export default function ProductoFormulario() {
                 className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
               />
 
-              {imagenes.length > 0 && (
+              {formulario.imagenes_url.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {imagenes.map((imagen, index) => (
+                  {formulario.imagenes_url.map((imagen, index) => (
                     <span
                       key={`${imagen}-${index}`}
                       className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
                     >
                       {imagen}
-
                       <button
                         type="button"
                         onClick={() =>
@@ -363,26 +416,31 @@ export default function ProductoFormulario() {
               )}
             </section>
 
-            {/* Categorias */}
             <section className="rounded-2xl border border-slate-200 p-5">
-              <div className="mb-5">
-                <h3 className="text-base font-semibold text-slate-800">
-                  Categorías
-                </h3>
-                <p className="text-sm text-slate-500">
-                  Selecciona una o más categorías
-                </p>
-              </div>
+              <h3 className="text-base font-semibold text-slate-800">
+                Categorías
+              </h3>
+              <p className="text-sm text-slate-500">
+                Seleccioná una o más categorías y marcá una como principal.
+              </p>
 
               {errores.categorias && (
-                <p className="mb-3 text-sm text-red-500">
+                <p className="mt-3 text-sm text-red-500">
                   {errores.categorias}
                 </p>
               )}
 
-              <div className="flex flex-wrap gap-3">
+              {errores.categoriaPrincipal && (
+                <p className="mt-3 text-sm text-red-500">
+                  {errores.categoriaPrincipal}
+                </p>
+              )}
+
+              <div className="mt-4 flex flex-wrap gap-3">
                 {categorias.map((categoria) => {
                   const selected = formulario.categorias.includes(categoria.id);
+                  const esPrincipal =
+                    formulario.categoriaPrincipal === String(categoria.id);
 
                   return (
                     <div
@@ -407,28 +465,42 @@ export default function ProductoFormulario() {
                         />
                         {categoria.nombre}
                       </button>
+
+                      {selected && (
+                        <button
+                          type="button"
+                          onClick={() => marcarCategoriaPrincipal(categoria.id)}
+                          className={`mt-3 rounded-full px-3 py-1 text-xs font-semibold ${
+                            esPrincipal
+                              ? "bg-blue-600 text-white"
+                              : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                          }`}
+                        >
+                          {esPrincipal ? "Principal" : "Marcar principal"}
+                        </button>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </section>
 
-            {/* Ingredientes */}
             <section className="rounded-2xl border border-slate-200 p-5">
-              <div className="mb-5">
-                <h3 className="text-base font-semibold text-slate-800">
-                  Ingredientes
-                </h3>
-                <p className="text-sm text-slate-500">
-                  Selecciona los ingredientes.
-                </p>
-              </div>
+              <h3 className="text-base font-semibold text-slate-800">
+                Ingredientes
+              </h3>
+              <p className="text-sm text-slate-500">
+                Seleccioná los ingredientes y marcá cuáles son removibles.
+              </p>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="mt-4 flex flex-wrap gap-3">
                 {ingredientes.map((ingrediente) => {
                   const selected = formulario.ingredientes.includes(
                     ingrediente.id,
                   );
+
+                  const esRemovible =
+                    formulario.ingredientesRemovibles.includes(ingrediente.id);
 
                   return (
                     <div
@@ -455,6 +527,22 @@ export default function ProductoFormulario() {
                         />
                         {ingrediente.nombre}
                       </button>
+
+                      {selected && (
+                        <label className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={esRemovible}
+                            onChange={(e) =>
+                              handleIngredienteRemovible(
+                                ingrediente.id,
+                                e.target.checked,
+                              )
+                            }
+                          />
+                          Removible
+                        </label>
+                      )}
                     </div>
                   );
                 })}
@@ -479,9 +567,10 @@ export default function ProductoFormulario() {
             </div>
           </form>
         </div>
+
         {errorRequest && (
           <div className="fixed bottom-10 right-5 z-50">
-            <div className="bg-red-500 text-white px-4 py-3 rounded-b-md shadow-lg animate-slide-in">
+            <div className="animate-slide-in rounded-b-md bg-red-500 px-4 py-3 text-white shadow-lg">
               {errorRequest}
             </div>
           </div>

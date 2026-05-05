@@ -6,7 +6,11 @@ import {
   useReducer,
 } from "react";
 import { ProductosReducer } from "../reducers/productoReducer";
-import type { ProductoCreate, ProductoRead } from "../models/Producto";
+import type {
+  ProductoCreate,
+  ProductoRead,
+  ProductoUpdate,
+} from "../models/Producto";
 export interface ListaProducto {
   data: ProductoRead[];
   total: number;
@@ -25,7 +29,7 @@ interface ContextType {
   ) => void;
   eliminar: (id: number) => void;
   resetear: () => void;
-  editar: (i: ProductoRead) => void;
+  editar: (i: ProductoUpdate) => void;
   productoEditar: ProductoRead | null;
   setProductoEditar: (i: ProductoRead | null) => void;
 }
@@ -73,7 +77,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "RESET", payload: [] });
   }
 
-  async function editar(data: ProductoRead) {
+  async function editar(data: ProductoUpdate) {
     const res = await fetch(`${API}${data.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

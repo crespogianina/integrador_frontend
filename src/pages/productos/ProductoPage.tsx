@@ -1,20 +1,10 @@
 import { useEffect, useState } from "react";
-import type { Column } from "../../components/Tabla";
 import { useNavigate } from "react-router-dom";
 import { useProductos } from "../../context/ProductoContext";
 import type { Filter } from "../../components/Filtros";
 import Filtros from "../../components/Filtros";
-import Tabla from "../../components/Tabla";
 import type { ProductoRead } from "../../models/Producto";
-
-const productosColumnas: Column<ProductoRead>[] = [
-  //   { header: "ID", accessor: "id" },
-  { header: "Nombre", accessor: "nombre" },
-  { header: "Descripcion", accessor: "descripcion" },
-  { header: "Stock", accessor: "stock_cantidad" },
-  { header: "Precio Base", accessor: "precio_base" },
-  { header: "Disponible", accessor: "disponible" },
-];
+import CardGrid from "../../components/CardGrid";
 
 const initialFiltros = {
   nombre: "",
@@ -97,6 +87,7 @@ export default function ProductoPage() {
   ]);
 
   const handleEdit = (producto: ProductoRead) => {
+    console.log(producto);
     setProductoEditar(producto);
     navigate(`/productos/editar/${producto.id}`);
   };
@@ -131,20 +122,56 @@ export default function ProductoPage() {
               onClear={() => setFiltros(initialFiltros)}
             />
 
-            <Tabla
+            <CardGrid<ProductoRead>
               title="Productos"
               total={total}
               data={productos || []}
-              columns={productosColumnas}
               getRowId={(producto) => producto.id}
+              getTitle={(producto) => producto.nombre}
+              getDescription={(producto) => producto.descripcion}
+              badge={(producto) =>
+                producto.disponible ? (
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    Disponible
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                    No disponible
+                  </span>
+                )
+              }
+              fields={[
+                {
+                  label: "Precio",
+                  render: (producto) => `$${producto.precio_base}`,
+                },
+                {
+                  label: "Stock",
+                  render: (producto) => producto.stock_cantidad,
+                },
+                {
+                  label: "Categorías",
+                  render: (producto) =>
+                    producto.categorias?.length
+                      ? producto.categorias.map((c) => c.nombre).join(", ")
+                      : "Sin categorías",
+                },
+                {
+                  label: "Ingredientes",
+                  render: (producto) =>
+                    producto.ingredientes?.length
+                      ? producto.ingredientes.map((i) => i.nombre).join(", ")
+                      : "Sin ingredientes",
+                },
+              ]}
               onAdd={handleCreate}
-              onEdit={(producto) => handleEdit(producto)}
+              onEdit={handleEdit}
               onDelete={(producto) => handleDelete(producto.id)}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}
               onNext={() => setPaginaActual(paginaActual + 1)}
-              onPageChange={(page) => setPaginaActual(page)}
+              onPageChange={setPaginaActual}
             />
           </section>
         </div>
