@@ -28,6 +28,7 @@ export default function ProductoFormulario() {
 
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [errorRequest, setErrorRequest] = useState<string>("");
 
   const imagenes = formulario.imagenes_url;
   useEffect(() => {
@@ -123,18 +124,6 @@ export default function ProductoFormulario() {
     }));
   };
 
-  const handleIngredienteRemovible = (
-    ingredienteId: number,
-    checked: boolean,
-  ) => {
-    setFormulario((prev) => ({
-      ...prev,
-      ingredientesRemovibles: checked
-        ? [...prev.ingredientesRemovibles, ingredienteId]
-        : prev.ingredientesRemovibles.filter((id) => id !== ingredienteId),
-    }));
-  };
-
   const validarErrores = () => {
     const nuevosErrores: Record<string, string> = {};
 
@@ -162,7 +151,7 @@ export default function ProductoFormulario() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validarErrores()) return;
@@ -184,16 +173,24 @@ export default function ProductoFormulario() {
       })),
     };
 
-    if (id) {
-      editar({
-        ...payload,
-        id: Number(id),
-      });
-    } else {
-      agregar(payload);
-    }
+    try {
+      if (id) {
+        await editar({
+          ...payload,
+          id: Number(id),
+        });
+      } else {
+        await agregar(payload);
+      }
 
-    navigate("/productos");
+      navigate("/productos");
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al guardar el prooducto",
+      );
+    }
   };
 
   return (
@@ -482,6 +479,13 @@ export default function ProductoFormulario() {
             </div>
           </form>
         </div>
+        {errorRequest && (
+          <div className="fixed bottom-10 right-5 z-50">
+            <div className="bg-red-500 text-white px-4 py-3 rounded-b-md shadow-lg animate-slide-in">
+              {errorRequest}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

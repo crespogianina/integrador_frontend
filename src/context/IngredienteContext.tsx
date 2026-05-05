@@ -51,15 +51,28 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify(data),
     });
 
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      throw new Error(errorData?.detail || "Error al crear el ingrediente");
+    }
+
     const nuevo: IngredienteRead = await res.json();
     dispatch({ type: "AGREGAR", payload: nuevo });
   }
 
   async function eliminar(id: number) {
-    await fetch(`${INGREDIENTES_PATH}${id}`, {
+    const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
       method: "DELETE",
       headers: jsonAuthHeaders(token),
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      throw new Error(errorData?.detail || "Error al eliminar el ingrediente");
+    }
+
     dispatch({ type: "ELIMINAR", payload: id });
   }
 
@@ -77,6 +90,12 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       headers: jsonAuthHeaders(token),
       body: JSON.stringify(data),
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      throw new Error(errorData?.detail || "Error al editar el ingrediente");
+    }
 
     const actualizado = await res.json();
 

@@ -3,30 +3,45 @@ import { useNavigate } from "react-router-dom";
 import { useCategorias } from "../../context/CategoriaContext";
 import type { CategoriaCreate } from "../../models/Categoria";
 
-const initialState = {
+const initialState: {
+  nombre: string;
+  descripcion: string;
+  parent_id: number | null;
+} = {
   nombre: "",
   descripcion: "",
-  parent_id: "",
+  parent_id: null,
 };
 
 export default function CategoriaFormulario() {
   const navigate = useNavigate();
+
   const { agregar, editar, categoriaEditar, setCategoriaEditar, categorias } =
     useCategorias();
 
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [errorRequest, setErrorRequest] = useState<string>("");
+
   useEffect(() => {
     if (categoriaEditar) {
       setFormulario({
         nombre: categoriaEditar.nombre,
         descripcion: categoriaEditar.descripcion,
-        parent_id: categoriaEditar.parent_id
-          ? String(categoriaEditar.parent_id)
-          : "",
+        parent_id: categoriaEditar.parent_id || null,
       });
     }
   }, [categoriaEditar]);
+
+  useEffect(() => {
+    if (!errorRequest) return;
+
+    const timer = setTimeout(() => {
+      setErrorRequest("");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [errorRequest]);
 
   const handleChange = (
     evento: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -59,22 +74,32 @@ export default function CategoriaFormulario() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validarErrores()) return;
 
-    if (categoriaEditar) {
-      editar({
-        ...formulario,
-        id: categoriaEditar.id,
-      });
-      setCategoriaEditar(null);
-    } else {
-      agregar(formulario as CategoriaCreate);
-    }
+    try {
+      if (categoriaEditar) {
+        await editar({
+          ...formulario,
+          parent_id: formulario.parent_id || null,
+          id: categoriaEditar.id,
+        });
 
-    navigate("/categorias");
+        setCategoriaEditar(null);
+      } else {
+        await agregar(formulario as CategoriaCreate);
+      }
+
+      navigate("/categorias");
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al guardar la categoría",
+      );
+    }
   };
 
   const handleCancel = () => {
@@ -139,7 +164,7 @@ export default function CategoriaFormulario() {
 
                 <select
                   name="parent_id"
-                  value={formulario.parent_id}
+                  value={formulario.parent_id ?? ""}
                   onChange={handleChange}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                 >
@@ -174,6 +199,14 @@ export default function CategoriaFormulario() {
             </div>
           </form>
         </div>
+
+        {errorRequest && (
+          <div className="fixed bottom-10 right-5 z-50">
+            <div className="bg-red-500 text-white px-4 py-3 rounded-b-md shadow-lg animate-slide-in">
+              {errorRequest}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

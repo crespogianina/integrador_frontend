@@ -17,8 +17,10 @@ const initialState: FormularioState = {
 
 export function IngredienteFormulario() {
   const navigate = useNavigate();
+
   const [formulario, setFormulario] = useState<FormularioState>(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [errorRequest, setErrorRequest] = useState<string>("");
 
   const { agregar, editar, ingredienteEditar } = useIngredientes();
 
@@ -31,6 +33,16 @@ export function IngredienteFormulario() {
       });
     }
   }, [ingredienteEditar]);
+
+  useEffect(() => {
+    if (!errorRequest) return;
+
+    const timer = setTimeout(() => {
+      setErrorRequest("");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [errorRequest]);
 
   const handleChange = (
     evento: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -53,21 +65,30 @@ export function IngredienteFormulario() {
     }));
   };
 
-  const onSubmitForm = (event: React.FormEvent<HTMLFormElement>): void => {
+  const onSubmitForm = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
 
     if (!validarErrores()) return;
 
     const participante = obtenerParticipante();
+    try {
+      if (ingredienteEditar) {
+        await editar({ ...participante, id: ingredienteEditar.id });
+      } else {
+        await agregar(participante);
+      }
 
-    if (ingredienteEditar) {
-      editar({ ...participante, id: ingredienteEditar.id });
-    } else {
-      agregar(participante);
+      navigate("/ingredientes/");
+      limpiarFormulario();
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al guardar el ingrediente",
+      );
     }
-
-    navigate("/ingredientes/");
-    limpiarFormulario();
   };
 
   const validarErrores = () => {
@@ -201,6 +222,14 @@ export function IngredienteFormulario() {
             </div>
           </form>
         </div>
+
+        {errorRequest && (
+          <div className="fixed bottom-10 right-5 z-50">
+            <div className="bg-red-500 text-white px-4 py-3 rounded-b-md shadow-lg animate-slide-in">
+              {errorRequest}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

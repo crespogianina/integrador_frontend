@@ -2,7 +2,7 @@ export interface CategoriaCreate {
     nombre: string;
     descripcion: string;
     imagen_url?: string;
-    parent_id?: string | null;
+    parent_id: number | null;
     hijos?: string[] | null;
 }
 

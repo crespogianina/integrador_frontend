@@ -48,12 +48,23 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify(data),
     });
 
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al crear el producto");
+    }
+
     const nuevo: ProductoRead = await res.json();
     dispatch({ type: "AGREGAR", payload: nuevo });
   }
 
   async function eliminar(id: number) {
-    await fetch(`${API}${id}`, { method: "DELETE" });
+    const res = await fetch(`${API}${id}`, { method: "DELETE" });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al eliminar el producto");
+    }
+
     dispatch({ type: "ELIMINAR", payload: id });
   }
 
@@ -68,6 +79,11 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al editar el producto");
+    }
 
     const actualizado = await res.json();
 
@@ -98,12 +114,8 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
     }
 
     if (disponible?.trim()) {
-      params.append("descripcion", disponible.trim());
+      params.append("disponible", disponible.trim());
     }
-
-    // if (disponible) {
-    //   params.append("disponible", String(disponible));
-    // }
 
     const res = await fetch(`${API}?${params.toString()}`);
 

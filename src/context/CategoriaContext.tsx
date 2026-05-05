@@ -47,12 +47,26 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify(data),
     });
 
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      throw new Error(errorData?.detail || "Error al crear la categoría");
+    }
+
     const nuevo: CategoriaRead = await res.json();
+
     dispatch({ type: "AGREGAR", payload: nuevo });
   }
 
   async function eliminar(id: number) {
-    await fetch(`${API}${id}`, { method: "DELETE" });
+    const res = await fetch(`${API}${id}`, { method: "DELETE" });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      throw new Error(errorData?.detail || "Error al eliminar la categoría");
+    }
+
     dispatch({ type: "ELIMINAR", payload: id });
   }
 
@@ -67,6 +81,12 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+
+      throw new Error(errorData?.detail || "Error al editar la categoría");
+    }
 
     const actualizado = await res.json();
 

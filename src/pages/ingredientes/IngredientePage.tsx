@@ -21,8 +21,6 @@ const initialFiltros = {
 
 export default function IngredientePage() {
   const navigate = useNavigate();
-  const { hasRol } = useAuth();
-  const puedeMutar = hasRol("ADMIN");
 
   const {
     ingredientes,
@@ -34,6 +32,7 @@ export default function IngredientePage() {
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
+  const [errorRequest, setErrorRequest] = useState<string>("");
 
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 10;
@@ -64,6 +63,16 @@ export default function IngredientePage() {
       ],
     },
   ];
+
+  useEffect(() => {
+    if (!errorRequest) return;
+
+    const timer = setTimeout(() => {
+      setErrorRequest("");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [errorRequest]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -99,8 +108,16 @@ export default function IngredientePage() {
     navigate("/ingredientes/nuevo");
   };
 
-  const handleDelete = (id: number) => {
-    eliminar(id);
+  const handleDelete = async (id: number) => {
+    try {
+      await eliminar(id);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al eliminar el ingrediente",
+      );
+    }
   };
 
   return (
@@ -122,9 +139,9 @@ export default function IngredientePage() {
               data={ingredientes || []}
               columns={ingredientesColumnas}
               getRowId={(ingrediente) => ingrediente.id}
-              onAdd={puedeMutar ? handleCreate : undefined}
-              onEdit={puedeMutar ? handleEdit : undefined}
-              onDelete={puedeMutar ? (i) => handleDelete(i.id) : undefined}
+              onAdd={handleCreate}
+              onEdit={handleEdit}
+              onDelete={(i) => handleDelete(i.id)}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual(paginaActual - 1)}
@@ -133,6 +150,14 @@ export default function IngredientePage() {
             />
           </section>
         </div>
+
+        {errorRequest && (
+          <div className="fixed bottom-10 right-5 z-50">
+            <div className="bg-red-500 text-white px-4 py-3 rounded-b-md shadow-lg animate-slide-in">
+              {errorRequest}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
