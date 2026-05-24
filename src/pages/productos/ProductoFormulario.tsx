@@ -373,18 +373,19 @@ export default function ProductoFormulario() {
                 type="file"
                 multiple
                 accept="image/*"
+                className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
                 onChange={(e) => {
                   const files = Array.from(e.target.files ?? []);
-                  const nombresArchivos = files.map((file) => file.name);
+
+                  const urls = files.map((file) => URL.createObjectURL(file));
 
                   setFormulario((prev) => ({
                     ...prev,
-                    imagenes_url: [...prev.imagenes_url, ...nombresArchivos],
+                    imagenes_url: [...prev.imagenes_url, ...urls],
                   }));
 
                   e.target.value = "";
                 }}
-                className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
               />
 
               {formulario.imagenes_url.length > 0 && (

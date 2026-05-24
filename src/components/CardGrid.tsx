@@ -31,6 +31,7 @@ export default function CardGrid<T>({
   data,
   getRowId,
   getTitle,
+  getImage,
   getDescription,
   fields = [],
   badge,
@@ -75,6 +76,13 @@ export default function CardGrid<T>({
               key={getRowId(item)}
               className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
             >
+              {getImage && getImage(item) && (
+                <img
+                  src={getImage(item)!}
+                  alt={getTitle(item)}
+                  className="mb-3 h-40 w-full rounded-lg object-cover"
+                />
+              )}
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-800">

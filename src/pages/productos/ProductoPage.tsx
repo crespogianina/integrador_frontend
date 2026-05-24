@@ -126,7 +126,7 @@ export default function ProductoPage() {
               onClear={() => setFiltros(initialFiltros)}
             />
 
-            <CardGrid<ProductoRead>
+            <CardGrid
               title="Productos"
               total={total}
               data={productos || []}
@@ -174,6 +174,9 @@ export default function ProductoPage() {
                 puedeModificar
                   ? (producto) => handleDelete(producto.id)
                   : undefined
+              }
+              getImage={(producto) =>
+                producto.imagenes_url?.length ? producto.imagenes_url[0] : null
               }
               page={paginaActual}
               totalPages={totalPaginas}

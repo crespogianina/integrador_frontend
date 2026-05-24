@@ -83,7 +83,7 @@ function App() {
 
 export default App;
 
-// usuario machete
+// usuarios machete
 // {
 //   "email": "giani@gmail.com",
 //   "password": "1234",
