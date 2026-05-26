@@ -1,28 +1,45 @@
 import { useEffect, useState } from "react";
 import { useIngredientes } from "../../context/IngredienteContext";
-import type { IngredienteCreate } from "../../models/Ingrediente";
-import { useNavigate } from "react-router-dom";
+import type {
+  IngredienteCreate,
+  IngredienteRead,
+} from "../../models/Ingrediente";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface FormularioState {
   nombre: string;
   descripcion: string;
   es_alergeno: boolean;
+  unidad_medida: string;
+  stock: number;
+  precio: number;
 }
 
 const initialState: FormularioState = {
   nombre: "",
   descripcion: "",
   es_alergeno: false,
+  stock: 0,
+  unidad_medida: "",
+  precio: 0,
 };
 
 export function IngredienteFormulario() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [formulario, setFormulario] = useState<FormularioState>(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState<string>("");
 
-  const { agregar, editar, ingredienteEditar } = useIngredientes();
+  const { agregar, editar, ingredienteEditar, cargarIngrediente } =
+    useIngredientes();
+
+  useEffect(() => {
+    if (id) {
+      cargarIngrediente(Number(id));
+    }
+  }, []);
 
   useEffect(() => {
     if (ingredienteEditar) {
@@ -30,6 +47,9 @@ export function IngredienteFormulario() {
         nombre: ingredienteEditar.nombre,
         descripcion: ingredienteEditar.descripcion,
         es_alergeno: ingredienteEditar.es_alergeno,
+        unidad_medida: ingredienteEditar.unidad_medida,
+        stock: Number(ingredienteEditar.stock),
+        precio: Number(ingredienteEditar.precio),
       });
     }
   }, [ingredienteEditar]);
@@ -72,12 +92,15 @@ export function IngredienteFormulario() {
 
     if (!validarErrores()) return;
 
-    const participante = obtenerParticipante();
+    const ingrediente = obtenerIngrediente();
     try {
       if (ingredienteEditar) {
-        await editar({ ...participante, id: ingredienteEditar.id });
+        await editar({
+          ...ingrediente,
+          id: ingredienteEditar.id,
+        });
       } else {
-        await agregar(participante);
+        await agregar(ingrediente);
       }
 
       navigate("/ingredientes/");
@@ -106,13 +129,17 @@ export function IngredienteFormulario() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const obtenerParticipante = (): IngredienteCreate => {
-    const { nombre, descripcion, es_alergeno } = formulario;
+  const obtenerIngrediente = (): IngredienteCreate => {
+    const { nombre, descripcion, es_alergeno, precio, stock, unidad_medida } =
+      formulario;
 
     return {
       nombre,
       descripcion,
       es_alergeno,
+      precio: String(precio),
+      stock: String(stock),
+      unidad_medida,
     };
   };
 
@@ -186,6 +213,80 @@ export function IngredienteFormulario() {
                   <p className="mt-1 text-sm text-red-500">
                     {errores.descripcion}
                   </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Unidad de medida
+                </label>
+                <select
+                  name="unidad_medida"
+                  id="unidad_medida"
+                  value={formulario.unidad_medida}
+                  onChange={handleChange}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition
+                  ${
+                    errores.unidad_medida
+                      ? "border-red-500 bg-red-50"
+                      : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  }`}
+                >
+                  <option value="unidad">Unidad</option>
+                  <option value="kg">Kilogramos</option>
+                  <option value="lts">Litros</option>
+                </select>
+
+                {errores.unidad_medida && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errores.unidad_medida}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Precio
+                </label>
+                <input
+                  id="precio"
+                  name="precio"
+                  value={formulario.precio}
+                  type="number"
+                  onChange={handleChange}
+                  placeholder="Ingrese un precio"
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition
+                  ${
+                    errores.precio
+                      ? "border-red-500 bg-red-50"
+                      : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  }`}
+                />
+                {errores.precio && (
+                  <p className="mt-1 text-sm text-red-500">{errores.precio}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Stock
+                </label>
+                <input
+                  id="stock"
+                  name="stock"
+                  value={formulario.stock}
+                  type="number"
+                  onChange={handleChange}
+                  placeholder="Ingrese stock"
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition
+                  ${
+                    errores.stock
+                      ? "border-red-500 bg-red-50"
+                      : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  }`}
+                />
+                {errores.stock && (
+                  <p className="mt-1 text-sm text-red-500">{errores.stock}</p>
                 )}
               </div>
 

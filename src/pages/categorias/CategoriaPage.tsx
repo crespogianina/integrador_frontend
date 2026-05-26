@@ -16,6 +16,14 @@ const columnasCategoria: Column<CategoriaRead>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripción", accessor: "descripcion" },
   {
+    header: "Categoria padre",
+    accessor: "parent_id",
+    customLabelFn: (parentId: number, categorias: CategoriaRead[]) => {
+      const categoriaPadre = categorias?.find((c) => c.id === parentId)?.nombre;
+      return categoriaPadre || "-";
+    },
+  },
+  {
     header: "Activo",
     accessor: "activo",
     customLabelFn: (activo: boolean) => (activo ? "Activo" : "Inactivo"),

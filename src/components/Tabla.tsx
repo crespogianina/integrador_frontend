@@ -1,7 +1,8 @@
 export type Column<T> = {
   header: string;
   accessor: keyof T;
-  customLabelFn?: (columnValue: any) => any;
+  customLabelFn?: (columnValue: any, tableData: T[]) => any;
+  children?: Column<T>[];
 };
 
 type TablaProps<T> = {
@@ -92,7 +93,7 @@ export default function Tabla<T>({
                     className="px-4 py-3 text-slate-600"
                   >
                     {column.customLabelFn
-                      ? column.customLabelFn(item[column.accessor])
+                      ? column.customLabelFn(item[column.accessor], data)
                       : String(item[column.accessor])}
                   </td>
                 ))}

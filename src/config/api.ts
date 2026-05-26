@@ -1,4 +1,3 @@
-// config/api.ts
 export const API_BASE = "http://localhost:8000";
 
 type LogoutFn = () => void;

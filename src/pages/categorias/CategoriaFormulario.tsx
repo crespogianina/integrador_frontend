@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useCategorias } from "../../context/CategoriaContext";
 import type { CategoriaCreate } from "../../models/Categoria";
 import CategoriaSelectorArbol from "../../components/SelectorCategoria";
@@ -16,6 +16,7 @@ const initialState: {
 
 export default function CategoriaFormulario() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const {
     agregar,
@@ -24,6 +25,7 @@ export default function CategoriaFormulario() {
     setCategoriaEditar,
     categoriasArbol,
     cargarCategoriasArbol,
+    cargarCategoria,
   } = useCategorias();
 
   const [formulario, setFormulario] = useState(initialState);
@@ -32,6 +34,9 @@ export default function CategoriaFormulario() {
 
   useEffect(() => {
     cargarCategoriasArbol();
+    if (id) {
+      cargarCategoria(Number(id));
+    }
   }, []);
 
   useEffect(() => {
@@ -180,7 +185,18 @@ export default function CategoriaFormulario() {
                 </p>
 
                 <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200 p-3">
-                  {categoriasArbol.length ? (
+                  {categoriasArbol.length === 0 ? (
+                    <p className="text-sm text-slate-400">
+                      Cargando categorías...
+                    </p>
+                  ) : categoriasArbol.every(
+                      (c) => c.id === categoriaEditar?.id,
+                    ) ? (
+                    <p className="text-sm text-slate-400">
+                      No hay otras categorías disponibles para asignar como
+                      padre.
+                    </p>
+                  ) : (
                     <CategoriaSelectorArbol
                       categorias={categoriasArbol}
                       selectedId={formulario.parent_id}
@@ -189,7 +205,7 @@ export default function CategoriaFormulario() {
                         setFormulario((prev) => ({ ...prev, parent_id: id }))
                       }
                     />
-                  ) : null}
+                  )}
                 </div>
               </div>
             </div>

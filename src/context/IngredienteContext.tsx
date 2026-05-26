@@ -7,8 +7,7 @@ import {
 } from "react";
 import type { IngredienteRead, IngredienteCreate } from "../models/Ingrediente";
 import { IngredientesReducer } from "../reducers/ingredienteReducer";
-import { API_BASE } from "../config/api";
-import { useAuth } from "./AuthContext";
+import { API_BASE, apiFetch } from "../config/api";
 
 export interface ListaIngrediente {
   data: IngredienteRead[];
@@ -18,6 +17,7 @@ export interface ListaIngrediente {
 interface ContextType {
   ingredientes: IngredienteRead[];
   total: number;
+  cargarIngrediente: (id: number) => void;
   agregar: (i: IngredienteCreate) => void;
   cargarIngredientes: (
     page: number,
@@ -45,7 +45,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   const [total, setTotal] = useState(0);
 
   async function agregar(data: IngredienteCreate) {
-    const res = await fetch(INGREDIENTES_PATH, {
+    const res = await apiFetch(INGREDIENTES_PATH, {
       method: "POST",
       credentials: "include",
       body: JSON.stringify(data),
@@ -63,7 +63,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   }
 
   async function resetear() {
-    await fetch(INGREDIENTES_PATH, {
+    await apiFetch(INGREDIENTES_PATH, {
       method: "DELETE",
       credentials: "include",
     });
@@ -71,7 +71,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   }
 
   async function editar(data: IngredienteRead) {
-    const res = await fetch(`${INGREDIENTES_PATH}${data.id}`, {
+    const res = await apiFetch(`${INGREDIENTES_PATH}${data.id}`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -88,6 +88,15 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
 
     dispatch({ type: "EDITAR", payload: actualizado });
     setIngredienteEditar(null);
+  }
+
+  async function cargarIngrediente(id: number) {
+    const res = await apiFetch(`${INGREDIENTES_PATH}${id}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Error al cargar el ingrediente");
+    const data: IngredienteRead = await res.json();
+    setIngredienteEditar(data);
   }
 
   async function cargarIngredientes(
@@ -116,7 +125,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       params.append("descripcion", descripcion.trim());
     }
 
-    const res = await fetch(`${INGREDIENTES_PATH}?${params.toString()}`, {
+    const res = await apiFetch(`${INGREDIENTES_PATH}?${params.toString()}`, {
       credentials: "include",
     });
 
@@ -131,7 +140,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   }
 
   async function activar(id: number) {
-    const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
+    const res = await apiFetch(`${INGREDIENTES_PATH}${id}`, {
       method: "POST",
       credentials: "include",
     });
@@ -145,7 +154,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   }
 
   async function desactivar(id: number) {
-    const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
+    const res = await apiFetch(`${INGREDIENTES_PATH}${id}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -167,6 +176,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
         agregar,
         resetear,
         editar,
+        cargarIngrediente,
         ingredienteEditar,
         cargarIngredientes,
         setIngredienteEditar,

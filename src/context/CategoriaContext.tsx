@@ -11,6 +11,7 @@ import type {
   CategoriaTreeRead,
 } from "../models/Categoria";
 import { CategoriasReducer } from "../reducers/categoriaReducer";
+import { apiFetch } from "../config/api";
 export interface ListaCategoria {
   data: CategoriaRead[];
   total: number;
@@ -19,6 +20,7 @@ export interface ListaCategoria {
 interface ContextType {
   categorias: CategoriaRead[];
   categoriasArbol: CategoriaTreeRead[];
+  cargarCategoria: (id: number) => void;
   total: number;
   agregar: (i: CategoriaCreate) => void;
   cargarCategorias: (
@@ -52,7 +54,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   );
 
   async function agregar(data: CategoriaCreate) {
-    const res = await fetch(API, {
+    const res = await apiFetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -71,12 +73,12 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   }
 
   async function resetear() {
-    await fetch(API, { method: "DELETE", credentials: "include" });
+    await apiFetch(API, { method: "DELETE", credentials: "include" });
     dispatch({ type: "RESET", payload: [] });
   }
 
   async function editar(data: CategoriaRead) {
-    const res = await fetch(`${API}${data.id}`, {
+    const res = await apiFetch(`${API}${data.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -98,7 +100,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   async function cargarCategoriasArbol() {
     setCargandoArbol(true);
     try {
-      const res = await fetch(`${API}tree`, { credentials: "include" });
+      const res = await apiFetch(`${API}tree`, { credentials: "include" });
       if (!res.ok) throw new Error("Error al cargar árbol de categorías");
       const data: CategoriaTreeRead[] = await res.json();
       setCategoriasArbol(data);
@@ -128,7 +130,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
       params.append("descripcion", descripcion.trim());
     }
 
-    const res = await fetch(`${API}?${params.toString()}`, {
+    const res = await apiFetch(`${API}?${params.toString()}`, {
       credentials: "include",
     });
 
@@ -140,6 +142,13 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
 
     dispatch({ type: "SET", payload: data.data });
     setTotal(data.total);
+  }
+
+  async function cargarCategoria(id: number) {
+    const res = await apiFetch(`${API}${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Error al cargar la categoría");
+    const data: CategoriaRead = await res.json();
+    setCategoriaEditar(data);
   }
 
   async function activar(id: number) {
@@ -175,6 +184,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
       value={{
         categorias: state,
         categoriasArbol,
+        cargarCategoria,
         agregar,
         resetear,
         editar,

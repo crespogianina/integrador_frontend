@@ -11,6 +11,7 @@ import type {
   ProductoRead,
   ProductoUpdate,
 } from "../models/Producto";
+import { apiFetch } from "../config/api";
 export interface ListaProducto {
   data: ProductoRead[];
   total: number;
@@ -48,7 +49,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   const [total, setTotal] = useState(0);
 
   async function agregar(data: ProductoCreate) {
-    const res = await fetch(API, {
+    const res = await apiFetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -65,7 +66,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   }
 
   async function eliminar(id: number) {
-    const res = await fetch(`${API}${id}`, {
+    const res = await apiFetch(`${API}${id}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -79,12 +80,12 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   }
 
   async function resetear() {
-    await fetch(API, { method: "DELETE", credentials: "include" });
+    await apiFetch(API, { method: "DELETE", credentials: "include" });
     dispatch({ type: "RESET", payload: [] });
   }
 
   async function editar(data: ProductoUpdate) {
-    const res = await fetch(`${API}${data.id}`, {
+    const res = await apiFetch(`${API}${data.id}`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -103,7 +104,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   }
 
   async function activar(id: number) {
-    const res = await fetch(`${API}${id}/activar`, {
+    const res = await apiFetch(`${API}${id}/activar`, {
       method: "PATCH",
       credentials: "include",
     });
@@ -117,7 +118,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   }
 
   async function desactivar(id: number) {
-    const res = await fetch(`${API}${id}/desactivar`, {
+    const res = await apiFetch(`${API}${id}/desactivar`, {
       method: "PATCH",
       credentials: "include",
     });
@@ -156,7 +157,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
       params.append("disponible", disponible.trim());
     }
 
-    const res = await fetch(`${API}?${params.toString()}`, {
+    const res = await apiFetch(`${API}?${params.toString()}`, {
       credentials: "include",
     });
 

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useProductos } from "../../context/ProductoContext";
 import { useCategorias } from "../../context/CategoriaContext";
 import { useIngredientes } from "../../context/IngredienteContext";
-import type { ProductoCreate, ProductoRead } from "../../models/Producto";
+import type { ProductoRead } from "../../models/Producto";
 import { apiFetch } from "../../config/api";
 import type { ProductoIngredienteItem } from "./ProductoIngredienteFormulario";
 import ProductoIngredienteFormulario from "./ProductoIngredienteFormulario";
@@ -17,6 +17,7 @@ const initialState = {
   precio_base: "",
   stock_cantidad: "",
   disponible: true,
+  es_producto_final: false,
   imagenes_url: [] as string[],
   categorias: [] as number[],
   categoriaPrincipal: "",
@@ -34,6 +35,13 @@ export default function ProductoFormulario() {
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState("");
+
+  const precioSugerido =
+    formulario.ingredientes.reduce((total, item) => {
+      const ing = ingredientes.find((i) => i.id === item.ingrediente_id);
+      if (!ing) return total;
+      return total + Number(ing.precio) * Number(item.cantidad);
+    }, 0) * 1.3;
 
   useEffect(() => {
     cargarCategoriasArbol();
@@ -70,6 +78,7 @@ export default function ProductoFormulario() {
           precio_base: String(producto.precio_base ?? ""),
           stock_cantidad: String(producto.stock_cantidad ?? ""),
           disponible: producto.disponible ?? true,
+          es_producto_final: producto.es_producto_final,
           imagenes_url: producto.imagenes_url ?? [],
           categorias: producto.categorias?.map((c) => c.id) ?? [],
           categoriaPrincipal:
@@ -80,6 +89,7 @@ export default function ProductoFormulario() {
             producto.ingredientes?.map((i) => ({
               ingrediente_id: i.id,
               es_removible: i.es_removible,
+              cantidad: i.cantidad,
             })) ?? [],
         });
       } catch (error) {
@@ -110,10 +120,12 @@ export default function ProductoFormulario() {
     }));
   };
 
-  const handleDisponible = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProductoFinal = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(formulario.es_producto_final);
+    console.log(e);
     setFormulario((prev) => ({
       ...prev,
-      disponible: e.target.checked,
+      es_producto_final: e.target.checked,
     }));
   };
 
@@ -181,8 +193,9 @@ export default function ProductoFormulario() {
         "Debe marcar una categoría como principal";
     }
 
-    if (formulario.ingredientes.length === 0) {
-      nuevosErrores.ingredientes = "Debe seleccionar al menos un ingrediente";
+    if (formulario.ingredientes.length === 0 && !formulario.es_producto_final) {
+      nuevosErrores.ingredientes =
+        "Debe agregar al menos un ingrediente o marcar al producto como consumo final";
     }
 
     setErrores(nuevosErrores);
@@ -191,15 +204,14 @@ export default function ProductoFormulario() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     if (!validarErrores()) return;
 
-    const payload: ProductoCreate = {
+    const payload = {
       nombre: formulario.nombre.trim(),
       descripcion: formulario.descripcion.trim(),
       precio_base: Number(formulario.precio_base),
       stock_cantidad: Number(formulario.stock_cantidad),
-      disponible: formulario.disponible,
+      es_producto_final: formulario.es_producto_final,
       imagenes_url: formulario.imagenes_url,
       categorias: formulario.categorias.map((categoriaId) => ({
         categoria_id: categoriaId,
@@ -279,6 +291,15 @@ export default function ProductoFormulario() {
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
 
+                  {formulario.ingredientes.length > 0 && (
+                    <p className="mt-1 text-sm text-slate-500">
+                      Precio sugerido (costo + 30%):
+                      <span className="ml-1 font-semibold text-blue-600">
+                        ${precioSugerido.toFixed(2)}
+                      </span>
+                    </p>
+                  )}
+
                   {errores.precio_base && (
                     <p className="mt-1 text-sm text-red-500">
                       {errores.precio_base}
@@ -332,11 +353,11 @@ export default function ProductoFormulario() {
                   <label className="flex w-fit items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                     <input
                       type="checkbox"
-                      checked={formulario.disponible}
-                      onChange={handleDisponible}
+                      checked={formulario.es_producto_final}
+                      onChange={handleProductoFinal}
                       className="h-4 w-4"
                     />
-                    Disponible
+                    Es un producto consumo final
                   </label>
                 </div>
               </div>
@@ -429,6 +450,12 @@ export default function ProductoFormulario() {
                 setFormulario((prev) => ({ ...prev, ingredientes: val }))
               }
             />
+
+            {errores.ingredientes && (
+              <p className="mt-1 text-sm text-red-500">
+                {errores.ingredientes}
+              </p>
+            )}
 
             <div className="sticky bottom-0 -mx-6 flex justify-end gap-3 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
               <button

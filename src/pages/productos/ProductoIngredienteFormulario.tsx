@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Tabla, { type Column } from "../../components/Tabla";
 
-type Ingrediente = {
+export type Ingrediente = {
   id: number;
   nombre: string;
 };
@@ -9,6 +9,7 @@ type Ingrediente = {
 export type ProductoIngredienteItem = {
   ingrediente_id: number;
   es_removible: boolean;
+  cantidad: number;
 };
 
 type Props = {
@@ -21,6 +22,7 @@ type Fila = {
   id: number;
   nombre: string;
   es_removible: boolean;
+  cantidad: number;
 };
 
 export default function ProductoIngrediente({
@@ -33,6 +35,7 @@ export default function ProductoIngrediente({
     number | null
   >(null);
   const [esRemovible, setEsRemovible] = useState(false);
+  const [cantidad, setCantidad] = useState(1);
 
   const columnas: Column<Fila>[] = [
     { header: "Nombre", accessor: "nombre" },
@@ -41,24 +44,33 @@ export default function ProductoIngrediente({
       accessor: "es_removible",
       customLabelFn: (val) => (val ? "✓ Sí" : "No"),
     },
+    { header: "Cantidad", accessor: "cantidad" },
   ];
 
-  const filas: Fila[] = value.map(({ ingrediente_id, es_removible }) => {
-    const ing = ingredientes.find((i) => i.id === ingrediente_id)!;
-    return { id: ing.id, nombre: ing.nombre, es_removible };
-  });
+  // ← cantidad viene del value, no del ingrediente
+  const filas: Fila[] = value.map(
+    ({ ingrediente_id, es_removible, cantidad }) => {
+      const ing = ingredientes.find((i) => i.id === ingrediente_id)!;
+      return { id: ing.id, nombre: ing.nombre, es_removible, cantidad };
+    },
+  );
 
   const cerrarModal = () => {
     setModalAbierto(false);
     setIngredienteSeleccionado(null);
     setEsRemovible(false);
+    setCantidad(1); // ← resetear cantidad
   };
 
   const handleAgregar = () => {
     if (ingredienteSeleccionado == null) return;
     onChange([
       ...value,
-      { ingrediente_id: ingredienteSeleccionado, es_removible: esRemovible },
+      {
+        ingrediente_id: ingredienteSeleccionado,
+        es_removible: esRemovible,
+        cantidad,
+      },
     ]);
     cerrarModal();
   };
@@ -93,7 +105,7 @@ export default function ProductoIngrediente({
             </h4>
 
             <label className="mb-1 block text-sm font-medium text-slate-700">
-              Producto
+              Ingrediente
             </label>
             <select
               value={ingredienteSeleccionado ?? ""}
@@ -116,6 +128,18 @@ export default function ProductoIngrediente({
                 ))}
             </select>
 
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Cantidad
+            </label>
+            <input
+              type="number"
+              min={0.001}
+              step={0.001}
+              value={cantidad}
+              onChange={(e) => setCantidad(Number(e.target.value))}
+              className="mb-4 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            />
+
             <label className="mb-5 flex items-center gap-2 text-sm font-medium text-slate-700">
               <input
                 type="checkbox"
@@ -130,7 +154,7 @@ export default function ProductoIngrediente({
               <button
                 type="button"
                 onClick={handleAgregar}
-                disabled={ingredienteSeleccionado == null}
+                disabled={ingredienteSeleccionado == null || cantidad <= 0}
                 className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Confirmar
