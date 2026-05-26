@@ -71,7 +71,6 @@ export default function ProductoFormulario() {
           stock_cantidad: String(producto.stock_cantidad ?? ""),
           disponible: producto.disponible ?? true,
           imagenes_url: producto.imagenes_url ?? [],
-
           categorias: producto.categorias?.map((c) => c.id) ?? [],
           categoriaPrincipal:
             producto.categorias?.find((c) => c.es_principal)?.id.toString() ??
@@ -180,6 +179,10 @@ export default function ProductoFormulario() {
     if (formulario.categorias.length > 0 && !formulario.categoriaPrincipal) {
       nuevosErrores.categoriaPrincipal =
         "Debe marcar una categoría como principal";
+    }
+
+    if (formulario.ingredientes.length === 0) {
+      nuevosErrores.ingredientes = "Debe seleccionar al menos un ingrediente";
     }
 
     setErrores(nuevosErrores);

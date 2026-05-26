@@ -19,12 +19,11 @@ const columns: Column<ProductoRead>[] = [
   { header: "Descripción", accessor: "descripcion" },
   { header: "Precio", accessor: "precio_base" },
   { header: "Stock", accessor: "stock_cantidad" },
-  { header: "Disponible", accessor: "disponible" },
   {
-    header: "Estado",
-    accessor: "activo",
-    customLabelFn: (estadoActivo: boolean) =>
-      estadoActivo ? "Activo" : "Inactivo",
+    header: "Disponible",
+    accessor: "disponible",
+    customLabelFn: (disponible: boolean) =>
+      disponible ? "Activo" : "Inactivo",
   },
 ];
 
@@ -36,7 +35,6 @@ export default function ProductoPage() {
 
   const {
     productos,
-    eliminar,
     setProductoEditar,
     cargarProductos,
     total,
@@ -92,7 +90,7 @@ export default function ProductoPage() {
     const timeout = setTimeout(() => {
       setFiltrosDebounced(filtros);
       setPaginaActual(1);
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, [filtros]);
@@ -123,21 +121,8 @@ export default function ProductoPage() {
     navigate("/productos/nuevo");
   };
 
-  const handleDelete = async (producto: ProductoRead) => {
-    try {
-      await eliminar(producto.id);
-    } catch (error) {
-      setErrorRequest(
-        error instanceof Error
-          ? error.message
-          : "Error al eliminar el producto",
-      );
-    }
-  };
-
   const customAction = (producto: ProductoRead) => {
-    console.log("Custom Action");
-    if (producto.activo) {
+    if (producto.disponible) {
       deactivateProduct(producto);
     } else {
       activateProduct(producto);
@@ -145,8 +130,6 @@ export default function ProductoPage() {
   };
 
   const activateProduct = async (producto: ProductoRead) => {
-    console.log("Activar producto", producto.nombre);
-
     try {
       await activar(producto.id);
     } catch (error) {
@@ -157,8 +140,6 @@ export default function ProductoPage() {
   };
 
   const deactivateProduct = async (producto: ProductoRead) => {
-    console.log("Desactivar producto", producto.nombre);
-
     try {
       await desactivar(producto.id);
     } catch (error) {
@@ -171,7 +152,7 @@ export default function ProductoPage() {
   };
 
   const getCustomActionLabel = (producto: ProductoRead): string => {
-    return producto.activo ? "Desactivar" : "Activar";
+    return producto.disponible ? "Desactivar" : "Activar";
   };
 
   return (
@@ -195,7 +176,7 @@ export default function ProductoPage() {
               getRowId={(producto) => producto.id}
               onAdd={puedeModificar ? handleCreate : undefined}
               onEdit={puedeModificar ? handleEdit : undefined}
-              onDelete={puedeModificar ? handleDelete : undefined}
+              showEditButtonCondition={(producto) => producto.disponible}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual((p) => p - 1)}

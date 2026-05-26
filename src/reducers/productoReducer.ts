@@ -32,7 +32,7 @@ export function ProductosReducer(
         case "ACTIVAR":
             return state.map((producto) => {
                 if (producto.id === action.payload) {
-                    producto.activo = true;
+                    producto.disponible = true;
                 }
 
                 return producto;
@@ -42,7 +42,7 @@ export function ProductosReducer(
         case "DESACTIVAR":
             return state.map((producto) => {
                 if (producto.id === action.payload) {
-                    producto.activo = false;
+                    producto.disponible = false;
                 }
 
                 return producto;

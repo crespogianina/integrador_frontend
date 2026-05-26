@@ -14,6 +14,7 @@ type TablaProps<T> = {
 
   onAdd?: () => void;
   onEdit?: (item: T) => void;
+  showEditButtonCondition?: (item: T) => boolean;
   onDelete?: (item: T) => void;
 
   page: number;
@@ -36,6 +37,7 @@ export default function Tabla<T>({
   emptyMessage = "No se encontraron datos.",
   onAdd,
   onEdit,
+  showEditButtonCondition = () => true,
   onDelete,
   page,
   totalPages,
@@ -98,7 +100,7 @@ export default function Tabla<T>({
                 {(onEdit || onDelete) && (
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      {onEdit && (
+                      {onEdit && showEditButtonCondition(item) && (
                         <button
                           type="button"
                           onClick={() => onEdit(item)}

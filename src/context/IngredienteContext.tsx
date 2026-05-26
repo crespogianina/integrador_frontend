@@ -26,11 +26,12 @@ interface ContextType {
     nombre?: string,
     descripcion?: string,
   ) => void;
-  eliminar: (id: number) => void;
   resetear: () => void;
   editar: (i: IngredienteRead) => void;
   ingredienteEditar: IngredienteRead | null;
   setIngredienteEditar: (i: IngredienteRead | null) => void;
+  activar: (id: number) => void;
+  desactivar: (id: number) => void;
 }
 
 const INGREDIENTES_PATH = `${API_BASE}/ingredientes/`;
@@ -38,7 +39,6 @@ const INGREDIENTES_PATH = `${API_BASE}/ingredientes/`;
 const IngredienteContext = createContext<ContextType | null>(null);
 
 export function IngredientesProvider({ children }: { children: ReactNode }) {
-  const { token } = useAuth();
   const [state, dispatch] = useReducer(IngredientesReducer, []);
   const [ingredienteEditar, setIngredienteEditar] =
     useState<IngredienteRead | null>(null);
@@ -49,6 +49,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       method: "POST",
       credentials: "include",
       body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
     });
 
     if (!res.ok) {
@@ -59,21 +60,6 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
 
     const nuevo: IngredienteRead = await res.json();
     dispatch({ type: "AGREGAR", payload: nuevo });
-  }
-
-  async function eliminar(id: number) {
-    const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-
-      throw new Error(errorData?.detail || "Error al eliminar el ingrediente");
-    }
-
-    dispatch({ type: "ELIMINAR", payload: id });
   }
 
   async function resetear() {
@@ -88,6 +74,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     const res = await fetch(`${INGREDIENTES_PATH}${data.id}`, {
       method: "PUT",
       credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
@@ -143,18 +130,49 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     setTotal(data.total);
   }
 
+  async function activar(id: number) {
+    const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al activar el ingrediente");
+    }
+
+    dispatch({ type: "ACTIVAR", payload: id });
+  }
+
+  async function desactivar(id: number) {
+    const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(
+        errorData?.detail || "Error al desactivar el ingrediente",
+      );
+    }
+
+    dispatch({ type: "DESACTIVAR", payload: id });
+  }
+
   return (
     <IngredienteContext.Provider
       value={{
         ingredientes: state,
         agregar,
-        eliminar,
         resetear,
         editar,
         ingredienteEditar,
         cargarIngredientes,
         setIngredienteEditar,
         total,
+        activar,
+        desactivar,
       }}
     >
       {children}

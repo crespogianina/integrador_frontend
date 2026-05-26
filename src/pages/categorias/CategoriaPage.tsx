@@ -15,7 +15,11 @@ const initialFiltros = {
 const columnasCategoria: Column<CategoriaRead>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripción", accessor: "descripcion" },
-  { header: "Activo", accessor: "activo" },
+  {
+    header: "Activo",
+    accessor: "activo",
+    customLabelFn: (activo: boolean) => (activo ? "Activo" : "Inactivo"),
+  },
 ];
 
 export default function CategoriaPage() {
@@ -24,8 +28,14 @@ export default function CategoriaPage() {
   const { hasRol } = useAuth();
   const puedeModificar = hasRol("ADMIN");
 
-  const { categorias, eliminar, setCategoriaEditar, cargarCategorias, total } =
-    useCategorias();
+  const {
+    categorias,
+    setCategoriaEditar,
+    cargarCategorias,
+    total,
+    activar,
+    desactivar,
+  } = useCategorias();
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
@@ -65,7 +75,7 @@ export default function CategoriaPage() {
     const timeout = setTimeout(() => {
       setFiltrosDebounced(filtros);
       setPaginaActual(1);
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, [filtros]);
@@ -89,14 +99,38 @@ export default function CategoriaPage() {
     navigate("/categorias/nuevo");
   };
 
-  const handleDelete = async (categoria: CategoriaRead) => {
+  const getCustomActionLabel = (categoria: CategoriaRead): string => {
+    return categoria.activo ? "Desactivar" : "Activar";
+  };
+
+  const customAction = (categoria: CategoriaRead) => {
+    if (categoria.activo) {
+      deactivateProduct(categoria);
+    } else {
+      activateProduct(categoria);
+    }
+  };
+
+  const activateProduct = async (categoria: CategoriaRead) => {
     try {
-      await eliminar(categoria.id);
+      await activar(categoria.id);
     } catch (error) {
       setErrorRequest(
         error instanceof Error
           ? error.message
-          : "Error al eliminar la categoría",
+          : "Error al activar el categoria",
+      );
+    }
+  };
+
+  const deactivateProduct = async (categoria: CategoriaRead) => {
+    try {
+      await desactivar(categoria.id);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al desactivar el categoria",
       );
     }
   };
@@ -121,12 +155,16 @@ export default function CategoriaPage() {
             getRowId={(c) => c.id}
             onAdd={puedeModificar ? handleCreate : undefined}
             onEdit={puedeModificar ? handleEdit : undefined}
-            onDelete={puedeModificar ? handleDelete : undefined}
+            showEditButtonCondition={(categoria) => categoria?.activo ?? true}
             page={paginaActual}
             totalPages={totalPaginas}
             onPrevious={() => setPaginaActual(paginaActual - 1)}
             onNext={() => setPaginaActual(paginaActual + 1)}
             onPageChange={setPaginaActual}
+            customAction={{
+              label: getCustomActionLabel,
+              actionCallback: customAction,
+            }}
           />
         </section>
 

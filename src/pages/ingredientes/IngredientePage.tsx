@@ -17,7 +17,11 @@ const columns: Column<IngredienteRead>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripción", accessor: "descripcion" },
   { header: "Alérgeno", accessor: "es_alergeno" },
-  { header: "Activo", accessor: "activo" },
+  {
+    header: "Activo",
+    accessor: "activo",
+    customLabelFn: (activo: boolean) => (activo ? "Activo" : "Inactivo"),
+  },
 ];
 
 export default function IngredientePage() {
@@ -28,10 +32,11 @@ export default function IngredientePage() {
 
   const {
     ingredientes,
-    eliminar,
     setIngredienteEditar,
     cargarIngredientes,
     total,
+    activar,
+    desactivar,
   } = useIngredientes();
 
   const [filtros, setFiltros] = useState(initialFiltros);
@@ -82,7 +87,7 @@ export default function IngredientePage() {
     const timeout = setTimeout(() => {
       setFiltrosDebounced(filtros);
       setPaginaActual(1);
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, [filtros]);
@@ -112,14 +117,38 @@ export default function IngredientePage() {
     navigate("/ingredientes/nuevo");
   };
 
-  const handleDelete = async (ingrediente: IngredienteRead) => {
+  const getCustomActionLabel = (ingrediente: IngredienteRead): string => {
+    return ingrediente.activo ? "Desactivar" : "Activar";
+  };
+
+  const customAction = (ingrediente: IngredienteRead) => {
+    if (ingrediente.activo) {
+      deactivateProduct(ingrediente);
+    } else {
+      activateProduct(ingrediente);
+    }
+  };
+
+  const activateProduct = async (ingrediente: IngredienteRead) => {
     try {
-      await eliminar(ingrediente.id);
+      await activar(ingrediente.id);
     } catch (error) {
       setErrorRequest(
         error instanceof Error
           ? error.message
-          : "Error al eliminar el ingrediente",
+          : "Error al activar el ingrediente",
+      );
+    }
+  };
+
+  const deactivateProduct = async (ingrediente: IngredienteRead) => {
+    try {
+      await desactivar(ingrediente.id);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al desactivar el ingrediente",
       );
     }
   };
@@ -145,12 +174,16 @@ export default function IngredientePage() {
               getRowId={(i) => i.id}
               onAdd={puedeModificar ? handleCreate : undefined}
               onEdit={puedeModificar ? handleEdit : undefined}
-              onDelete={puedeModificar ? handleDelete : undefined}
+              showEditButtonCondition={(ingrediente) => ingrediente.activo}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual((p) => p - 1)}
               onNext={() => setPaginaActual((p) => p + 1)}
               onPageChange={setPaginaActual}
+              customAction={{
+                label: getCustomActionLabel,
+                actionCallback: customAction,
+              }}
             />
           </section>
         </div>

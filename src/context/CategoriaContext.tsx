@@ -27,12 +27,13 @@ interface ContextType {
     nombre?: string,
     descripcion?: string,
   ) => void;
-  eliminar: (id: number) => void;
   resetear: () => void;
   editar: (i: CategoriaRead) => void;
   categoriaEditar: CategoriaRead | null;
   setCategoriaEditar: (i: CategoriaRead | null) => void;
   cargarCategoriasArbol: () => void;
+  activar: (id: number) => void;
+  desactivar: (id: number) => void;
 }
 
 const API = "http://localhost:8000/categorias/";
@@ -44,6 +45,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   const [categoriaEditar, setCategoriaEditar] = useState<CategoriaRead | null>(
     null,
   );
+  const [cargandoArbol, setCargandoArbol] = useState(false);
   const [total, setTotal] = useState(0);
   const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
     [],
@@ -66,21 +68,6 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     const nuevo: CategoriaRead = await res.json();
 
     dispatch({ type: "AGREGAR", payload: nuevo });
-  }
-
-  async function eliminar(id: number) {
-    const res = await fetch(`${API}${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-
-      throw new Error(errorData?.detail || "Error al eliminar la categoría");
-    }
-
-    dispatch({ type: "ELIMINAR", payload: id });
   }
 
   async function resetear() {
@@ -109,14 +96,15 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   }
 
   async function cargarCategoriasArbol() {
-    const res = await fetch(`${API}tree`, { credentials: "include" });
-
-    if (!res.ok) {
-      throw new Error("Error al cargar árbol de categorías");
+    setCargandoArbol(true);
+    try {
+      const res = await fetch(`${API}tree`, { credentials: "include" });
+      if (!res.ok) throw new Error("Error al cargar árbol de categorías");
+      const data: CategoriaTreeRead[] = await res.json();
+      setCategoriasArbol(data);
+    } finally {
+      setCargandoArbol(false);
     }
-
-    const data: CategoriaTreeRead[] = await res.json();
-    setCategoriasArbol(data);
   }
 
   async function cargarCategorias(
@@ -154,13 +142,40 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     setTotal(data.total);
   }
 
+  async function activar(id: number) {
+    const res = await fetch(`${API}${id}/activar`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al activar la categoria");
+    }
+
+    dispatch({ type: "ACTIVAR", payload: id });
+  }
+
+  async function desactivar(id: number) {
+    const res = await fetch(`${API}${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al desactivar la categoria");
+    }
+
+    dispatch({ type: "DESACTIVAR", payload: id });
+  }
+
   return (
     <CategoriaContext.Provider
       value={{
         categorias: state,
         categoriasArbol,
         agregar,
-        eliminar,
         resetear,
         editar,
         categoriaEditar,
@@ -168,6 +183,8 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
         setCategoriaEditar,
         cargarCategoriasArbol,
         total,
+        activar,
+        desactivar,
       }}
     >
       {children}

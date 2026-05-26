@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCategorias } from "../../context/CategoriaContext";
 import type { CategoriaCreate } from "../../models/Categoria";
+import CategoriaSelectorArbol from "../../components/SelectorCategoria";
 
 const initialState: {
   nombre: string;
-  descripcion: string;
+  descripcion: string | null;
   parent_id: number | null;
 } = {
   nombre: "",
@@ -16,18 +17,28 @@ const initialState: {
 export default function CategoriaFormulario() {
   const navigate = useNavigate();
 
-  const { agregar, editar, categoriaEditar, setCategoriaEditar, categorias } =
-    useCategorias();
+  const {
+    agregar,
+    editar,
+    categoriaEditar,
+    setCategoriaEditar,
+    categoriasArbol,
+    cargarCategoriasArbol,
+  } = useCategorias();
 
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState<string>("");
 
   useEffect(() => {
+    cargarCategoriasArbol();
+  }, []);
+
+  useEffect(() => {
     if (categoriaEditar) {
       setFormulario({
         nombre: categoriaEditar.nombre,
-        descripcion: categoriaEditar.descripcion,
+        descripcion: categoriaEditar?.descripcion || null,
         parent_id: categoriaEditar.parent_id || null,
       });
     }
@@ -66,7 +77,7 @@ export default function CategoriaFormulario() {
       nuevosErrores.nombre = "El nombre es obligatorio";
     }
 
-    if (!formulario.descripcion.trim()) {
+    if (!formulario.descripcion || !formulario.descripcion.trim()) {
       nuevosErrores.descripcion = "La descripción es obligatoria";
     }
 
@@ -145,7 +156,7 @@ export default function CategoriaFormulario() {
                 </label>
                 <input
                   name="descripcion"
-                  value={formulario.descripcion}
+                  value={formulario.descripcion || ""}
                   onChange={handleChange}
                   placeholder="Ingrese una descripción"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
@@ -157,27 +168,29 @@ export default function CategoriaFormulario() {
                 )}
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Categoría Principal
+                  Categoría padre
                 </label>
 
-                <select
-                  name="parent_id"
-                  value={formulario.parent_id ?? ""}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                >
-                  <option value="">Sin categoría padre</option>
+                <p className="mb-3 text-xs text-slate-400">
+                  {formulario.parent_id
+                    ? `Seleccionada: ID ${formulario.parent_id}`
+                    : "Sin categoría padre"}
+                </p>
 
-                  {categorias
-                    .filter((categoria) => categoria.id !== categoriaEditar?.id)
-                    .map((categoria) => (
-                      <option key={categoria.id} value={categoria.id}>
-                        {categoria.nombre}
-                      </option>
-                    ))}
-                </select>
+                <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200 p-3">
+                  {categoriasArbol.length ? (
+                    <CategoriaSelectorArbol
+                      categorias={categoriasArbol}
+                      selectedId={formulario.parent_id}
+                      excludeId={categoriaEditar?.id}
+                      onSelect={(id) =>
+                        setFormulario((prev) => ({ ...prev, parent_id: id }))
+                      }
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
 

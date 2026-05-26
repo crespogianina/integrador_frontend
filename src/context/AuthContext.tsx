@@ -2,10 +2,11 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
-import { API_BASE } from "../config/api";
+import { API_BASE, registerLogout } from "../config/api";
 import { parseUserFromJwt } from "../lib/jwtUser";
 import type { AuthUser, LoginForm, LoginResult, Rol } from "../types/auth";
 
@@ -178,6 +179,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
   }, []);
+
+  useEffect(() => {
+    registerLogout(logout);
+  }, [logout]);
 
   const rol = user?.roles[0] ?? null;
 
