@@ -39,18 +39,14 @@ function normalizeApiUser(raw: unknown): AuthUser | null {
   const data = raw as Record<string, unknown>;
 
   const id = typeof data.id === "number" ? data.id : null;
-  const email = typeof data.email === "string" ? data.email : null;
-  const rol = data.rol;
+  const username = typeof data.username === "string" ? data.username : null;
+  const roles = Array.isArray(data.roles) ? data.roles.filter(isRol) : [];
 
-  if (id === null || email === null || !isRol(rol)) {
+  if (id === null || username === null || roles.length === 0) {
     return null;
   }
 
-  return {
-    id,
-    email,
-    rol,
-  };
+  return { id, username, roles };
 }
 
 function saveAuth(token: string, user: AuthUser): void {
@@ -130,56 +126,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (form: LoginForm): Promise<LoginResult> => {
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
+      const body = new URLSearchParams({
+        username: form.username,
+        password: form.password,
+      });
+
+      const response = await fetch(`${API_BASE}/usuario/token`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        credentials: "include",
+        body: body.toString(),
       });
 
       if (!response.ok) {
-        return {
-          ok: false,
-          message: await getErrorMessage(response),
-        };
+        return { ok: false, message: await getErrorMessage(response) };
       }
 
       const data = await response.json();
-
       const accessToken = data.access_token ?? data.token;
 
       if (!accessToken || typeof accessToken !== "string") {
-        return {
-          ok: false,
-          message: "Respuesta del servidor sin token",
-        };
+        return { ok: false, message: "Respuesta del servidor sin token" };
       }
 
-      const nextUser =
-        normalizeApiUser(data.user) ?? parseUserFromJwt(accessToken);
+      const meResponse = await fetch(`${API_BASE}/usuario/me`, {
+        credentials: "include",
+      });
+
+      if (!meResponse.ok) {
+        return { ok: false, message: "No se pudo obtener el usuario" };
+      }
+
+      const nextUser = normalizeApiUser(await meResponse.json());
 
       if (!nextUser) {
-        return {
-          ok: false,
-          message: "No se pudo leer el usuario",
-        };
+        return { ok: false, message: "No se pudo leer el usuario" };
       }
 
       saveAuth(accessToken, nextUser);
-
       setToken(accessToken);
       setUser(nextUser);
 
       return { ok: true };
     } catch {
-      return {
-        ok: false,
-        message: "No se pudo conectar con el servidor",
-      };
+      return { ok: false, message: "No se pudo conectar con el servidor" };
     }
   }, []);
 
@@ -189,19 +179,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
-  const rol = user?.rol ?? null;
-  const isAuthenticated = Boolean(user && token);
+  const rol = user?.roles[0] ?? null;
 
   const hasRol = useCallback(
     (roles: Rol | Rol[]): boolean => {
       if (!user) return false;
-
       const rolesPermitidos = Array.isArray(roles) ? roles : [roles];
-
-      return rolesPermitidos.includes(user.rol);
+      return user.roles.some((r) => rolesPermitidos.includes(r));
     },
     [user],
   );
+
+  const isAuthenticated = Boolean(user && token);
 
   const value = useMemo<AuthContextType>(
     () => ({

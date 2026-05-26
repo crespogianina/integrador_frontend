@@ -6,11 +6,17 @@ import { useCategorias } from "../../context/CategoriaContext";
 import Filtros from "../../components/Filtros";
 import CardGrid from "../../components/CardGrid";
 import { useAuth } from "../../context/AuthContext";
+import Tabla, { type Column } from "../../components/Tabla";
 
 const initialFiltros = {
   nombre: "",
   descripcion: "",
 };
+
+const columnasCategoria: Column<CategoriaRead>[] = [
+  { header: "Nombre", accessor: "nombre" },
+  { header: "Descripción", accessor: "descripcion" },
+];
 
 export default function CategoriaPage() {
   const navigate = useNavigate();
@@ -83,9 +89,9 @@ export default function CategoriaPage() {
     navigate("/categorias/nuevo");
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (categoria: CategoriaRead) => {
     try {
-      await eliminar(id);
+      await eliminar(categoria.id);
     } catch (error) {
       setErrorRequest(
         error instanceof Error
@@ -98,52 +104,40 @@ export default function CategoriaPage() {
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
       <section className="mx-auto max-w-6xl space-y-6">
-        <div className="">
-          <section className="space-y-4">
-            <Filtros
-              filters={categoriasFiltros}
-              onChange={(name, value) =>
-                setFiltros((prev) => ({ ...prev, [name]: value }))
-              }
-              onClear={() => setFiltros(initialFiltros)}
-            />
+        <section className="space-y-4">
+          <Filtros
+            filters={categoriasFiltros}
+            onChange={(name, value) =>
+              setFiltros((prev) => ({ ...prev, [name]: value }))
+            }
+            onClear={() => setFiltros(initialFiltros)}
+          />
 
-            <CardGrid
-              title="Categorías"
-              total={total}
-              data={categorias || []}
-              getRowId={(c) => c.id}
-              getTitle={(c) => c.nombre}
-              getDescription={(c) => c.descripcion}
-              badge={(c) => (
-                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                  {c.parent_id === null ? "Principal" : "Subcategoría"}
-                </span>
-              )}
-              onAdd={puedeModificar ? handleCreate : undefined}
-              onEdit={puedeModificar ? handleEdit : undefined}
-              onDelete={
-                puedeModificar
-                  ? (categoria) => handleDelete(categoria.id)
-                  : undefined
-              }
-              page={paginaActual}
-              totalPages={totalPaginas}
-              onPrevious={() => setPaginaActual(paginaActual - 1)}
-              onNext={() => setPaginaActual(paginaActual + 1)}
-              onPageChange={setPaginaActual}
-            />
-          </section>
-        </div>
-      </section>
+          <Tabla
+            title="Categorías"
+            total={total}
+            data={categorias || []}
+            columns={columnasCategoria}
+            getRowId={(c) => c.id}
+            onAdd={puedeModificar ? handleCreate : undefined}
+            onEdit={puedeModificar ? handleEdit : undefined}
+            onDelete={puedeModificar ? handleDelete : undefined}
+            page={paginaActual}
+            totalPages={totalPaginas}
+            onPrevious={() => setPaginaActual(paginaActual - 1)}
+            onNext={() => setPaginaActual(paginaActual + 1)}
+            onPageChange={setPaginaActual}
+          />
+        </section>
 
-      {errorRequest && (
-        <div className="fixed bottom-10 right-5 z-50">
-          <div className="bg-red-500 text-white px-4 py-3 rounded-b-md shadow-lg animate-slide-in">
-            {errorRequest}
+        {errorRequest && (
+          <div className="fixed bottom-10 right-5 z-50">
+            <div className="animate-slide-in rounded-b-md bg-red-500 px-4 py-3 text-white shadow-lg">
+              {errorRequest}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </section>
     </main>
   );
 }

@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { IngredienteRead, IngredienteCreate } from "../models/Ingrediente";
 import { IngredientesReducer } from "../reducers/ingredienteReducer";
-import { API_BASE, jsonAuthHeaders } from "../config/api";
+import { API_BASE } from "../config/api";
 import { useAuth } from "./AuthContext";
 
 export interface ListaIngrediente {
@@ -47,7 +47,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   async function agregar(data: IngredienteCreate) {
     const res = await fetch(INGREDIENTES_PATH, {
       method: "POST",
-      headers: jsonAuthHeaders(token),
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -64,7 +64,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   async function eliminar(id: number) {
     const res = await fetch(`${INGREDIENTES_PATH}${id}`, {
       method: "DELETE",
-      headers: jsonAuthHeaders(token),
+      credentials: "include",
     });
 
     if (!res.ok) {
@@ -79,7 +79,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   async function resetear() {
     await fetch(INGREDIENTES_PATH, {
       method: "DELETE",
-      headers: jsonAuthHeaders(token),
+      credentials: "include",
     });
     dispatch({ type: "RESET", payload: [] });
   }
@@ -87,7 +87,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   async function editar(data: IngredienteRead) {
     const res = await fetch(`${INGREDIENTES_PATH}${data.id}`, {
       method: "PUT",
-      headers: jsonAuthHeaders(token),
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -129,7 +129,9 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       params.append("descripcion", descripcion.trim());
     }
 
-    const res = await fetch(`${INGREDIENTES_PATH}?${params.toString()}`);
+    const res = await fetch(`${INGREDIENTES_PATH}?${params.toString()}`, {
+      credentials: "include",
+    });
 
     if (!res.ok) {
       throw new Error("Error al cargar ingredientes");

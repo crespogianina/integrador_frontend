@@ -5,12 +5,20 @@ import { useNavigate } from "react-router-dom";
 import type { IngredienteRead } from "../../models/Ingrediente";
 import CardGrid from "../../components/CardGrid";
 import { useAuth } from "../../context/AuthContext";
+import type { Column } from "../../components/Tabla";
+import Tabla from "../../components/Tabla";
 
 const initialFiltros = {
   nombre: "",
   descripcion: "",
   es_alergeno: "",
 };
+
+const columns: Column<IngredienteRead>[] = [
+  { header: "Nombre", accessor: "nombre" },
+  { header: "Descripción", accessor: "descripcion" },
+  { header: "Alérgeno", accessor: "es_alergeno" },
+];
 
 export default function IngredientePage() {
   const navigate = useNavigate();
@@ -104,9 +112,9 @@ export default function IngredientePage() {
     navigate("/ingredientes/nuevo");
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (ingrediente: IngredienteRead) => {
     try {
-      await eliminar(id);
+      await eliminar(ingrediente.id);
     } catch (error) {
       setErrorRequest(
         error instanceof Error
@@ -129,35 +137,19 @@ export default function IngredientePage() {
               onClear={() => setFiltros(initialFiltros)}
             />
 
-            <CardGrid
+            <Tabla
               title="Ingredientes"
               total={total}
               data={ingredientes || []}
+              columns={columns}
               getRowId={(i) => i.id}
-              getTitle={(i) => i.nombre}
-              getDescription={(i) => i.descripcion}
-              badge={(i) =>
-                i.es_alergeno ? (
-                  <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                    Alérgeno
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                    No alérgeno
-                  </span>
-                )
-              }
               onAdd={puedeModificar ? handleCreate : undefined}
               onEdit={puedeModificar ? handleEdit : undefined}
-              onDelete={
-                puedeModificar
-                  ? (ingrediente) => handleDelete(ingrediente.id)
-                  : undefined
-              }
+              onDelete={puedeModificar ? handleDelete : undefined}
               page={paginaActual}
               totalPages={totalPaginas}
-              onPrevious={() => setPaginaActual(paginaActual - 1)}
-              onNext={() => setPaginaActual(paginaActual + 1)}
+              onPrevious={() => setPaginaActual((p) => p - 1)}
+              onNext={() => setPaginaActual((p) => p + 1)}
               onPageChange={setPaginaActual}
             />
           </section>

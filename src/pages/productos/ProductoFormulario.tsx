@@ -4,6 +4,7 @@ import { useProductos } from "../../context/ProductoContext";
 import { useCategorias } from "../../context/CategoriaContext";
 import { useIngredientes } from "../../context/IngredienteContext";
 import type { ProductoCreate, ProductoRead } from "../../models/Producto";
+import { apiFetch } from "../../config/api";
 
 const API_PRODUCTOS = "http://localhost:8000/productos";
 
@@ -52,7 +53,7 @@ export default function ProductoFormulario() {
 
     async function cargarProducto() {
       try {
-        const res = await fetch(`${API_PRODUCTOS}/${id}`);
+        const res = await apiFetch(`${API_PRODUCTOS}/${id}`);
 
         if (!res.ok) {
           const errorData = await res.json().catch(() => null);

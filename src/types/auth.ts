@@ -2,12 +2,12 @@ export type Rol = "ADMIN" | "CONSULTA";
 
 export type AuthUser = {
   id: number;
-  email: string;
-  rol: Rol;
+  username: string;
+  roles: Rol[];
 };
 
 export type LoginForm = {
-  email: string;
+  username: string;
   password: string;
 };
 

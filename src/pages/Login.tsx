@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import type { LoginForm } from "../types/auth";
 
 const initialStateLoginForm: LoginForm = {
-  email: "",
+  username: "",
   password: "",
 };
 
@@ -32,10 +32,8 @@ export default function Login() {
   const validarErrores = () => {
     const nuevosErrores: Record<string, string> = {};
 
-    if (!formulario.email?.length) {
-      nuevosErrores.email = "Debe ingresar un email";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulario.email)) {
-      nuevosErrores.email = "El email no es válido";
+    if (!formulario.username?.length) {
+      nuevosErrores.username = "Debe ingresar un username";
     }
 
     if (!formulario.password) {
@@ -55,7 +53,7 @@ export default function Login() {
     setEnviando(true);
 
     const resultado = await login({
-      email: formulario.email.trim(),
+      username: formulario.username.trim(),
       password: formulario.password,
     });
 
@@ -87,20 +85,20 @@ export default function Login() {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Email
+              Usuario
             </label>
 
             <input
               type="text"
-              placeholder="Ingresa tu correo"
-              name="email"
-              autoComplete="email"
-              value={formulario.email}
+              placeholder="Ingresa tu usuario"
+              name="username"
+              autoComplete="username"
+              value={formulario.username}
               onChange={handleChange}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
             />
-            {errores.email && (
-              <p className="mt-1 text-sm text-red-500">{errores.email}</p>
+            {errores.username && (
+              <p className="mt-1 text-sm text-red-500">{errores.username}</p>
             )}
           </div>
 

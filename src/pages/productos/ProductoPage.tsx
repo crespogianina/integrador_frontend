@@ -4,14 +4,23 @@ import { useProductos } from "../../context/ProductoContext";
 import type { Filter } from "../../components/Filtros";
 import Filtros from "../../components/Filtros";
 import type { ProductoRead } from "../../models/Producto";
-import CardGrid from "../../components/CardGrid";
 import { useAuth } from "../../context/AuthContext";
+import type { Column } from "../../components/Tabla";
+import Tabla from "../../components/Tabla";
 
 const initialFiltros = {
   nombre: "",
   descripcion: "",
   disponible: "",
 };
+
+const columns: Column<ProductoRead>[] = [
+  { header: "Nombre", accessor: "nombre" },
+  { header: "Descripción", accessor: "descripcion" },
+  { header: "Precio", accessor: "precio_base" },
+  { header: "Stock", accessor: "stock_cantidad" },
+  { header: "Disponible", accessor: "disponible" },
+];
 
 export default function ProductoPage() {
   const navigate = useNavigate();
@@ -101,9 +110,9 @@ export default function ProductoPage() {
     navigate("/productos/nuevo");
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (producto: ProductoRead) => {
     try {
-      await eliminar(id);
+      await eliminar(producto.id);
     } catch (error) {
       setErrorRequest(
         error instanceof Error
@@ -126,62 +135,19 @@ export default function ProductoPage() {
               onClear={() => setFiltros(initialFiltros)}
             />
 
-            <CardGrid
+            <Tabla
               title="Productos"
               total={total}
               data={productos || []}
+              columns={columns}
               getRowId={(producto) => producto.id}
-              getTitle={(producto) => producto.nombre}
-              getDescription={(producto) => producto.descripcion}
-              badge={(producto) =>
-                producto.disponible ? (
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                    Disponible
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                    No disponible
-                  </span>
-                )
-              }
-              fields={[
-                {
-                  label: "Precio",
-                  render: (producto) => `$${producto.precio_base}`,
-                },
-                {
-                  label: "Stock",
-                  render: (producto) => producto.stock_cantidad,
-                },
-                {
-                  label: "Categorías",
-                  render: (producto) =>
-                    producto.categorias?.length
-                      ? producto.categorias.map((c) => c.nombre).join(", ")
-                      : "Sin categorías",
-                },
-                {
-                  label: "Ingredientes",
-                  render: (producto) =>
-                    producto.ingredientes?.length
-                      ? producto.ingredientes.map((i) => i.nombre).join(", ")
-                      : "Sin ingredientes",
-                },
-              ]}
               onAdd={puedeModificar ? handleCreate : undefined}
               onEdit={puedeModificar ? handleEdit : undefined}
-              onDelete={
-                puedeModificar
-                  ? (producto) => handleDelete(producto.id)
-                  : undefined
-              }
-              getImage={(producto) =>
-                producto.imagenes_url?.length ? producto.imagenes_url[0] : null
-              }
+              onDelete={puedeModificar ? handleDelete : undefined}
               page={paginaActual}
               totalPages={totalPaginas}
-              onPrevious={() => setPaginaActual(paginaActual - 1)}
-              onNext={() => setPaginaActual(paginaActual + 1)}
+              onPrevious={() => setPaginaActual((p) => p - 1)}
+              onNext={() => setPaginaActual((p) => p + 1)}
               onPageChange={setPaginaActual}
             />
           </section>

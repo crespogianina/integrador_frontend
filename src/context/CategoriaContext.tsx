@@ -44,6 +44,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -59,7 +60,10 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   }
 
   async function eliminar(id: number) {
-    const res = await fetch(`${API}${id}`, { method: "DELETE" });
+    const res = await fetch(`${API}${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => null);
@@ -71,7 +75,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   }
 
   async function resetear() {
-    await fetch(API, { method: "DELETE" });
+    await fetch(API, { method: "DELETE", credentials: "include" });
     dispatch({ type: "RESET", payload: [] });
   }
 
@@ -79,6 +83,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     const res = await fetch(`${API}${data.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -115,7 +120,9 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
       params.append("descripcion", descripcion.trim());
     }
 
-    const res = await fetch(`${API}?${params.toString()}`);
+    const res = await fetch(`${API}?${params.toString()}`, {
+      credentials: "include",
+    });
 
     if (!res.ok) {
       throw new Error("Error al cargar categorías");
