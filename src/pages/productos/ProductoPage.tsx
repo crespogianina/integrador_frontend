@@ -20,6 +20,12 @@ const columns: Column<ProductoRead>[] = [
   { header: "Precio", accessor: "precio_base" },
   { header: "Stock", accessor: "stock_cantidad" },
   { header: "Disponible", accessor: "disponible" },
+  {
+    header: "Estado",
+    accessor: "activo",
+    customLabelFn: (estadoActivo: boolean) =>
+      estadoActivo ? "Activo" : "Inactivo",
+  },
 ];
 
 export default function ProductoPage() {
@@ -28,8 +34,15 @@ export default function ProductoPage() {
   const { hasRol } = useAuth();
   const puedeModificar = hasRol("ADMIN");
 
-  const { productos, eliminar, setProductoEditar, cargarProductos, total } =
-    useProductos();
+  const {
+    productos,
+    eliminar,
+    setProductoEditar,
+    cargarProductos,
+    total,
+    activar,
+    desactivar,
+  } = useProductos();
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
@@ -122,6 +135,45 @@ export default function ProductoPage() {
     }
   };
 
+  const customAction = (producto: ProductoRead) => {
+    console.log("Custom Action");
+    if (producto.activo) {
+      deactivateProduct(producto);
+    } else {
+      activateProduct(producto);
+    }
+  };
+
+  const activateProduct = async (producto: ProductoRead) => {
+    console.log("Activar producto", producto.nombre);
+
+    try {
+      await activar(producto.id);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error ? error.message : "Error al activar el producto",
+      );
+    }
+  };
+
+  const deactivateProduct = async (producto: ProductoRead) => {
+    console.log("Desactivar producto", producto.nombre);
+
+    try {
+      await desactivar(producto.id);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "Error al desactivar el producto",
+      );
+    }
+  };
+
+  const getCustomActionLabel = (producto: ProductoRead): string => {
+    return producto.activo ? "Desactivar" : "Activar";
+  };
+
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
       <section className="mx-auto max-w-6xl space-y-6">
@@ -149,6 +201,10 @@ export default function ProductoPage() {
               onPrevious={() => setPaginaActual((p) => p - 1)}
               onNext={() => setPaginaActual((p) => p + 1)}
               onPageChange={setPaginaActual}
+              customAction={{
+                label: getCustomActionLabel,
+                actionCallback: customAction,
+              }}
             />
           </section>
         </div>

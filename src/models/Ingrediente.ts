@@ -5,5 +5,6 @@ export interface IngredienteCreate {
 }
 
 export interface IngredienteRead extends IngredienteCreate {
+    activo: boolean
     id: number;
 }

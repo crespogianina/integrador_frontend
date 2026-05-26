@@ -5,6 +5,9 @@ import { useCategorias } from "../../context/CategoriaContext";
 import { useIngredientes } from "../../context/IngredienteContext";
 import type { ProductoCreate, ProductoRead } from "../../models/Producto";
 import { apiFetch } from "../../config/api";
+import type { ProductoIngredienteItem } from "./ProductoIngredienteFormulario";
+import ProductoIngredienteFormulario from "./ProductoIngredienteFormulario";
+import ProductoCategoriaFormulario from "../../components/ArbolCategoria";
 
 const API_PRODUCTOS = "http://localhost:8000/productos";
 
@@ -17,8 +20,7 @@ const initialState = {
   imagenes_url: [] as string[],
   categorias: [] as number[],
   categoriaPrincipal: "",
-  ingredientes: [] as number[],
-  ingredientesRemovibles: [] as number[],
+  ingredientes: [] as ProductoIngredienteItem[],
 };
 
 export default function ProductoFormulario() {
@@ -26,7 +28,7 @@ export default function ProductoFormulario() {
   const { id } = useParams();
 
   const { agregar, editar } = useProductos();
-  const { categorias, cargarCategorias } = useCategorias();
+  const { categoriasArbol, cargarCategoriasArbol } = useCategorias();
   const { ingredientes, cargarIngredientes } = useIngredientes();
 
   const [formulario, setFormulario] = useState(initialState);
@@ -34,7 +36,7 @@ export default function ProductoFormulario() {
   const [errorRequest, setErrorRequest] = useState("");
 
   useEffect(() => {
-    cargarCategorias(1, 50);
+    cargarCategoriasArbol();
     cargarIngredientes(1, 50, "");
   }, []);
 
@@ -75,11 +77,11 @@ export default function ProductoFormulario() {
             producto.categorias?.find((c) => c.es_principal)?.id.toString() ??
             "",
 
-          ingredientes: producto.ingredientes?.map((i) => i.id) ?? [],
-          ingredientesRemovibles:
-            producto.ingredientes
-              ?.filter((i) => i.es_removible)
-              .map((i) => i.id) ?? [],
+          ingredientes:
+            producto.ingredientes?.map((i) => ({
+              ingrediente_id: i.id,
+              es_removible: i.es_removible,
+            })) ?? [],
         });
       } catch (error) {
         setErrorRequest(
@@ -149,31 +151,6 @@ export default function ProductoFormulario() {
     }));
   };
 
-  const handleIngrediente = (ingredienteId: number, checked: boolean) => {
-    setFormulario((prev) => ({
-      ...prev,
-      ingredientes: checked
-        ? [...prev.ingredientes, ingredienteId]
-        : prev.ingredientes.filter((id) => id !== ingredienteId),
-
-      ingredientesRemovibles: checked
-        ? prev.ingredientesRemovibles
-        : prev.ingredientesRemovibles.filter((id) => id !== ingredienteId),
-    }));
-  };
-
-  const handleIngredienteRemovible = (
-    ingredienteId: number,
-    checked: boolean,
-  ) => {
-    setFormulario((prev) => ({
-      ...prev,
-      ingredientesRemovibles: checked
-        ? [...prev.ingredientesRemovibles, ingredienteId]
-        : prev.ingredientesRemovibles.filter((id) => id !== ingredienteId),
-    }));
-  };
-
   const validarErrores = () => {
     const nuevosErrores: Record<string, string> = {};
 
@@ -225,10 +202,7 @@ export default function ProductoFormulario() {
         categoria_id: categoriaId,
         es_principal: formulario.categoriaPrincipal === String(categoriaId),
       })),
-      ingredientes: formulario.ingredientes.map((ingredienteId) => ({
-        ingrediente_id: ingredienteId,
-        es_removible: formulario.ingredientesRemovibles.includes(ingredienteId),
-      })),
+      ingredientes: formulario.ingredientes,
     };
 
     try {
@@ -421,7 +395,6 @@ export default function ProductoFormulario() {
               <h3 className="text-base font-semibold text-slate-800">
                 Categorías
               </h3>
-
               <p className="text-sm text-slate-500">
                 Selecciona una o más categorías y marcá una como principal.
               </p>
@@ -431,128 +404,28 @@ export default function ProductoFormulario() {
                   {errores.categorias}
                 </p>
               )}
-
               {errores.categoriaPrincipal && (
                 <p className="mt-3 text-sm text-red-500">
                   {errores.categoriaPrincipal}
                 </p>
               )}
 
-              <div className="mt-4 flex flex-wrap gap-3">
-                {categorias.map((categoria) => {
-                  const selected = formulario.categorias.includes(categoria.id);
-
-                  const esPrincipal =
-                    formulario.categoriaPrincipal === String(categoria.id);
-
-                  return (
-                    <div
-                      key={categoria.id}
-                      className={`rounded-2xl border p-3 transition ${
-                        selected
-                          ? "border-blue-300 bg-blue-50"
-                          : "border-slate-200 bg-slate-50"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => handleCategoria(categoria.id, !selected)}
-                        className="flex items-center gap-2 text-sm font-semibold text-slate-700"
-                      >
-                        <span
-                          className={`h-4 w-4 rounded border ${
-                            selected
-                              ? "border-blue-600 bg-blue-600"
-                              : "border-slate-300 bg-white"
-                          }`}
-                        />
-                        {categoria.nombre}
-                      </button>
-
-                      {selected && (
-                        <button
-                          type="button"
-                          onClick={() => marcarCategoriaPrincipal(categoria.id)}
-                          className={`mt-3 rounded-full px-3 py-1 text-xs font-semibold ${
-                            esPrincipal
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-                          }`}
-                        >
-                          {esPrincipal
-                            ? "Quitar principal"
-                            : "Marcar principal"}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              <ProductoCategoriaFormulario
+                categorias={categoriasArbol}
+                selectedIds={formulario.categorias}
+                categoriaPrincipal={formulario.categoriaPrincipal}
+                onToggle={handleCategoria}
+                onMarcarPrincipal={marcarCategoriaPrincipal}
+              />
             </section>
 
-            <section className="rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-base font-semibold text-slate-800">
-                Ingredientes
-              </h3>
-              <p className="text-sm text-slate-500">
-                Selecciona los ingredientes y marcá cuáles son removibles.
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-3">
-                {ingredientes.map((ingrediente) => {
-                  const selected = formulario.ingredientes.includes(
-                    ingrediente.id,
-                  );
-
-                  const esRemovible =
-                    formulario.ingredientesRemovibles.includes(ingrediente.id);
-
-                  return (
-                    <div
-                      key={ingrediente.id}
-                      className={`rounded-2xl border p-3 transition ${
-                        selected
-                          ? "border-blue-300 bg-blue-50"
-                          : "border-slate-200 bg-slate-50"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleIngrediente(ingrediente.id, !selected)
-                        }
-                        className="flex items-center gap-2 text-sm font-semibold text-slate-700"
-                      >
-                        <span
-                          className={`h-4 w-4 rounded border ${
-                            selected
-                              ? "border-blue-600 bg-blue-600"
-                              : "border-slate-300 bg-white"
-                          }`}
-                        />
-                        {ingrediente.nombre}
-                      </button>
-
-                      {selected && (
-                        <label className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-600">
-                          <input
-                            type="checkbox"
-                            checked={esRemovible}
-                            onChange={(e) =>
-                              handleIngredienteRemovible(
-                                ingrediente.id,
-                                e.target.checked,
-                              )
-                            }
-                          />
-                          Removible
-                        </label>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+            <ProductoIngredienteFormulario
+              ingredientes={ingredientes}
+              value={formulario.ingredientes}
+              onChange={(val) =>
+                setFormulario((prev) => ({ ...prev, ingredientes: val }))
+              }
+            />
 
             <div className="sticky bottom-0 -mx-6 flex justify-end gap-3 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
               <button

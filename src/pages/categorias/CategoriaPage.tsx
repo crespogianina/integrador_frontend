@@ -4,7 +4,6 @@ import type { Filter } from "../../components/Filtros";
 import type { CategoriaRead } from "../../models/Categoria";
 import { useCategorias } from "../../context/CategoriaContext";
 import Filtros from "../../components/Filtros";
-import CardGrid from "../../components/CardGrid";
 import { useAuth } from "../../context/AuthContext";
 import Tabla, { type Column } from "../../components/Tabla";
 
@@ -16,6 +15,7 @@ const initialFiltros = {
 const columnasCategoria: Column<CategoriaRead>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripción", accessor: "descripcion" },
+  { header: "Activo", accessor: "activo" },
 ];
 
 export default function CategoriaPage() {

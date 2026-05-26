@@ -1,6 +1,7 @@
 export type Column<T> = {
   header: string;
   accessor: keyof T;
+  customLabelFn?: (columnValue: any) => any;
 };
 
 type TablaProps<T> = {
@@ -20,6 +21,10 @@ type TablaProps<T> = {
   onPrevious: () => void;
   onNext: () => void;
   onPageChange: (page: number) => void;
+  customAction?: {
+    label: (tableElement: T) => string;
+    actionCallback: (tableElement: T) => any;
+  };
 };
 
 export default function Tabla<T>({
@@ -37,6 +42,7 @@ export default function Tabla<T>({
   onPrevious,
   onNext,
   onPageChange,
+  customAction,
 }: TablaProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -83,7 +89,9 @@ export default function Tabla<T>({
                     key={String(column.accessor)}
                     className="px-4 py-3 text-slate-600"
                   >
-                    {String(item[column.accessor])}
+                    {column.customLabelFn
+                      ? column.customLabelFn(item[column.accessor])
+                      : String(item[column.accessor])}
                   </td>
                 ))}
 
@@ -107,6 +115,16 @@ export default function Tabla<T>({
                           className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
                         >
                           Eliminar
+                        </button>
+                      )}
+
+                      {customAction && (
+                        <button
+                          type="button"
+                          onClick={() => customAction.actionCallback(item)}
+                          className="rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200"
+                        >
+                          {customAction.label(item)}
                         </button>
                       )}
                     </div>

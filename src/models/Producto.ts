@@ -45,4 +45,5 @@ export interface ProductoRead {
     disponible: boolean;
     categorias: CategoriaResumen[];
     ingredientes: IngredienteResumen[];
+    activo: boolean;
 }

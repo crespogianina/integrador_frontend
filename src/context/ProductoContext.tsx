@@ -32,6 +32,8 @@ interface ContextType {
   editar: (i: ProductoUpdate) => void;
   productoEditar: ProductoRead | null;
   setProductoEditar: (i: ProductoRead | null) => void;
+  activar: (id: number) => void;
+  desactivar: (id: number) => void;
 }
 
 const API = "http://localhost:8000/productos/";
@@ -100,6 +102,34 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
     setProductoEditar(null);
   }
 
+  async function activar(id: number) {
+    const res = await fetch(`${API}${id}/activar`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al activar el producto");
+    }
+
+    dispatch({ type: "ACTIVAR", payload: id });
+  }
+
+  async function desactivar(id: number) {
+    const res = await fetch(`${API}${id}/desactivar`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al desactivar el producto");
+    }
+
+    dispatch({ type: "DESACTIVAR", payload: id });
+  }
+
   async function cargarProductos(
     page: number,
     limit: number,
@@ -152,6 +182,8 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
         cargarProductos,
         setProductoEditar,
         total,
+        activar,
+        desactivar,
       }}
     >
       {children}

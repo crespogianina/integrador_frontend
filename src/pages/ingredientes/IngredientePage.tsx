@@ -3,7 +3,6 @@ import Filtros, { type Filter } from "../../components/Filtros";
 import { useIngredientes } from "../../context/IngredienteContext";
 import { useNavigate } from "react-router-dom";
 import type { IngredienteRead } from "../../models/Ingrediente";
-import CardGrid from "../../components/CardGrid";
 import { useAuth } from "../../context/AuthContext";
 import type { Column } from "../../components/Tabla";
 import Tabla from "../../components/Tabla";
@@ -18,6 +17,7 @@ const columns: Column<IngredienteRead>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripción", accessor: "descripcion" },
   { header: "Alérgeno", accessor: "es_alergeno" },
+  { header: "Activo", accessor: "activo" },
 ];
 
 export default function IngredientePage() {

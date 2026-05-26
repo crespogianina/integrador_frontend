@@ -5,7 +5,11 @@ import {
   type ReactNode,
   useReducer,
 } from "react";
-import type { CategoriaRead, CategoriaCreate } from "../models/Categoria";
+import type {
+  CategoriaRead,
+  CategoriaCreate,
+  CategoriaTreeRead,
+} from "../models/Categoria";
 import { CategoriasReducer } from "../reducers/categoriaReducer";
 export interface ListaCategoria {
   data: CategoriaRead[];
@@ -14,6 +18,7 @@ export interface ListaCategoria {
 
 interface ContextType {
   categorias: CategoriaRead[];
+  categoriasArbol: CategoriaTreeRead[];
   total: number;
   agregar: (i: CategoriaCreate) => void;
   cargarCategorias: (
@@ -27,6 +32,7 @@ interface ContextType {
   editar: (i: CategoriaRead) => void;
   categoriaEditar: CategoriaRead | null;
   setCategoriaEditar: (i: CategoriaRead | null) => void;
+  cargarCategoriasArbol: () => void;
 }
 
 const API = "http://localhost:8000/categorias/";
@@ -39,6 +45,9 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     null,
   );
   const [total, setTotal] = useState(0);
+  const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
+    [],
+  );
 
   async function agregar(data: CategoriaCreate) {
     const res = await fetch(API, {
@@ -99,6 +108,17 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     setCategoriaEditar(null);
   }
 
+  async function cargarCategoriasArbol() {
+    const res = await fetch(`${API}tree`, { credentials: "include" });
+
+    if (!res.ok) {
+      throw new Error("Error al cargar árbol de categorías");
+    }
+
+    const data: CategoriaTreeRead[] = await res.json();
+    setCategoriasArbol(data);
+  }
+
   async function cargarCategorias(
     page: number,
     limit: number,
@@ -138,6 +158,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     <CategoriaContext.Provider
       value={{
         categorias: state,
+        categoriasArbol,
         agregar,
         eliminar,
         resetear,
@@ -145,6 +166,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
         categoriaEditar,
         cargarCategorias,
         setCategoriaEditar,
+        cargarCategoriasArbol,
         total,
       }}
     >
