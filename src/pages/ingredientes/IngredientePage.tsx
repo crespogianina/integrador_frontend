@@ -18,7 +18,7 @@ const columns: Column<IngredienteRead>[] = [
   { header: "Descripción", accessor: "descripcion" },
   { header: "Alérgeno", accessor: "es_alergeno" },
   {
-    header: "Activo",
+    header: "Estado",
     accessor: "activo",
     customLabelFn: (activo: boolean) => (activo ? "Activo" : "Inactivo"),
   },

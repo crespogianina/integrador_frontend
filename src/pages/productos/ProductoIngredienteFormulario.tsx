@@ -24,7 +24,6 @@ export default function ProductoIngredienteFormulario({
       ingrediente_id: id,
       unidad_medida_id: datosDe(id)?.unidad_medida_id ?? 0,
       es_removible: false,
-      stock_cantidad: "",
       cantidad: 0,
     }));
     onChange([...value, ...nuevos]);
@@ -115,8 +114,7 @@ export default function ProductoIngredienteFormulario({
             Este producto todavía no tiene ingredientes
           </p>
           <p className="text-xs text-slate-400">
-            Agregalos con el botón de arriba, o marcá el producto como consumo
-            final.
+            Agregalos con el botón de arriba
           </p>
         </div>
       ) : (

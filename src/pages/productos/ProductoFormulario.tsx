@@ -20,7 +20,6 @@ const initialState = {
   precio_base: "",
   cantidad: "",
   disponible: true,
-  es_producto_final: false,
   imagenes_url: [] as string[],
   categorias: [] as number[],
   categoriaPrincipal: 0,
@@ -83,19 +82,26 @@ export default function ProductoFormulario() {
           precio_base: String(producto.precio_base ?? ""),
           cantidad: String(producto.stock_cantidad ?? ""),
           disponible: producto.disponible ?? true,
-          es_producto_final: producto.es_producto_final,
           imagenes_url: producto.imagenes_url ?? [],
           categorias: producto.categorias?.map((c) => c.id) ?? [],
           categoriaPrincipal:
             producto.categorias?.find((c) => c.es_principal)?.id ?? 0,
 
           ingredientes:
-            producto.ingredientes?.map((i) => ({
-              ingrediente_id: i.id,
-              es_removible: i.es_removible,
-              unidad_medida_id: i.unidad_medida_id,
-              cantidad: i.cantidad,
-            })) ?? [],
+            producto.ingredientes?.map((i) => {
+              const permiteDecimales =
+                i.unidad_medida_id === 1 || i.unidad_medida_id === 3;
+              const cantidadNum = Number(i.cantidad);
+
+              return {
+                ingrediente_id: i.id,
+                es_removible: i.es_removible,
+                unidad_medida_id: i.unidad_medida_id,
+                cantidad: permiteDecimales
+                  ? cantidadNum
+                  : Math.round(cantidadNum),
+              };
+            }) ?? [],
         });
       } catch (error) {
         setErrorRequest(
@@ -122,13 +128,6 @@ export default function ProductoFormulario() {
     setErrores((prev) => ({
       ...prev,
       [name]: "",
-    }));
-  };
-
-  const handleProductoFinal = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormulario((prev) => ({
-      ...prev,
-      es_producto_final: e.target.checked,
     }));
   };
 
@@ -178,13 +177,6 @@ export default function ProductoFormulario() {
       nuevosErrores.precio_base = "El precio debe ser mayor a 0";
     }
 
-    // if (
-    //   formulario.stock_cantidad === "" ||
-    //   Number(formulario.stock_cantidad) < 0
-    // ) {
-    //   nuevosErrores.stock_cantidad = "El stock no puede ser negativo";
-    // }
-
     if (formulario.categorias.length === 0) {
       nuevosErrores.categorias = "Debe seleccionar al menos una categoría";
     }
@@ -194,9 +186,17 @@ export default function ProductoFormulario() {
         "Debe marcar una categoría como principal";
     }
 
-    if (formulario.ingredientes.length === 0 && !formulario.es_producto_final) {
-      nuevosErrores.ingredientes =
-        "Debe agregar al menos un ingrediente o marcar al producto como consumo final";
+    const ingredienteInvalido = formulario.ingredientes.some((item) => {
+      const num = Number(item.cantidad);
+      return isNaN(num) || num <= 0;
+    });
+
+    if (ingredienteInvalido) {
+      nuevosErrores.ingredientes = "Todas las cantidades deben ser mayores a 0";
+    }
+
+    if (formulario.ingredientes.length === 0) {
+      nuevosErrores.ingredientes = "Debe agregar al menos un ingrediente";
     }
 
     setErrores(nuevosErrores);
@@ -217,12 +217,24 @@ export default function ProductoFormulario() {
         categoria_id: categoriaId,
         es_principal: formulario.categoriaPrincipal === categoriaId,
       })),
-      ingredientes: formulario.ingredientes.map((item) => ({
-        ingrediente_id: item.ingrediente_id,
-        es_removible: item.es_removible,
-        cantidad: Number(Number(item.cantidad).toFixed(3)),
-        unidad_medida_id: item.unidad_medida_id,
-      })),
+      ingredientes: formulario.ingredientes.map((item) => {
+        const permiteDecimales =
+          item.unidad_medida_id === 1 || item.unidad_medida_id === 3;
+
+        const cantidadNum = Number(item.cantidad);
+        const cantidadValida = isNaN(cantidadNum) ? 0 : cantidadNum;
+
+        const cantidad = permiteDecimales
+          ? Number(cantidadValida.toFixed(3))
+          : Math.round(cantidadValida);
+
+        return {
+          ingrediente_id: item.ingrediente_id,
+          es_removible: item.es_removible,
+          cantidad,
+          unidad_medida_id: item.unidad_medida_id,
+        };
+      }),
     };
 
     try {

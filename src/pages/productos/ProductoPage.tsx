@@ -20,7 +20,7 @@ const columns: Column<ProductoRead>[] = [
   { header: "Precio", accessor: "precio_base" },
   { header: "Stock", accessor: "stock_cantidad" },
   {
-    header: "Disponible",
+    header: "Estado",
     accessor: "disponible",
     customLabelFn: (disponible: boolean) =>
       disponible ? "Activo" : "Inactivo",

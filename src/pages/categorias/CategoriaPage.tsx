@@ -24,7 +24,7 @@ const columnasCategoria: Column<CategoriaRead>[] = [
     },
   },
   {
-    header: "Activo",
+    header: "Estado",
     accessor: "activo",
     customLabelFn: (activo: boolean) => (activo ? "Activo" : "Inactivo"),
   },
