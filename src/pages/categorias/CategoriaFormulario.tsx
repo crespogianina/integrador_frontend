@@ -18,6 +18,13 @@ const initialState: {
   parent_id: null,
 };
 
+const inputClass = (hayError: boolean) =>
+  `w-full rounded-xl border px-4 py-3 text-sm outline-none transition ${
+    hayError
+      ? "border-red-500 bg-red-50"
+      : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+  }`;
+
 export default function CategoriaFormulario() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -176,7 +183,7 @@ export default function CategoriaFormulario() {
                   value={formulario.nombre}
                   onChange={handleChange}
                   placeholder="Ingrese el nombre"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  className={inputClass(Boolean(errores.nombre))}
                 />
                 {errores.nombre && (
                   <p className="mt-1 text-sm text-red-500">{errores.nombre}</p>
@@ -192,7 +199,7 @@ export default function CategoriaFormulario() {
                   value={formulario.descripcion || ""}
                   onChange={handleChange}
                   placeholder="Ingrese una descripción"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  className={inputClass(Boolean(errores.descripcion))}
                 />
                 {errores.descripcion && (
                   <p className="mt-1 text-sm text-red-500">

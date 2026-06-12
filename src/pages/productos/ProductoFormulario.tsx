@@ -27,6 +27,13 @@ const initialState = {
   ingredientes: [] as ProductoIngredienteCreate[],
 };
 
+const inputClass = (hayError: boolean) =>
+  `w-full rounded-xl border px-4 py-3 text-sm outline-none transition ${
+    hayError
+      ? "border-red-500 bg-red-50"
+      : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+  }`;
+
 export default function ProductoFormulario() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -329,7 +336,7 @@ export default function ProductoFormulario() {
                     value={formulario.nombre}
                     onChange={handleChange}
                     placeholder="Ej: Hamburguesa"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className={inputClass(Boolean(errores.nombre))}
                   />
 
                   {errores.nombre && (
@@ -352,7 +359,7 @@ export default function ProductoFormulario() {
                     value={formulario.precio_base}
                     onChange={handleChange}
                     placeholder="Ej: 100"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className={inputClass(Boolean(errores.precio_base))}
                   />
 
                   {formulario.ingredientes.length > 0 && (
@@ -381,7 +388,7 @@ export default function ProductoFormulario() {
                     value={formulario.descripcion}
                     onChange={handleChange}
                     placeholder="Descripción del producto"
-                    className="min-h-28 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className={inputClass(Boolean(errores.descripcion))}
                   />
 
                   {errores.descripcion && (

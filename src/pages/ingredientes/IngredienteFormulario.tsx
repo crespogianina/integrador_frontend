@@ -260,9 +260,7 @@ export function IngredienteFormulario() {
                   onChange={handleChange}
                   className={inputClass(Boolean(errores.unidad_medida_id))}
                 >
-                  <option value="" disabled>
-                    Seleccione una unidad
-                  </option>
+                  <option value="">Seleccione una unidad</option>
                   {unidadesMedida.map((unidad) => (
                     <option key={unidad.id} value={unidad.id}>
                       {unidad.nombre} ({unidad.simbolo})
