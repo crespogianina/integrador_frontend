@@ -2,17 +2,11 @@ import { useState } from "react";
 import IngredienteSelectorModal from "../../components/IngredienteSelectorModal";
 import { useProductos } from "../../context/ProductoContext";
 import { useIngredientes } from "../../context/IngredienteContext";
-
-export type ProductoIngredienteItem = {
-  ingrediente_id: number;
-  es_removible: boolean;
-  stock_cantidad: string;
-  unidad_medida_id: number;
-};
+import type { ProductoIngredienteCreate } from "../../models/Producto";
 
 type Props = {
-  value: ProductoIngredienteItem[];
-  onChange: (val: ProductoIngredienteItem[]) => void;
+  value: ProductoIngredienteCreate[];
+  onChange: (val: ProductoIngredienteCreate[]) => void;
 };
 
 export default function ProductoIngredienteFormulario({
@@ -26,11 +20,12 @@ export default function ProductoIngredienteFormulario({
   const datosDe = (id: number) => ingredientes?.find((i) => i.id === id);
 
   const agregarIngredientes = (ids: number[]) => {
-    const nuevos: ProductoIngredienteItem[] = ids.map((id) => ({
+    const nuevos: ProductoIngredienteCreate[] = ids.map((id) => ({
       ingrediente_id: id,
       unidad_medida_id: datosDe(id)?.unidad_medida_id ?? 0,
       es_removible: false,
       stock_cantidad: "",
+      cantidad: 0,
     }));
     onChange([...value, ...nuevos]);
   };
@@ -40,7 +35,7 @@ export default function ProductoIngredienteFormulario({
 
   const actualizarCampo = (
     id: number,
-    campo: keyof Omit<ProductoIngredienteItem, "ingrediente_id">,
+    campo: keyof Omit<ProductoIngredienteCreate, "ingrediente_id">,
     val: string | boolean,
   ) => {
     onChange(
@@ -55,12 +50,12 @@ export default function ProductoIngredienteFormulario({
 
   const costoEstimado = value.reduce((total, item) => {
     const ing = datosDe(item.ingrediente_id);
-    if (!ing || !item.stock_cantidad) return total;
+    if (!ing || !item.cantidad) return total;
 
     const precioPorBase =
       Number(ing.precio_base) / factorDe(ing.unidad_medida_id);
     const cantidadEnBase =
-      Number(item.stock_cantidad) * factorDe(item.unidad_medida_id);
+      Number(item.cantidad) * factorDe(item.unidad_medida_id);
 
     return total + precioPorBase * cantidadEnBase;
   }, 0);
@@ -135,11 +130,11 @@ export default function ProductoIngredienteFormulario({
                         type="text"
                         min={0.01}
                         step={0.01}
-                        value={item.stock_cantidad}
+                        value={item.cantidad}
                         onChange={(e) =>
                           actualizarCampo(
                             item.ingrediente_id,
-                            "stock_cantidad",
+                            "cantidad",
                             e.target.value,
                           )
                         }

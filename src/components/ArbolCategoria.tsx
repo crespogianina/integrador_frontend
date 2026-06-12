@@ -94,7 +94,7 @@ function NodoCategoria({
                 : "bg-slate-200 text-slate-600 hover:bg-slate-300"
             }`}
           >
-            {esPrincipal ? "⭐ Principal" : "Marcar principal"}
+            {esPrincipal ? " Principal" : "Marcar principal"}
           </button>
         )}
       </div>

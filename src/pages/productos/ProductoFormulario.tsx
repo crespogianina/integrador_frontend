@@ -3,12 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useProductos } from "../../context/ProductoContext";
 import { useCategorias } from "../../context/CategoriaContext";
 import { useIngredientes } from "../../context/IngredienteContext";
-import type { ProductoRead } from "../../models/Producto";
+import type {
+  ProductoIngredienteCreate,
+  ProductoRead,
+} from "../../models/Producto";
 import { apiFetch } from "../../config/api";
-import type { ProductoIngredienteItem } from "./ProductoIngredienteFormulario";
 import ProductoIngredienteFormulario from "./ProductoIngredienteFormulario";
 import ProductoCategoriaFormulario from "../../components/ArbolCategoria";
-import type { IngredienteRead } from "../../models/Ingrediente";
 import type { CategoriaTreeRead } from "../../models/Categoria";
 
 const API_PRODUCTOS = "http://localhost:8000/api/v1/productos/";
@@ -17,13 +18,13 @@ const initialState = {
   nombre: "",
   descripcion: "",
   precio_base: "",
-  stock_cantidad: "",
+  cantidad: "",
   disponible: true,
   es_producto_final: false,
   imagenes_url: [] as string[],
   categorias: [] as number[],
   categoriaPrincipal: 0,
-  ingredientes: [] as ProductoIngredienteItem[],
+  ingredientes: [] as ProductoIngredienteCreate[],
 };
 
 export default function ProductoFormulario() {
@@ -44,7 +45,7 @@ export default function ProductoFormulario() {
     formulario.ingredientes.reduce((total, item) => {
       const ing = ingredientes.find((i) => i.id === item.ingrediente_id);
       if (!ing) return total;
-      return total + Number(ing.precio_base) * Number(item.stock_cantidad);
+      return total + Number(ing.precio_base) * Number(item.cantidad);
     }, 0) * 1.3;
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function ProductoFormulario() {
 
     async function cargarProducto() {
       try {
-        const res = await apiFetch(`${API_PRODUCTOS}/${id}`);
+        const res = await apiFetch(`${API_PRODUCTOS}${id}`);
 
         if (!res.ok) {
           const errorData = await res.json().catch(() => null);
@@ -80,7 +81,7 @@ export default function ProductoFormulario() {
           nombre: producto.nombre ?? "",
           descripcion: producto.descripcion ?? "",
           precio_base: String(producto.precio_base ?? ""),
-          stock_cantidad: String(producto.stock_cantidad ?? ""),
+          cantidad: String(producto.stock_cantidad ?? ""),
           disponible: producto.disponible ?? true,
           es_producto_final: producto.es_producto_final,
           imagenes_url: producto.imagenes_url ?? [],
@@ -92,8 +93,8 @@ export default function ProductoFormulario() {
             producto.ingredientes?.map((i) => ({
               ingrediente_id: i.id,
               es_removible: i.es_removible,
-              stock_cantidad: String(i.cantidad),
               unidad_medida_id: i.unidad_medida_id,
+              cantidad: i.cantidad,
             })) ?? [],
         });
       } catch (error) {
@@ -177,12 +178,12 @@ export default function ProductoFormulario() {
       nuevosErrores.precio_base = "El precio debe ser mayor a 0";
     }
 
-    if (
-      formulario.stock_cantidad === "" ||
-      Number(formulario.stock_cantidad) < 0
-    ) {
-      nuevosErrores.stock_cantidad = "El stock no puede ser negativo";
-    }
+    // if (
+    //   formulario.stock_cantidad === "" ||
+    //   Number(formulario.stock_cantidad) < 0
+    // ) {
+    //   nuevosErrores.stock_cantidad = "El stock no puede ser negativo";
+    // }
 
     if (formulario.categorias.length === 0) {
       nuevosErrores.categorias = "Debe seleccionar al menos una categoría";
@@ -210,8 +211,7 @@ export default function ProductoFormulario() {
       nombre: formulario.nombre.trim(),
       descripcion: formulario.descripcion.trim(),
       precio_base: Number(formulario.precio_base),
-      stock_cantidad: Number(formulario.stock_cantidad),
-      es_producto_final: formulario.es_producto_final,
+      disponible: formulario.disponible,
       imagenes_url: formulario.imagenes_url,
       categorias: formulario.categorias.map((categoriaId) => ({
         categoria_id: categoriaId,
@@ -220,7 +220,8 @@ export default function ProductoFormulario() {
       ingredientes: formulario.ingredientes.map((item) => ({
         ingrediente_id: item.ingrediente_id,
         es_removible: item.es_removible,
-        stock_cantidad: Number(item.stock_cantidad),
+        cantidad: Number(item.cantidad),
+        unidad_medida_id: item.unidad_medida_id,
       })),
     };
 
@@ -257,7 +258,7 @@ export default function ProductoFormulario() {
       const ing = datosDe(item.ingrediente_id);
       console.log("ingrediente_id", item.ingrediente_id);
       console.log("resultado", datosDe(item.ingrediente_id));
-      const cantidad = Number(item.stock_cantidad);
+      const cantidad = Number(item.cantidad);
       console.log("ing", ing);
       console.log("cantidad", cantidad);
 
@@ -380,29 +381,17 @@ export default function ProductoFormulario() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Stock
+                    Stock {id ? "actual" : "estimado"}
                   </label>
-
-                  {stockEstimado}
-                  <input
-                    name="stock_cantidad"
-                    type="number"
-                    min="0"
-                    disabled={true}
-                    value={formulario.stock_cantidad}
-                    onChange={handleChange}
-                    placeholder="Stock"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  />
-
-                  {errores.stock_cantidad && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errores.stock_cantidad}
-                    </p>
-                  )}
+                  <div className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700">
+                    {id ? formulario.cantidad : stockEstimado}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    El stock se calcula automáticamente según los ingredientes.
+                  </p>
                 </div>
 
-                <div className="flex items-end">
+                {/* <div className="flex items-end">
                   <label className="flex w-fit items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                     <input
                       type="checkbox"
@@ -412,7 +401,7 @@ export default function ProductoFormulario() {
                     />
                     Es un producto consumo final
                   </label>
-                </div>
+                </div> */}
               </div>
             </section>
 

@@ -6,7 +6,8 @@ export interface ProductoCategoriaCreate {
 export interface ProductoIngredienteCreate {
     ingrediente_id: number;
     es_removible: boolean;
-    stock_cantidad: number
+    cantidad: number;
+    unidad_medida_id: number;
 }
 
 export interface ProductoCreate {
@@ -14,14 +15,13 @@ export interface ProductoCreate {
     descripcion: string;
     precio_base: number;
     imagenes_url: string[];
-    stock_cantidad: number;
-    // disponible: boolean;
-    es_producto_final: boolean;
+    // stock_cantidad: number;
+    disponible: boolean;
     categorias: ProductoCategoriaCreate[];
     ingredientes?: ProductoIngredienteCreate[];
 }
 
-export interface ProductoUpdate extends ProductoCreate {
+export interface ProductoUpdate extends Partial<ProductoCreate> {
     id: number;
 }
 
