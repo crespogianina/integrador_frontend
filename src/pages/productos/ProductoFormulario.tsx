@@ -8,6 +8,7 @@ import type {
   ProductoRead,
 } from "../../models/Producto";
 import { apiFetch } from "../../config/api";
+import ImageUploader from "../../components/ImageUploader";
 import ProductoIngredienteFormulario from "./ProductoIngredienteFormulario";
 import ProductoCategoriaFormulario from "../../components/ArbolCategoria";
 import type { CategoriaTreeRead } from "../../models/Categoria";
@@ -30,7 +31,7 @@ export default function ProductoFormulario() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { agregar, editar, unidadesMedida } = useProductos();
+  const { agregar, editar, actualizarImagenes, unidadesMedida } = useProductos();
   const { cargarCategoriasArbol } = useCategorias();
   const { cargarIngredientes, ingredientes } = useIngredientes();
   const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
@@ -208,12 +209,13 @@ export default function ProductoFormulario() {
     e.preventDefault();
     if (!validarErrores()) return;
 
+    const imagenes = formulario.imagenes_url;
+
     const payload = {
       nombre: formulario.nombre.trim(),
       descripcion: formulario.descripcion.trim(),
       precio_base: Number(Number(formulario.precio_base).toFixed(2)),
       disponible: formulario.disponible,
-      imagenes_url: formulario.imagenes_url,
       categorias: formulario.categorias.map((categoriaId) => ({
         categoria_id: categoriaId,
         es_principal: formulario.categoriaPrincipal === categoriaId,
@@ -239,14 +241,23 @@ export default function ProductoFormulario() {
     };
 
     try {
+      let productoId: number;
+
       if (id) {
+        productoId = Number(id);
         await editar({
           ...payload,
-          id: Number(id),
+          id: productoId,
         });
       } else {
-        await agregar(payload);
+        const nuevo = await agregar({
+          ...payload,
+          imagenes_url: [],
+        });
+        productoId = nuevo.id;
       }
+
+      await actualizarImagenes(productoId, imagenes);
 
       navigate("/productos");
     } catch (error) {
@@ -395,55 +406,18 @@ export default function ProductoFormulario() {
             </section>
 
             <section className="rounded-2xl border border-slate-200 p-5">
-              <h3 className="text-base font-semibold text-slate-800">
+              <h3 className="mb-3 text-base font-semibold text-slate-800">
                 Imágenes del producto
               </h3>
 
-              <input
-                type="file"
+              <ImageUploader
                 multiple
-                accept="image/*"
-                className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-
-                  const urls = files.map((file) => URL.createObjectURL(file));
-
-                  setFormulario((prev) => ({
-                    ...prev,
-                    imagenes_url: [...prev.imagenes_url, ...urls],
-                  }));
-
-                  e.target.value = "";
-                }}
+                maxFiles={10}
+                value={formulario.imagenes_url}
+                onChange={(urls) =>
+                  setFormulario((prev) => ({ ...prev, imagenes_url: urls }))
+                }
               />
-
-              {formulario.imagenes_url.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {formulario.imagenes_url.map((imagen, index) => (
-                    <span
-                      key={`${imagen}-${index}`}
-                      className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
-                    >
-                      {imagen}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormulario((prev) => ({
-                            ...prev,
-                            imagenes_url: prev.imagenes_url.filter(
-                              (_, i) => i !== index,
-                            ),
-                          }))
-                        }
-                        className="font-bold text-red-500 hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </section>
 
             <section className="rounded-2xl border border-slate-200 p-5">

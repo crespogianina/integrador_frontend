@@ -21,7 +21,7 @@ interface ContextType {
   categorias: CategoriaRead[];
   cargarCategoria: (id: number) => void;
   total: number;
-  agregar: (i: CategoriaCreate) => void;
+  agregar: (i: CategoriaCreate) => Promise<CategoriaRead>;
   cargarCategorias: (
     page: number,
     limit: number,
@@ -29,7 +29,11 @@ interface ContextType {
     descripcion?: string,
   ) => void;
   resetear: () => void;
-  editar: (i: CategoriaRead) => void;
+  editar: (i: CategoriaRead) => Promise<CategoriaRead>;
+  actualizarImagen: (
+    id: number,
+    imagen_url: string | null,
+  ) => Promise<CategoriaRead>;
   categoriaEditar: CategoriaRead | null;
   setCategoriaEditar: (i: CategoriaRead | null) => void;
   cargarCategoriasArbol: () => Promise<CategoriaTreeRead[]>;
@@ -65,6 +69,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     const nuevo: CategoriaRead = await res.json();
 
     dispatch({ type: "AGREGAR", payload: nuevo });
+    return nuevo;
   }
 
   async function resetear() {
@@ -90,6 +95,27 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
 
     dispatch({ type: "EDITAR", payload: actualizado });
     setCategoriaEditar(null);
+    return actualizado;
+  }
+
+  async function actualizarImagen(id: number, imagen_url: string | null) {
+    const res = await apiFetch(`${API}${id}/imagen`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imagen_url }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(
+        errorData?.detail || "Error al actualizar la imagen de la categoría",
+      );
+    }
+
+    const actualizado: CategoriaRead = await res.json();
+    dispatch({ type: "EDITAR", payload: actualizado });
+    return actualizado;
   }
 
   async function cargarCategoriasArbol(): Promise<CategoriaTreeRead[]> {
@@ -177,6 +203,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
         agregar,
         resetear,
         editar,
+        actualizarImagen,
         categoriaEditar,
         cargarCategorias,
         setCategoriaEditar,
