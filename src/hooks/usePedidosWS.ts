@@ -40,7 +40,6 @@ export function usePedidosWS(
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("WS OPEN");
 
         attempts = 0;
         setStatus("connected");
@@ -57,7 +56,6 @@ export function usePedidosWS(
       };
 
       ws.onclose = (e) => {
-        console.log("WS CLOSE", e.code, e.reason);
 
         if (cerradoPorUnmount) return;
 
@@ -81,7 +79,6 @@ export function usePedidosWS(
       };
 
       ws.onerror = (e) => {
-        console.log("WS ERROR", e);
         ws.close();
       };
 

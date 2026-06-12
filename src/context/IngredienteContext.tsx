@@ -45,7 +45,6 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   const [total, setTotal] = useState(0);
 
   async function agregar(data: IngredienteCreate) {
-    console.log(data);
     const res = await apiFetch(INGREDIENTES_PATH, {
       method: "POST",
       credentials: "include",
@@ -53,10 +52,8 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
     });
 
-    console.log(res);
     if (!res.ok) {
       const errorData = await res.json().catch(() => null);
-      console.log(errorData);
       throw new Error(errorData?.detail || "Error al crear el ingrediente");
     }
 
@@ -73,7 +70,6 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
   }
 
   async function editar(data: IngredienteUpdate) {
-    console.log(data);
     const res = await apiFetch(`${INGREDIENTES_PATH}${data.id}`, {
       method: "PUT",
       credentials: "include",
@@ -81,7 +77,6 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify(data),
     });
 
-    console.log(res);
     if (!res.ok) {
       const errorData = await res.json().catch(() => null);
 

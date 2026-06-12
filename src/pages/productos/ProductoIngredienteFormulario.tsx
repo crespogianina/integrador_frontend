@@ -6,7 +6,8 @@ import { useIngredientes } from "../../context/IngredienteContext";
 export type ProductoIngredienteItem = {
   ingrediente_id: number;
   es_removible: boolean;
-  cantidad: string;
+  stock_cantidad: string;
+  unidad_medida_id: number;
 };
 
 type Props = {
@@ -27,8 +28,9 @@ export default function ProductoIngredienteFormulario({
   const agregarIngredientes = (ids: number[]) => {
     const nuevos: ProductoIngredienteItem[] = ids.map((id) => ({
       ingrediente_id: id,
+      unidad_medida_id: datosDe(id)?.unidad_medida_id ?? 0,
       es_removible: false,
-      cantidad: "",
+      stock_cantidad: "",
     }));
     onChange([...value, ...nuevos]);
   };
@@ -48,10 +50,19 @@ export default function ProductoIngredienteFormulario({
     );
   };
 
+  const factorDe = (unidadId: number) =>
+    Number(unidadesMedida.find((u) => u.id === unidadId)?.factor ?? 1);
+
   const costoEstimado = value.reduce((total, item) => {
     const ing = datosDe(item.ingrediente_id);
-    if (!ing) return total;
-    return total + Number(ing.precio_base) * Number(item.cantidad);
+    if (!ing || !item.stock_cantidad) return total;
+
+    const precioPorBase =
+      Number(ing.precio_base) / factorDe(ing.unidad_medida_id);
+    const cantidadEnBase =
+      Number(item.stock_cantidad) * factorDe(item.unidad_medida_id);
+
+    return total + precioPorBase * cantidadEnBase;
   }, 0);
 
   const obtenerUnidadMedidaNombre = (id: number): string => {
@@ -121,14 +132,14 @@ export default function ProductoIngredienteFormulario({
 
                     <td className="px-4 py-3">
                       <input
-                        type="number"
+                        type="text"
                         min={0.01}
                         step={0.01}
-                        value={item.cantidad}
+                        value={item.stock_cantidad}
                         onChange={(e) =>
                           actualizarCampo(
                             item.ingrediente_id,
-                            "cantidad",
+                            "stock_cantidad",
                             e.target.value,
                           )
                         }

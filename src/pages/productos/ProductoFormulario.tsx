@@ -30,13 +30,12 @@ export default function ProductoFormulario() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { agregar, editar } = useProductos();
+  const { agregar, editar, unidadesMedida } = useProductos();
   const { cargarCategoriasArbol } = useCategorias();
-  const { cargarIngredientes } = useIngredientes();
+  const { cargarIngredientes, ingredientes } = useIngredientes();
   const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
     [],
   );
-  const [ingredientes, setIngredientes] = useState<IngredienteRead[]>([]);
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState("");
@@ -45,7 +44,7 @@ export default function ProductoFormulario() {
     formulario.ingredientes.reduce((total, item) => {
       const ing = ingredientes.find((i) => i.id === item.ingrediente_id);
       if (!ing) return total;
-      return total + Number(ing.precio_base) * Number(item.cantidad);
+      return total + Number(ing.precio_base) * Number(item.stock_cantidad);
     }, 0) * 1.3;
 
   useEffect(() => {
@@ -93,7 +92,8 @@ export default function ProductoFormulario() {
             producto.ingredientes?.map((i) => ({
               ingrediente_id: i.id,
               es_removible: i.es_removible,
-              cantidad: String(i.cantidad),
+              stock_cantidad: String(i.cantidad),
+              unidad_medida_id: i.unidad_medida_id,
             })) ?? [],
         });
       } catch (error) {
@@ -220,7 +220,7 @@ export default function ProductoFormulario() {
       ingredientes: formulario.ingredientes.map((item) => ({
         ingrediente_id: item.ingrediente_id,
         es_removible: item.es_removible,
-        cantidad: Number(item.cantidad),
+        stock_cantidad: Number(item.stock_cantidad),
       })),
     };
 
@@ -241,6 +241,40 @@ export default function ProductoFormulario() {
       );
     }
   };
+
+  const datosDe = (id: number) => {
+    console.log("datos de funcion", id);
+    return ingredientes?.find((i) => i.id === id);
+  };
+
+  const factorDe = (unidadId: number) =>
+    Number(unidadesMedida.find((u) => u.id === unidadId)?.factor ?? 1);
+
+  const stockEstimado = (() => {
+    const unidadesPosibles: number[] = [];
+
+    for (const item of formulario.ingredientes) {
+      const ing = datosDe(item.ingrediente_id);
+      console.log("ingrediente_id", item.ingrediente_id);
+      console.log("resultado", datosDe(item.ingrediente_id));
+      const cantidad = Number(item.stock_cantidad);
+      console.log("ing", ing);
+      console.log("cantidad", cantidad);
+
+      if (!ing || !cantidad || cantidad <= 0) continue;
+
+      const stockEnBase =
+        Number(ing.stock_cantidad) * factorDe(ing.unidad_medida_id);
+      console.log("stockEnBase", stockEnBase);
+      const necesarioEnBase = cantidad * factorDe(item.unidad_medida_id);
+      console.log("necesarioEnBase", necesarioEnBase);
+
+      console.log("unidadesPosibles", unidadesPosibles);
+      unidadesPosibles.push(Math.floor(stockEnBase / necesarioEnBase));
+    }
+
+    return unidadesPosibles.length > 0 ? Math.min(...unidadesPosibles) : 0;
+  })();
 
   const cargarCategoriaArbol = async () => {
     try {
@@ -349,6 +383,7 @@ export default function ProductoFormulario() {
                     Stock
                   </label>
 
+                  {stockEstimado}
                   <input
                     name="stock_cantidad"
                     type="number"

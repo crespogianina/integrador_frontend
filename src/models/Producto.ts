@@ -6,7 +6,7 @@ export interface ProductoCategoriaCreate {
 export interface ProductoIngredienteCreate {
     ingrediente_id: number;
     es_removible: boolean;
-    cantidad: number
+    stock_cantidad: number
 }
 
 export interface ProductoCreate {
@@ -36,6 +36,7 @@ export interface IngredienteResumen {
     nombre: string;
     es_removible: boolean;
     cantidad: number;
+    unidad_medida_id: number
 }
 
 export interface ProductoRead {
