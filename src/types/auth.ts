@@ -1,4 +1,4 @@
-export type Rol = "ADMIN" | "CONSULTA";
+export type Rol = "ADMIN" | "STOCK" | "PEDIDOS" | "CLIENT";
 
 export type AuthUser = {
   id: number;

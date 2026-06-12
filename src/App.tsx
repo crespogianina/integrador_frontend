@@ -9,6 +9,11 @@ import ProductoPage from "./pages/productos/ProductoPage";
 import ProductoFormulario from "./pages/productos/ProductoFormulario";
 import PrivateRoute from "./routes/PrivateRouter";
 import RootRedirect from "./routes/RootRedirect";
+import { PedidoTrackingPage } from "./pages/PedidoTrackingPage";
+import { MisPedidosPage } from "./pages/PedidosPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
+import { PagoRetornoPage } from "./pages/PagoRetornoPage";
+import { AdminPedidosPage } from "./pages/AdminPedidosPage";
 
 function App() {
   return (
@@ -76,22 +81,21 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders/:pedidoId/:status" element={<PagoRetornoPage />} />
+        <Route path="/pedidos" element={<MisPedidosPage />} />
+        <Route path="/pedidos/:id" element={<PedidoTrackingPage />} />
+        <Route
+          path="/admin/pedidos"
+          element={
+            <PrivateRoute roles={["ADMIN", "PEDIDOS"]}>
+              <AdminPedidosPage />
+            </PrivateRoute>
+          }
+        />
       </Route>
     </Routes>
   );
 }
 
 export default App;
-
-// usuarios machete
-// {
-//   "email": "giani@gmail.com",
-//   "password": "1234",
-//   "rol": "ADMIN"
-// }
-
-// {
-//   "email": "test@example.com",
-//   "password": "1234",
-//   "rol": "CLIENT"
-// }

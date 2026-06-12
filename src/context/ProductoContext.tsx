@@ -13,7 +13,7 @@ import type {
   ProductoUpdate,
 } from "../models/Producto";
 import { apiFetch } from "../config/api";
-import type { UnidadMedida } from "./UnidadMedida";
+import type { UnidadMedida } from "../models/UnidadMedida";
 export interface ListaProducto {
   data: ProductoRead[];
   total: number;

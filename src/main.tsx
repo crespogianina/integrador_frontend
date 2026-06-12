@@ -8,19 +8,22 @@ import { AuthProvider } from "./context/AuthContext.tsx";
 import { IngredientesProvider } from "./context/IngredienteContext.tsx";
 import { CategoriasProvider } from "./context/CategoriaContext.tsx";
 import { ProductosProvider } from "./context/ProductoContext.tsx";
+import { CartProvider } from "./context/CartContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <CategoriasProvider>
-        <IngredientesProvider>
-          <ProductosProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </ProductosProvider>
-        </IngredientesProvider>
-      </CategoriasProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ProductosProvider>
+          <IngredientesProvider>
+            <CategoriasProvider>
+              <CartProvider>
+                <App />
+              </CartProvider>
+            </CategoriasProvider>
+          </IngredientesProvider>
+        </ProductosProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>,
 );
