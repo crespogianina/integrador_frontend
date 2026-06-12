@@ -199,6 +199,7 @@ export default function ProductoFormulario() {
       nuevosErrores.ingredientes = "Debe agregar al menos un ingrediente";
     }
 
+    setErrorRequest("Tiene errores en el formulario");
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
