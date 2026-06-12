@@ -8,8 +8,10 @@ import { apiFetch } from "../../config/api";
 import type { ProductoIngredienteItem } from "./ProductoIngredienteFormulario";
 import ProductoIngredienteFormulario from "./ProductoIngredienteFormulario";
 import ProductoCategoriaFormulario from "../../components/ArbolCategoria";
+import type { IngredienteRead } from "../../models/Ingrediente";
+import type { CategoriaTreeRead } from "../../models/Categoria";
 
-const API_PRODUCTOS = "http://localhost:8000/productos";
+const API_PRODUCTOS = "http://localhost:8000/api/v1/productos/";
 
 const initialState = {
   nombre: "",
@@ -20,7 +22,7 @@ const initialState = {
   es_producto_final: false,
   imagenes_url: [] as string[],
   categorias: [] as number[],
-  categoriaPrincipal: "",
+  categoriaPrincipal: 0,
   ingredientes: [] as ProductoIngredienteItem[],
 };
 
@@ -29,9 +31,12 @@ export default function ProductoFormulario() {
   const { id } = useParams();
 
   const { agregar, editar } = useProductos();
-  const { categoriasArbol, cargarCategoriasArbol } = useCategorias();
-  const { ingredientes, cargarIngredientes } = useIngredientes();
-
+  const { cargarCategoriasArbol } = useCategorias();
+  const { cargarIngredientes } = useIngredientes();
+  const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
+    [],
+  );
+  const [ingredientes, setIngredientes] = useState<IngredienteRead[]>([]);
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState("");
@@ -40,11 +45,11 @@ export default function ProductoFormulario() {
     formulario.ingredientes.reduce((total, item) => {
       const ing = ingredientes.find((i) => i.id === item.ingrediente_id);
       if (!ing) return total;
-      return total + Number(ing.precio) * Number(item.cantidad);
+      return total + Number(ing.precio_base) * Number(item.cantidad);
     }, 0) * 1.3;
 
   useEffect(() => {
-    cargarCategoriasArbol();
+    cargarCategoriaArbol();
     cargarIngredientes(1, 50, "");
   }, []);
 
@@ -82,14 +87,13 @@ export default function ProductoFormulario() {
           imagenes_url: producto.imagenes_url ?? [],
           categorias: producto.categorias?.map((c) => c.id) ?? [],
           categoriaPrincipal:
-            producto.categorias?.find((c) => c.es_principal)?.id.toString() ??
-            "",
+            producto.categorias?.find((c) => c.es_principal)?.id ?? 0,
 
           ingredientes:
             producto.ingredientes?.map((i) => ({
               ingrediente_id: i.id,
               es_removible: i.es_removible,
-              cantidad: i.cantidad,
+              cantidad: String(i.cantidad),
             })) ?? [],
         });
       } catch (error) {
@@ -121,8 +125,6 @@ export default function ProductoFormulario() {
   };
 
   const handleProductoFinal = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(formulario.es_producto_final);
-    console.log(e);
     setFormulario((prev) => ({
       ...prev,
       es_producto_final: e.target.checked,
@@ -139,8 +141,8 @@ export default function ProductoFormulario() {
         ...prev,
         categorias: nuevasCategorias,
         categoriaPrincipal:
-          !checked && prev.categoriaPrincipal === String(categoriaId)
-            ? ""
+          !checked && prev.categoriaPrincipal === categoriaId
+            ? 0
             : prev.categoriaPrincipal,
       };
     });
@@ -156,9 +158,7 @@ export default function ProductoFormulario() {
     setFormulario((prev) => ({
       ...prev,
       categoriaPrincipal:
-        prev.categoriaPrincipal === String(categoriaId)
-          ? ""
-          : String(categoriaId),
+        prev.categoriaPrincipal === categoriaId ? 0 : categoriaId,
     }));
   };
 
@@ -215,9 +215,13 @@ export default function ProductoFormulario() {
       imagenes_url: formulario.imagenes_url,
       categorias: formulario.categorias.map((categoriaId) => ({
         categoria_id: categoriaId,
-        es_principal: formulario.categoriaPrincipal === String(categoriaId),
+        es_principal: formulario.categoriaPrincipal === categoriaId,
       })),
-      ingredientes: formulario.ingredientes,
+      ingredientes: formulario.ingredientes.map((item) => ({
+        ingrediente_id: item.ingrediente_id,
+        es_removible: item.es_removible,
+        cantidad: Number(item.cantidad),
+      })),
     };
 
     try {
@@ -234,6 +238,19 @@ export default function ProductoFormulario() {
     } catch (error) {
       setErrorRequest(
         error instanceof Error ? error.message : "Error al guardar el producto",
+      );
+    }
+  };
+
+  const cargarCategoriaArbol = async () => {
+    try {
+      const categorias = await cargarCategoriasArbol();
+      setCategoriasArbol(categorias);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar el ingrediente",
       );
     }
   };
@@ -336,9 +353,10 @@ export default function ProductoFormulario() {
                     name="stock_cantidad"
                     type="number"
                     min="0"
+                    disabled={true}
                     value={formulario.stock_cantidad}
                     onChange={handleChange}
-                    placeholder="Ej: 20"
+                    placeholder="Stock"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
 
@@ -444,7 +462,6 @@ export default function ProductoFormulario() {
             </section>
 
             <ProductoIngredienteFormulario
-              ingredientes={ingredientes}
               value={formulario.ingredientes}
               onChange={(val) =>
                 setFormulario((prev) => ({ ...prev, ingredientes: val }))

@@ -5,7 +5,11 @@ import {
   type ReactNode,
   useReducer,
 } from "react";
-import type { IngredienteRead, IngredienteCreate } from "../models/Ingrediente";
+import type {
+  IngredienteRead,
+  IngredienteCreate,
+  IngredienteUpdate,
+} from "../models/Ingrediente";
 import { IngredientesReducer } from "../reducers/ingredienteReducer";
 import { API_BASE, apiFetch } from "../config/api";
 
@@ -17,7 +21,6 @@ export interface ListaIngrediente {
 interface ContextType {
   ingredientes: IngredienteRead[];
   total: number;
-  cargarIngrediente: (id: number) => void;
   agregar: (i: IngredienteCreate) => void;
   cargarIngredientes: (
     page: number,
@@ -27,11 +30,10 @@ interface ContextType {
     descripcion?: string,
   ) => void;
   resetear: () => void;
-  editar: (i: IngredienteRead) => void;
-  ingredienteEditar: IngredienteRead | null;
-  setIngredienteEditar: (i: IngredienteRead | null) => void;
+  editar: (i: IngredienteUpdate) => void;
   activar: (id: number) => void;
   desactivar: (id: number) => void;
+  getIngredienteById: (id: number) => Promise<IngredienteRead>;
 }
 
 const INGREDIENTES_PATH = `${API_BASE}/ingredientes/`;
@@ -40,11 +42,10 @@ const IngredienteContext = createContext<ContextType | null>(null);
 
 export function IngredientesProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(IngredientesReducer, []);
-  const [ingredienteEditar, setIngredienteEditar] =
-    useState<IngredienteRead | null>(null);
   const [total, setTotal] = useState(0);
 
   async function agregar(data: IngredienteCreate) {
+    console.log(data);
     const res = await apiFetch(INGREDIENTES_PATH, {
       method: "POST",
       credentials: "include",
@@ -52,9 +53,10 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
     });
 
+    console.log(res);
     if (!res.ok) {
       const errorData = await res.json().catch(() => null);
-
+      console.log(errorData);
       throw new Error(errorData?.detail || "Error al crear el ingrediente");
     }
 
@@ -70,7 +72,8 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "RESET", payload: [] });
   }
 
-  async function editar(data: IngredienteRead) {
+  async function editar(data: IngredienteUpdate) {
+    console.log(data);
     const res = await apiFetch(`${INGREDIENTES_PATH}${data.id}`, {
       method: "PUT",
       credentials: "include",
@@ -78,6 +81,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify(data),
     });
 
+    console.log(res);
     if (!res.ok) {
       const errorData = await res.json().catch(() => null);
 
@@ -87,16 +91,6 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     const actualizado = await res.json();
 
     dispatch({ type: "EDITAR", payload: actualizado });
-    setIngredienteEditar(null);
-  }
-
-  async function cargarIngrediente(id: number) {
-    const res = await apiFetch(`${INGREDIENTES_PATH}${id}`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Error al cargar el ingrediente");
-    const data: IngredienteRead = await res.json();
-    setIngredienteEditar(data);
   }
 
   async function cargarIngredientes(
@@ -169,6 +163,23 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "DESACTIVAR", payload: id });
   }
 
+  async function getIngredienteById(id: number): Promise<IngredienteRead> {
+    const res = await apiFetch(`${INGREDIENTES_PATH}${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(
+        errorData?.detail || "Error al desactivar el ingrediente",
+      );
+    }
+
+    const ingrediente: IngredienteRead = await res.json();
+    return ingrediente;
+  }
+
   return (
     <IngredienteContext.Provider
       value={{
@@ -176,13 +187,11 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
         agregar,
         resetear,
         editar,
-        cargarIngrediente,
-        ingredienteEditar,
         cargarIngredientes,
-        setIngredienteEditar,
         total,
         activar,
         desactivar,
+        getIngredienteById,
       }}
     >
       {children}

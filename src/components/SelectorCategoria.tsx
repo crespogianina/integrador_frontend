@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CategoriaTreeRead } from "../models/Categoria";
 
 type Props = {
@@ -7,7 +8,25 @@ type Props = {
   onSelect: (id: number | null) => void;
 };
 
-export function NodoSelector({
+function Chevron({ abierto }: { abierto: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
+        abierto ? "rotate-90" : ""
+      }`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 4l4 4-4 4" />
+    </svg>
+  );
+}
+
+function NodoSelector({
   categoria,
   selectedId,
   excludeId,
@@ -20,44 +39,72 @@ export function NodoSelector({
   onSelect: (id: number | null) => void;
   depth?: number;
 }) {
+  const [abierto, setAbierto] = useState(true);
+
   if (categoria.id === excludeId) return null;
 
   const selected = selectedId === categoria.id;
-  const tieneHijos = categoria.hijos && categoria.hijos.length > 0;
+  const hijos = categoria.hijos ?? [];
+  const tieneHijos = hijos.length > 0;
 
   return (
-    <div className={depth > 0 ? "ml-5 border-l border-slate-200 pl-4" : ""}>
+    <div>
       <div
-        className={`rounded-xl border p-3 transition ${
+        className={`group flex items-center gap-1 rounded-lg pr-2 transition-colors ${
           selected
-            ? "border-blue-300 bg-blue-50"
-            : "border-slate-200 bg-slate-50"
+            ? "bg-blue-50 text-blue-700"
+            : "text-slate-700 hover:bg-slate-100"
         }`}
       >
+        {tieneHijos ? (
+          <button
+            type="button"
+            onClick={() => setAbierto((a) => !a)}
+            aria-label={abierto ? "Colapsar" : "Expandir"}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-slate-200/70"
+          >
+            <Chevron abierto={abierto} />
+          </button>
+        ) : (
+          <span className="h-7 w-7 shrink-0" />
+        )}
+
         <button
           type="button"
           onClick={() => onSelect(selected ? null : categoria.id)}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-700"
+          className="flex min-w-0 flex-1 items-center gap-2 py-1.5 text-left text-sm"
         >
           <span
-            className={`h-4 w-4 flex-shrink-0 rounded-full border ${
-              selected
-                ? "border-blue-600 bg-blue-600"
-                : "border-slate-300 bg-white"
-            }`}
-          />
-          <span>{categoria.nombre}</span>
+            className={`truncate ${selected ? "font-semibold" : "font-medium"}`}
+          >
+            {categoria.nombre}
+          </span>
+
           {tieneHijos && (
-            <span className="ml-1 text-xs font-normal text-slate-400">
-              ({categoria.hijos.length})
+            <span className="rounded-full bg-slate-200/80 px-1.5 text-[11px] font-medium text-slate-500 group-hover:bg-slate-200">
+              {hijos.length}
             </span>
+          )}
+
+          {selected && (
+            <svg
+              viewBox="0 0 16 16"
+              className="ml-auto h-4 w-4 shrink-0 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 8.5l3.5 3.5L13 5" />
+            </svg>
           )}
         </button>
       </div>
 
-      {tieneHijos && (
-        <div className="mt-2 space-y-2">
-          {categoria.hijos.map((hijo) => (
+      {tieneHijos && abierto && (
+        <div className="ml-[13px] border-l border-slate-200 pl-2">
+          {hijos.map((hijo) => (
             <NodoSelector
               key={hijo.id}
               categoria={hijo}
@@ -80,7 +127,7 @@ export default function CategoriaSelectorArbol({
   onSelect,
 }: Props) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-0.5">
       {categorias.map((categoria) => (
         <NodoSelector
           key={categoria.id}

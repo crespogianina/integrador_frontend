@@ -1,86 +1,116 @@
+import { useState } from "react";
 import type { CategoriaTreeRead } from "../models/Categoria";
 
 type Props = {
   categorias: CategoriaTreeRead[];
   selectedIds: number[];
-  categoriaPrincipal: string;
+  categoriaPrincipal: number | null;
   onToggle: (id: number, checked: boolean) => void;
   onMarcarPrincipal: (id: number) => void;
-  depth?: number;
 };
 
-function NodoCategoriaArbol({
+function Chevron({ abierto }: { abierto: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
+        abierto ? "rotate-90" : ""
+      }`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 4l4 4-4 4" />
+    </svg>
+  );
+}
+
+function NodoCategoria({
   categoria,
   selectedIds,
   categoriaPrincipal,
   onToggle,
   onMarcarPrincipal,
-  depth = 0,
 }: {
   categoria: CategoriaTreeRead;
 } & Omit<Props, "categorias">) {
+  const [abierto, setAbierto] = useState(true);
+
+  const hijos = categoria.hijos ?? [];
+  const tieneHijos = hijos.length > 0;
+
   const selected = selectedIds.includes(categoria.id);
-  const esPrincipal = categoriaPrincipal === String(categoria.id);
-  const tieneHijos = categoria.hijos && categoria.hijos.length > 0;
+  const esPrincipal = categoriaPrincipal === categoria.id;
 
   return (
-    <div className={depth > 0 ? "ml-5 border-l border-slate-200 pl-4" : ""}>
+    <div>
       <div
-        className={`rounded-xl border p-3 transition ${
-          selected
-            ? "border-blue-300 bg-blue-50"
-            : "border-slate-200 bg-slate-50"
+        className={`group flex items-center gap-2 rounded-lg px-2 py-1 transition-colors ${
+          selected ? "bg-blue-50 border border-blue-200" : "hover:bg-slate-100"
         }`}
       >
-        <button
-          type="button"
-          onClick={() => onToggle(categoria.id, !selected)}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-700"
+        {tieneHijos ? (
+          <button
+            type="button"
+            onClick={() => setAbierto((v) => !v)}
+            className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-slate-200"
+          >
+            <Chevron abierto={abierto} />
+          </button>
+        ) : (
+          <span className="h-7 w-7 shrink-0" />
+        )}
+
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => onToggle(categoria.id, e.target.checked)}
+          className="h-4 w-4"
+        />
+
+        <span
+          className={`flex-1 truncate text-sm ${
+            selected ? "font-semibold text-blue-700" : "text-slate-700"
+          }`}
         >
-          <span
-            className={`h-4 w-4 flex-shrink-0 rounded border ${
-              selected
-                ? "border-blue-600 bg-blue-600"
-                : "border-slate-300 bg-white"
-            }`}
-          />
-          <span>{categoria.nombre}</span>
-          {tieneHijos && (
-            <span className="ml-1 text-xs font-normal text-slate-400">
-              ({categoria.hijos && categoria.hijos.length})
-            </span>
-          )}
-        </button>
+          {categoria.nombre}
+        </span>
+
+        {tieneHijos && (
+          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-500">
+            {hijos.length}
+          </span>
+        )}
 
         {selected && (
           <button
             type="button"
             onClick={() => onMarcarPrincipal(categoria.id)}
-            className={`mt-2 rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`rounded-full px-2 py-1 text-xs font-semibold transition ${
               esPrincipal
-                ? "bg-blue-600 text-white"
+                ? "bg-amber-500 text-white"
                 : "bg-slate-200 text-slate-600 hover:bg-slate-300"
             }`}
           >
-            {esPrincipal ? "Quitar principal" : "Marcar principal"}
+            {esPrincipal ? "⭐ Principal" : "Marcar principal"}
           </button>
         )}
       </div>
 
-      {tieneHijos && (
-        <div className="mt-2 space-y-2">
-          {categoria.hijos &&
-            categoria.hijos.map((hijo) => (
-              <NodoCategoriaArbol
-                key={hijo.id}
-                categoria={hijo}
-                selectedIds={selectedIds}
-                categoriaPrincipal={categoriaPrincipal}
-                onToggle={onToggle}
-                onMarcarPrincipal={onMarcarPrincipal}
-                depth={depth + 1}
-              />
-            ))}
+      {tieneHijos && abierto && (
+        <div className="ml-[13px] border-l border-slate-200 pl-2">
+          {hijos.map((hijo) => (
+            <NodoCategoria
+              key={hijo.id}
+              categoria={hijo}
+              selectedIds={selectedIds}
+              categoriaPrincipal={categoriaPrincipal}
+              onToggle={onToggle}
+              onMarcarPrincipal={onMarcarPrincipal}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -95,16 +125,15 @@ export default function ProductoCategoriaFormulario({
   onMarcarPrincipal,
 }: Props) {
   return (
-    <div className="mt-4 space-y-3">
+    <div className="space-y-1">
       {categorias.map((categoria) => (
-        <NodoCategoriaArbol
+        <NodoCategoria
           key={categoria.id}
           categoria={categoria}
           selectedIds={selectedIds}
           categoriaPrincipal={categoriaPrincipal}
           onToggle={onToggle}
           onMarcarPrincipal={onMarcarPrincipal}
-          depth={0}
         />
       ))}
     </div>

@@ -1,4 +1,4 @@
-export const API_BASE = "http://localhost:8000";
+export const API_BASE = "http://localhost:8000/api/v1";
 
 type LogoutFn = () => void;
 let _logout: LogoutFn | null = null;

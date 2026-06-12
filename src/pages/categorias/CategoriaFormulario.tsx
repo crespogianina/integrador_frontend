@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCategorias } from "../../context/CategoriaContext";
-import type { CategoriaCreate } from "../../models/Categoria";
+import type {
+  CategoriaCreate,
+  CategoriaTreeRead,
+} from "../../models/Categoria";
 import CategoriaSelectorArbol from "../../components/SelectorCategoria";
 
 const initialState: {
@@ -23,7 +26,6 @@ export default function CategoriaFormulario() {
     editar,
     categoriaEditar,
     setCategoriaEditar,
-    categoriasArbol,
     cargarCategoriasArbol,
     cargarCategoria,
   } = useCategorias();
@@ -31,9 +33,12 @@ export default function CategoriaFormulario() {
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState<string>("");
+  const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
+    [],
+  );
 
   useEffect(() => {
-    cargarCategoriasArbol();
+    cargarCategoriaArbol();
     if (id) {
       cargarCategoria(Number(id));
     }
@@ -124,6 +129,19 @@ export default function CategoriaFormulario() {
     navigate("/categorias");
   };
 
+  const cargarCategoriaArbol = async () => {
+    try {
+      const categorias = await cargarCategoriasArbol();
+      setCategoriasArbol(categorias);
+    } catch (error) {
+      setErrorRequest(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar el ingrediente",
+      );
+    }
+  };
+
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
       <section className="mx-auto max-w-4xl">
@@ -184,7 +202,7 @@ export default function CategoriaFormulario() {
                     : "Sin categoría padre"}
                 </p>
 
-                <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200 p-3">
+                <div className="max-h-64 overflow-y-auto  p-3">
                   {categoriasArbol.length === 0 ? (
                     <p className="text-sm text-slate-400">
                       Cargando categorías...

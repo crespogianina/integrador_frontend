@@ -111,7 +111,6 @@ export default function ProductoPage() {
   ]);
 
   const handleEdit = (producto: ProductoRead) => {
-    console.log(producto);
     setProductoEditar(producto);
     navigate(`/productos/editar/${producto.id}`);
   };

@@ -19,7 +19,6 @@ export interface ListaCategoria {
 
 interface ContextType {
   categorias: CategoriaRead[];
-  categoriasArbol: CategoriaTreeRead[];
   cargarCategoria: (id: number) => void;
   total: number;
   agregar: (i: CategoriaCreate) => void;
@@ -33,12 +32,12 @@ interface ContextType {
   editar: (i: CategoriaRead) => void;
   categoriaEditar: CategoriaRead | null;
   setCategoriaEditar: (i: CategoriaRead | null) => void;
-  cargarCategoriasArbol: () => void;
+  cargarCategoriasArbol: () => Promise<CategoriaTreeRead[]>;
   activar: (id: number) => void;
   desactivar: (id: number) => void;
 }
 
-const API = "http://localhost:8000/categorias/";
+const API = "http://localhost:8000/api/v1/categorias/";
 
 const CategoriaContext = createContext<ContextType | null>(null);
 
@@ -47,11 +46,7 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
   const [categoriaEditar, setCategoriaEditar] = useState<CategoriaRead | null>(
     null,
   );
-  const [cargandoArbol, setCargandoArbol] = useState(false);
   const [total, setTotal] = useState(0);
-  const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
-    [],
-  );
 
   async function agregar(data: CategoriaCreate) {
     const res = await apiFetch(API, {
@@ -97,16 +92,11 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     setCategoriaEditar(null);
   }
 
-  async function cargarCategoriasArbol() {
-    setCargandoArbol(true);
-    try {
-      const res = await apiFetch(`${API}tree`, { credentials: "include" });
-      if (!res.ok) throw new Error("Error al cargar árbol de categorías");
-      const data: CategoriaTreeRead[] = await res.json();
-      setCategoriasArbol(data);
-    } finally {
-      setCargandoArbol(false);
-    }
+  async function cargarCategoriasArbol(): Promise<CategoriaTreeRead[]> {
+    const res = await apiFetch(`${API}tree`, { credentials: "include" });
+    if (!res.ok) throw new Error("Error al cargar árbol de categorías");
+    const data: CategoriaTreeRead[] = await res.json();
+    return data;
   }
 
   async function cargarCategorias(
@@ -183,7 +173,6 @@ export function CategoriasProvider({ children }: { children: ReactNode }) {
     <CategoriaContext.Provider
       value={{
         categorias: state,
-        categoriasArbol,
         cargarCategoria,
         agregar,
         resetear,

@@ -4,6 +4,7 @@ import {
   useState,
   type ReactNode,
   useReducer,
+  useEffect,
 } from "react";
 import { ProductosReducer } from "../reducers/productoReducer";
 import type {
@@ -12,6 +13,7 @@ import type {
   ProductoUpdate,
 } from "../models/Producto";
 import { apiFetch } from "../config/api";
+import type { UnidadMedida } from "./UnidadMedida";
 export interface ListaProducto {
   data: ProductoRead[];
   total: number;
@@ -19,6 +21,7 @@ export interface ListaProducto {
 
 interface ContextType {
   productos: ProductoRead[];
+  unidadesMedida: UnidadMedida[];
   total: number;
   agregar: (i: ProductoCreate) => void;
   cargarProductos: (
@@ -37,7 +40,7 @@ interface ContextType {
   desactivar: (id: number) => void;
 }
 
-const API = "http://localhost:8000/productos/";
+const API = "http://localhost:8000/api/v1/productos/";
 
 const ProductoContext = createContext<ContextType | null>(null);
 
@@ -47,6 +50,13 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
     null,
   );
   const [total, setTotal] = useState(0);
+  const [unidadesMedida, setUnidadesMedida] = useState<UnidadMedida[]>([]);
+
+  useEffect(() => {
+    if (!unidadesMedida.length) {
+      obtenerUnidadesMedida();
+    }
+  }, []);
 
   async function agregar(data: ProductoCreate) {
     const res = await apiFetch(API, {
@@ -131,6 +141,21 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "DESACTIVAR", payload: id });
   }
 
+  async function obtenerUnidadesMedida(): Promise<void> {
+    const res = await apiFetch(`${API}unidades-medida`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Error al desactivar el producto");
+    }
+
+    const unidades: UnidadMedida[] = await res.json();
+    setUnidadesMedida(unidades);
+  }
+
   async function cargarProductos(
     page: number,
     limit: number,
@@ -185,6 +210,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
         total,
         activar,
         desactivar,
+        unidadesMedida,
       }}
     >
       {children}

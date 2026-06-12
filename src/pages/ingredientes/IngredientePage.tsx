@@ -30,14 +30,8 @@ export default function IngredientePage() {
   const { hasRol } = useAuth();
   const puedeModificar = hasRol("ADMIN");
 
-  const {
-    ingredientes,
-    setIngredienteEditar,
-    cargarIngredientes,
-    total,
-    activar,
-    desactivar,
-  } = useIngredientes();
+  const { ingredientes, cargarIngredientes, total, activar, desactivar } =
+    useIngredientes();
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
@@ -108,12 +102,10 @@ export default function IngredientePage() {
   ]);
 
   const handleEdit = (ingrediente: IngredienteRead) => {
-    setIngredienteEditar(ingrediente);
     navigate(`/ingredientes/editar/${ingrediente.id}`);
   };
 
   const handleCreate = () => {
-    setIngredienteEditar(null);
     navigate("/ingredientes/nuevo");
   };
 
@@ -174,7 +166,7 @@ export default function IngredientePage() {
               getRowId={(i) => i.id}
               onAdd={puedeModificar ? handleCreate : undefined}
               onEdit={puedeModificar ? handleEdit : undefined}
-              showEditButtonCondition={(ingrediente) => ingrediente.activo}
+              showEditButtonCondition={(ingrediente) => !!ingrediente.activo}
               page={paginaActual}
               totalPages={totalPaginas}
               onPrevious={() => setPaginaActual((p) => p - 1)}

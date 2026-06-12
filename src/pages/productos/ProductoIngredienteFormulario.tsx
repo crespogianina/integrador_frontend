@@ -1,54 +1,45 @@
 import { useState } from "react";
+import IngredienteSelectorModal from "../../components/IngredienteSelectorModal";
+import { useProductos } from "../../context/ProductoContext";
+import { useIngredientes } from "../../context/IngredienteContext";
 
 export type ProductoIngredienteItem = {
   ingrediente_id: number;
   es_removible: boolean;
-  cantidad: number;
-};
-
-type Ingrediente = {
-  id: number;
-  nombre: string;
-  precio: number;
-  unidad: string;
-  stock_disponible: number;
+  cantidad: string;
 };
 
 type Props = {
-  ingredientes: Ingrediente[];
   value: ProductoIngredienteItem[];
   onChange: (val: ProductoIngredienteItem[]) => void;
 };
 
 export default function ProductoIngredienteFormulario({
-  ingredientes,
   value,
   onChange,
 }: Props) {
-  const [busqueda, setBusqueda] = useState("");
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const { unidadesMedida } = useProductos();
+  const { ingredientes } = useIngredientes();
 
-  const ingredientesFiltrados = ingredientes.filter((ing) =>
-    ing.nombre.toLowerCase().includes(busqueda.toLowerCase()),
-  );
+  const datosDe = (id: number) => ingredientes?.find((i) => i.id === id);
 
-  const getSeleccionado = (id: number) =>
-    value.find((item) => item.ingrediente_id === id);
-
-  const toggleIngrediente = (ing: Ingrediente, checked: boolean) => {
-    if (checked) {
-      onChange([
-        ...value,
-        { ingrediente_id: ing.id, es_removible: false, cantidad: 1 },
-      ]);
-    } else {
-      onChange(value.filter((item) => item.ingrediente_id !== ing.id));
-    }
+  const agregarIngredientes = (ids: number[]) => {
+    const nuevos: ProductoIngredienteItem[] = ids.map((id) => ({
+      ingrediente_id: id,
+      es_removible: false,
+      cantidad: "",
+    }));
+    onChange([...value, ...nuevos]);
   };
+
+  const quitar = (id: number) =>
+    onChange(value.filter((item) => item.ingrediente_id !== id));
 
   const actualizarCampo = (
     id: number,
     campo: keyof Omit<ProductoIngredienteItem, "ingrediente_id">,
-    val: number | boolean,
+    val: string | boolean,
   ) => {
     onChange(
       value.map((item) =>
@@ -57,163 +48,161 @@ export default function ProductoIngredienteFormulario({
     );
   };
 
+  const costoEstimado = value.reduce((total, item) => {
+    const ing = datosDe(item.ingrediente_id);
+    if (!ing) return total;
+    return total + Number(ing.precio_base) * Number(item.cantidad);
+  }, 0);
+
+  const obtenerUnidadMedidaNombre = (id: number): string => {
+    const medidaEncontrada = unidadesMedida.find((unidad) => unidad.id === id);
+
+    return medidaEncontrada?.nombre || "g";
+  };
+
   return (
     <section className="rounded-2xl border border-slate-200 p-5">
-      <div className="mb-4 flex flex-col gap-1">
-        <h3 className="text-base font-semibold text-slate-800">Ingredientes</h3>
-        <p className="text-sm text-slate-500">
-          Seleccioná los ingredientes, su cantidad y si el cliente puede
-          removerlos.
-        </p>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-base font-semibold text-slate-800">
+            Ingredientes
+          </h3>
+          <p className="text-sm text-slate-500">
+            Configurá la cantidad y si el cliente puede removerlos.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setModalAbierto(true)}
+          className="shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+        >
+          + Agregar ingredientes
+        </button>
       </div>
 
-      {/* Buscador */}
-      <input
-        type="text"
-        placeholder="Buscar ingrediente..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="mb-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-      />
-
-      {/* Tabla de selección */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold">Usar</th>
-              <th className="px-4 py-3 text-left font-semibold">Nombre</th>
-              <th className="px-4 py-3 text-left font-semibold">Unidad</th>
-              <th className="px-4 py-3 text-left font-semibold">Stock disp.</th>
-              <th className="px-4 py-3 text-left font-semibold">Precio</th>
-              <th className="px-4 py-3 text-left font-semibold">Cantidad</th>
-              <th className="px-4 py-3 text-left font-semibold">Removible</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-slate-100">
-            {ingredientesFiltrados.length === 0 && (
+      {value.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-300 py-10 text-center">
+          <p className="text-sm font-medium text-slate-600">
+            Este producto todavía no tiene ingredientes
+          </p>
+          <p className="text-xs text-slate-400">
+            Agregalos con el botón de arriba, o marcá el producto como consumo
+            final.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-6 text-center text-slate-400"
-                >
-                  No se encontraron ingredientes.
-                </td>
+                <th className="px-4 py-3 text-left font-semibold">Nombre</th>
+                <th className="px-4 py-3 text-left font-semibold">Cantidad</th>
+                <th className="px-4 py-3 text-left font-semibold">Unidad</th>
+                <th className="px-4 py-3 text-left font-semibold">Removible</th>
+                <th className="px-4 py-3" />
               </tr>
-            )}
+            </thead>
 
-            {ingredientesFiltrados.map((ing) => {
-              const seleccionado = getSeleccionado(ing.id);
-              const activo = !!seleccionado;
+            <tbody className="divide-y divide-slate-100">
+              {value.map((item) => {
+                const ing = datosDe(item.ingrediente_id);
 
-              return (
-                <tr
-                  key={ing.id}
-                  className={activo ? "bg-blue-50" : "hover:bg-slate-50"}
-                >
-                  {/* Checkbox de selección */}
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-blue-600"
-                      checked={activo}
-                      onChange={(e) => toggleIngrediente(ing, e.target.checked)}
-                    />
-                  </td>
+                return (
+                  <tr key={item.ingrediente_id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium text-slate-700">
+                      {ing?.nombre ?? `Ingrediente #${item.ingrediente_id}`}
+                      {ing?.es_alergeno && (
+                        <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                          ⚠
+                        </span>
+                      )}
+                    </td>
 
-                  {/* Nombre */}
-                  <td className="px-4 py-3 font-medium text-slate-700">
-                    {ing.nombre}
-                  </td>
-
-                  {/* Unidad */}
-                  <td className="px-4 py-3 text-slate-500">{ing.unidad}</td>
-
-                  {/* Stock disponible */}
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        ing.stock_disponible > 10
-                          ? "bg-green-100 text-green-700"
-                          : ing.stock_disponible > 0
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {ing.stock_disponible}
-                    </span>
-                  </td>
-
-                  {/* Precio */}
-                  <td className="px-4 py-3 text-slate-600">
-                    ${Number(ing.precio).toFixed(2)}
-                  </td>
-
-                  {/* Cantidad */}
-                  <td className="px-4 py-3">
-                    <input
-                      type="number"
-                      min={0.01}
-                      step={0.01}
-                      disabled={!activo}
-                      value={seleccionado?.cantidad ?? ""}
-                      onChange={(e) =>
-                        actualizarCampo(
-                          ing.id,
-                          "cantidad",
-                          Number(e.target.value),
-                        )
-                      }
-                      className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                    />
-                  </td>
-
-                  {/* Removible */}
-                  <td className="px-4 py-3">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                    <td className="px-4 py-3">
                       <input
-                        type="checkbox"
-                        className="h-4 w-4 accent-blue-600"
-                        disabled={!activo}
-                        checked={seleccionado?.es_removible ?? false}
+                        type="number"
+                        min={0.01}
+                        step={0.01}
+                        value={item.cantidad}
                         onChange={(e) =>
                           actualizarCampo(
-                            ing.id,
-                            "es_removible",
-                            e.target.checked,
+                            item.ingrediente_id,
+                            "cantidad",
+                            e.target.value,
                           )
                         }
+                        className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                       />
-                      Sí
-                    </label>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                    </td>
 
-      {/* Resumen de seleccionados */}
-      {value.length > 0 && (
-        <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          <span className="font-semibold text-slate-800">{value.length}</span>{" "}
-          ingrediente{value.length !== 1 ? "s" : ""} seleccionado
-          {value.length !== 1 ? "s" : ""}. Costo estimado:{" "}
-          <span className="font-semibold text-blue-600">
-            $
-            {value
-              .reduce((total, item) => {
-                const ing = ingredientes.find(
-                  (i) => i.id === item.ingrediente_id,
+                    <td className="px-4 py-3 text-slate-500">
+                      {ing
+                        ? obtenerUnidadMedidaNombre(ing.unidad_medida_id)
+                        : "—"}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          actualizarCampo(
+                            item.ingrediente_id,
+                            "es_removible",
+                            !item.es_removible,
+                          )
+                        }
+                        aria-label="Cambiar removible"
+                        className={`relative h-6 w-11 rounded-full transition-colors ${
+                          item.es_removible ? "bg-blue-600" : "bg-slate-300"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                            item.es_removible ? "left-[22px]" : "left-0.5"
+                          }`}
+                        />
+                      </button>
+                    </td>
+
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => quitar(item.ingrediente_id)}
+                        className="rounded-lg bg-red-50 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-100"
+                      >
+                        Quitar
+                      </button>
+                    </td>
+                  </tr>
                 );
-                return total + (ing ? Number(ing.precio) * item.cantidad : 0);
-              }, 0)
-              .toFixed(2)}
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {value.length > 0 && (
+        <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <span>
+            <span className="font-semibold text-slate-800">{value.length}</span>{" "}
+            ingrediente{value.length !== 1 ? "s" : ""}
+          </span>
+          <span>
+            Costo estimado:{" "}
+            <span className="font-semibold text-blue-600">
+              ${costoEstimado.toFixed(2)}
+            </span>
           </span>
         </div>
       )}
+
+      <IngredienteSelectorModal
+        open={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        yaAgregados={value.map((item) => item.ingrediente_id)}
+        onConfirm={agregarIngredientes}
+      />
     </section>
   );
 }

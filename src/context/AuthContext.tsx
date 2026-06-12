@@ -34,6 +34,15 @@ function isRol(value: unknown): value is Rol {
   );
 }
 
+function isTokenVigente(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" && payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
 function normalizeApiUser(raw: unknown): AuthUser | null {
   if (!raw || typeof raw !== "object") return null;
 
@@ -60,13 +69,11 @@ function clearAuth(): void {
   localStorage.removeItem(USER_KEY);
 }
 
-function readInitialAuth(): {
-  user: AuthUser | null;
-  token: string | null;
-} {
+function readInitialAuth(): { user: AuthUser | null; token: string | null } {
   const token = localStorage.getItem(TOKEN_KEY);
 
-  if (!token) {
+  if (!token || !isTokenVigente(token)) {
+    clearAuth();
     return { user: null, token: null };
   }
 
