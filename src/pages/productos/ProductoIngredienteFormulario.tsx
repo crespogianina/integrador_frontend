@@ -34,15 +34,37 @@ export default function ProductoIngredienteFormulario({
     onChange(value.filter((item) => item.ingrediente_id !== id));
 
   const actualizarCampo = (
-    id: number,
-    campo: keyof Omit<ProductoIngredienteCreate, "ingrediente_id">,
-    val: string | boolean,
+    ingredienteId: number,
+    campo: keyof ProductoIngredienteCreate,
+    valor: any,
   ) => {
-    onChange(
-      value.map((item) =>
-        item.ingrediente_id === id ? { ...item, [campo]: val } : item,
-      ),
-    );
+    const nuevosIngredientes = value.map((item) => {
+      if (item.ingrediente_id !== ingredienteId) {
+        return item;
+      }
+
+      if (campo === "cantidad") {
+        const permiteDecimales =
+          item.unidad_medida_id === 1 || item.unidad_medida_id === 3;
+
+        if (permiteDecimales) {
+          if (!/^\d*\.?\d*$/.test(valor)) {
+            return item;
+          }
+        } else {
+          if (!/^\d*$/.test(valor)) {
+            return item;
+          }
+        }
+      }
+
+      return {
+        ...item,
+        [campo]: valor,
+      };
+    });
+
+    onChange(nuevosIngredientes);
   };
 
   const factorDe = (unidadId: number) =>
@@ -128,16 +150,15 @@ export default function ProductoIngredienteFormulario({
                     <td className="px-4 py-3">
                       <input
                         type="text"
-                        min={0.01}
-                        step={0.01}
                         value={item.cantidad}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value;
                           actualizarCampo(
                             item.ingrediente_id,
                             "cantidad",
-                            e.target.value,
-                          )
-                        }
+                            value,
+                          );
+                        }}
                         className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                       />
                     </td>

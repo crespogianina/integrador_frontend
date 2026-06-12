@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProductos } from "../../context/ProductoContext";
 import { useCategorias } from "../../context/CategoriaContext";
@@ -210,7 +210,7 @@ export default function ProductoFormulario() {
     const payload = {
       nombre: formulario.nombre.trim(),
       descripcion: formulario.descripcion.trim(),
-      precio_base: Number(formulario.precio_base),
+      precio_base: Number(Number(formulario.precio_base).toFixed(2)),
       disponible: formulario.disponible,
       imagenes_url: formulario.imagenes_url,
       categorias: formulario.categorias.map((categoriaId) => ({
@@ -220,7 +220,7 @@ export default function ProductoFormulario() {
       ingredientes: formulario.ingredientes.map((item) => ({
         ingrediente_id: item.ingrediente_id,
         es_removible: item.es_removible,
-        cantidad: Number(item.cantidad),
+        cantidad: Number(Number(item.cantidad).toFixed(3)),
         unidad_medida_id: item.unidad_medida_id,
       })),
     };
@@ -243,39 +243,27 @@ export default function ProductoFormulario() {
     }
   };
 
-  const datosDe = (id: number) => {
-    console.log("datos de funcion", id);
-    return ingredientes?.find((i) => i.id === id);
-  };
-
   const factorDe = (unidadId: number) =>
     Number(unidadesMedida.find((u) => u.id === unidadId)?.factor ?? 1);
 
-  const stockEstimado = (() => {
+  const stockEstimado = useMemo(() => {
     const unidadesPosibles: number[] = [];
 
     for (const item of formulario.ingredientes) {
-      const ing = datosDe(item.ingrediente_id);
-      console.log("ingrediente_id", item.ingrediente_id);
-      console.log("resultado", datosDe(item.ingrediente_id));
+      const ing = ingredientes.find((i) => i.id === item.ingrediente_id);
       const cantidad = Number(item.cantidad);
-      console.log("ing", ing);
-      console.log("cantidad", cantidad);
 
       if (!ing || !cantidad || cantidad <= 0) continue;
 
       const stockEnBase =
         Number(ing.stock_cantidad) * factorDe(ing.unidad_medida_id);
-      console.log("stockEnBase", stockEnBase);
       const necesarioEnBase = cantidad * factorDe(item.unidad_medida_id);
-      console.log("necesarioEnBase", necesarioEnBase);
 
-      console.log("unidadesPosibles", unidadesPosibles);
       unidadesPosibles.push(Math.floor(stockEnBase / necesarioEnBase));
     }
 
     return unidadesPosibles.length > 0 ? Math.min(...unidadesPosibles) : 0;
-  })();
+  }, [formulario.ingredientes, ingredientes, unidadesMedida]);
 
   const cargarCategoriaArbol = async () => {
     try {
@@ -384,24 +372,12 @@ export default function ProductoFormulario() {
                     Stock {id ? "actual" : "estimado"}
                   </label>
                   <div className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700">
-                    {id ? formulario.cantidad : stockEstimado}
+                    {stockEstimado}
                   </div>
                   <p className="mt-1 text-xs text-slate-400">
                     El stock se calcula automáticamente según los ingredientes.
                   </p>
                 </div>
-
-                {/* <div className="flex items-end">
-                  <label className="flex w-fit items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={formulario.es_producto_final}
-                      onChange={handleProductoFinal}
-                      className="h-4 w-4"
-                    />
-                    Es un producto consumo final
-                  </label>
-                </div> */}
               </div>
             </section>
 
