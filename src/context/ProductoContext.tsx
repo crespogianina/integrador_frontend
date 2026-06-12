@@ -23,7 +23,7 @@ interface ContextType {
   productos: ProductoRead[];
   unidadesMedida: UnidadMedida[];
   total: number;
-  agregar: (i: ProductoCreate) => void;
+  agregar: (i: ProductoCreate) => Promise<ProductoRead>;
   cargarProductos: (
     page: number,
     limit: number,
@@ -33,7 +33,11 @@ interface ContextType {
   ) => void;
   eliminar: (id: number) => void;
   resetear: () => void;
-  editar: (i: ProductoUpdate) => void;
+  editar: (i: ProductoUpdate) => Promise<ProductoRead>;
+  actualizarImagenes: (
+    id: number,
+    imagenes_url: string[],
+  ) => Promise<ProductoRead>;
   productoEditar: ProductoRead | null;
   setProductoEditar: (i: ProductoRead | null) => void;
   activar: (id: number) => void;
@@ -73,6 +77,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
 
     const nuevo: ProductoRead = await res.json();
     dispatch({ type: "AGREGAR", payload: nuevo });
+    return nuevo;
   }
 
   async function eliminar(id: number) {
@@ -111,6 +116,27 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
 
     dispatch({ type: "EDITAR", payload: actualizado });
     setProductoEditar(null);
+    return actualizado;
+  }
+
+  async function actualizarImagenes(id: number, imagenes_url: string[]) {
+    const res = await apiFetch(`${API}${id}/imagenes`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imagenes_url }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(
+        errorData?.detail || "Error al actualizar las imágenes del producto",
+      );
+    }
+
+    const actualizado: ProductoRead = await res.json();
+    dispatch({ type: "EDITAR", payload: actualizado });
+    return actualizado;
   }
 
   async function activar(id: number) {
@@ -204,6 +230,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
         eliminar,
         resetear,
         editar,
+        actualizarImagenes,
         productoEditar,
         cargarProductos,
         setProductoEditar,

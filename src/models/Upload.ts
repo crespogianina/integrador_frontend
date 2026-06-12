@@ -10,3 +10,7 @@ export interface CloudinaryResponse {
 export interface ImagenCategoriaUpdate {
   imagen_url: string | null;
 }
+
+export interface ImagenProductoUpdate {
+  imagenes_url: string[];
+}
