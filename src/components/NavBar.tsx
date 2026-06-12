@@ -25,7 +25,6 @@ export default function Navbar() {
 
   const esCliente = hasRol("CLIENT");
 
-  // Filtra los links según el rol del usuario logueado
   const linksVisibles = LINKS.filter(
     (link) => !link.roles || hasRol(link.roles),
   );
@@ -72,7 +71,6 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Hamburguesa */}
           <button
             type="button"
             onClick={() => setOpen(!open)}
@@ -104,55 +102,64 @@ export default function Navbar() {
         </div>
 
         {open && (
-          <div className="absolute right-1 top-17 z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
-            {user && (
-              <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                <p className="font-semibold text-slate-800">{user.username}</p>
-                <p>Rol: {rol}</p>
-              </div>
-            )}
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpen(false)}
+            />
 
-            <div className="space-y-1">
-              {linksVisibles.map((link) => {
-                const active = location.pathname === link.to;
-
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setOpen(false)}
-                    className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                      active
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="mt-3 border-t border-slate-200 pt-3">
-              {isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full rounded-xl bg-red-100 px-4 py-3 text-left text-sm font-semibold text-red-700 hover:bg-red-200"
-                >
-                  Cerrar sesión
-                </button>
-              ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setOpen(false)}
-                  className="block w-full rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
-                >
-                  Ingresar
-                </Link>
+            <div className="absolute right-1 top-17 z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+              {user && (
+                <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  <p className="font-semibold text-slate-800">
+                    {user.username}
+                  </p>
+                  <p>Rol: {rol}</p>
+                </div>
               )}
+
+              <div className="space-y-1">
+                {linksVisibles.map((link) => {
+                  const active = location.pathname === link.to;
+
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setOpen(false)}
+                      className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                        active
+                          ? "bg-blue-100 text-blue-700"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="mt-3 border-t border-slate-200 pt-3">
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full rounded-xl bg-red-100 px-4 py-3 text-left text-sm font-semibold text-red-700 hover:bg-red-200"
+                  >
+                    Cerrar sesión
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="block w-full rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    Ingresar
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </nav>
     </header>
