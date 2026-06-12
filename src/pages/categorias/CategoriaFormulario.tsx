@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCategorias } from "../../context/CategoriaContext";
+import ImageUploader from "../../components/ImageUploader";
 import type {
   CategoriaCreate,
   CategoriaTreeRead,
@@ -24,6 +25,7 @@ export default function CategoriaFormulario() {
   const {
     agregar,
     editar,
+    actualizarImagen,
     categoriaEditar,
     setCategoriaEditar,
     cargarCategoriasArbol,
@@ -31,6 +33,7 @@ export default function CategoriaFormulario() {
   } = useCategorias();
 
   const [formulario, setFormulario] = useState(initialState);
+  const [imagenUrl, setImagenUrl] = useState<string | null>(null);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState<string>("");
   const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
@@ -51,6 +54,7 @@ export default function CategoriaFormulario() {
         descripcion: categoriaEditar?.descripcion || null,
         parent_id: categoriaEditar.parent_id || null,
       });
+      setImagenUrl(categoriaEditar.imagen_url ?? null);
     }
   }, [categoriaEditar]);
 
@@ -101,18 +105,23 @@ export default function CategoriaFormulario() {
     if (!validarErrores()) return;
 
     try {
+      let categoriaId: number;
+
       if (categoriaEditar) {
+        categoriaId = categoriaEditar.id;
         await editar({
           ...formulario,
           parent_id: formulario.parent_id || null,
           id: categoriaEditar.id,
         });
-
-        setCategoriaEditar(null);
       } else {
-        await agregar(formulario as CategoriaCreate);
+        const nueva = await agregar(formulario as CategoriaCreate);
+        categoriaId = nueva.id;
       }
 
+      await actualizarImagen(categoriaId, imagenUrl);
+
+      setCategoriaEditar(null);
       navigate("/categorias");
     } catch (error) {
       setErrorRequest(
@@ -126,6 +135,7 @@ export default function CategoriaFormulario() {
   const handleCancel = () => {
     setCategoriaEditar(null);
     setFormulario(initialState);
+    setImagenUrl(null);
     navigate("/categorias");
   };
 
@@ -226,6 +236,17 @@ export default function CategoriaFormulario() {
                   )}
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 p-5">
+              <h3 className="mb-3 text-base font-semibold text-slate-800">
+                Imagen de la categoría
+              </h3>
+
+              <ImageUploader
+                value={imagenUrl ? [imagenUrl] : []}
+                onChange={(urls) => setImagenUrl(urls[0] ?? null)}
+              />
             </div>
 
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
