@@ -11,6 +11,7 @@ import PrivateRoute from "./routes/PrivateRouter";
 import RootRedirect from "./routes/RootRedirect";
 import { PedidoTrackingPage } from "./pages/PedidoTrackingPage";
 import { MisPedidosPage } from "./pages/PedidosPage";
+import { ClientesPage } from "./pages/ClientesPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { PagoRetornoPage } from "./pages/PagoRetornoPage";
 import { AdminPedidosPage } from "./pages/AdminPedidosPage";
@@ -90,6 +91,14 @@ function App() {
           element={
             <PrivateRoute roles={["ADMIN", "PEDIDOS"]}>
               <AdminPedidosPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/clientes"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <ClientesPage />
             </PrivateRoute>
           }
         />
