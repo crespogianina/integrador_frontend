@@ -12,12 +12,19 @@ interface Direccion {
   es_principal: boolean;
 }
 
+interface DireccionListResponse {
+  data: Direccion[];
+  total: number;
+}
+
 const precio = (n: number) =>
-  n.toLocaleString("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  });
+  Number.isFinite(n)
+    ? n.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0,
+      })
+    : "$0";
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -25,7 +32,7 @@ export function CheckoutPage() {
 
   const [direcciones, setDirecciones] = useState<Direccion[]>([]);
   const [direccionId, setDireccionId] = useState<number | null>(null);
-  const [formaPago, setFormaPago] = useState<string>("MERCADOPAGO");
+  const [formaPago, setFormaPago] = useState<string>("MP");
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [errorRequest, setErrorRequest] = useState("");
@@ -37,9 +44,10 @@ export function CheckoutPage() {
           credentials: "include",
         });
         if (!res.ok) return;
-        const data: Direccion[] = await res.json();
-        setDirecciones(data);
-        const principal = data.find((d) => d.es_principal) ?? data[0];
+        const body: DireccionListResponse | Direccion[] = await res.json();
+        const lista = Array.isArray(body) ? body : (body.data ?? []);
+        setDirecciones(lista);
+        const principal = lista.find((d) => d.es_principal) ?? lista[0];
         if (principal) setDireccionId(principal.id);
       } catch {}
     };
@@ -80,25 +88,7 @@ export function CheckoutPage() {
 
       const pedido: PedidoRead = await res.json();
       clear();
-
-      if (formaPago === "MERCADOPAGO") {
-        const pagoRes = await apiFetch(`${API_BASE}/pagos/create-preference`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pedido_id: pedido.id }),
-        });
-
-        if (!pagoRes.ok) {
-          navigate(`/pedidos/${pedido.id}`);
-          return;
-        }
-
-        const pago = await pagoRes.json();
-        window.location.href = pago.init_point ?? pago.sandbox_init_point;
-      } else {
-        navigate(`/pedidos/${pedido.id}`);
-      }
+      navigate(`/pedidos/confirmacion/${pedido.id}`);
     } catch (error) {
       setErrorRequest(
         error instanceof Error ? error.message : "Error al confirmar el pedido",
@@ -182,7 +172,7 @@ export function CheckoutPage() {
             <div className="space-y-2">
               {[
                 {
-                  codigo: "MERCADOPAGO",
+                  codigo: "MP",
                   label: "MercadoPago — tarjeta, débito o dinero en cuenta",
                 },
                 { codigo: "EFECTIVO", label: "Efectivo al recibir" },
@@ -229,9 +219,9 @@ export function CheckoutPage() {
               <li key={idx} className="flex justify-between gap-2">
                 <span className="text-slate-600">
                   {i.cantidad}× {i.nombre}
-                  {i.removidos_nombres.length > 0 && (
+                  {(i.removidos_nombres ?? []).length > 0 && (
                     <span className="block text-xs text-slate-400">
-                      sin {i.removidos_nombres.join(", sin ")}
+                      sin {(i.removidos_nombres ?? []).join(", sin ")}
                     </span>
                   )}
                 </span>
@@ -268,8 +258,8 @@ export function CheckoutPage() {
           >
             {enviando
               ? "Procesando…"
-              : formaPago === "MERCADOPAGO"
-                ? "Pagar con MercadoPago"
+              : formaPago === "MP"
+                ? "Confirmar y pagar"
                 : "Confirmar pedido"}
           </button>
         </aside>
