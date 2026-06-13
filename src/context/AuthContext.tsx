@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(accessToken);
       setUser(nextUser);
 
-      return { ok: true };
+      return { ok: true, user: nextUser };
     } catch {
       return { ok: false, message: "No se pudo conectar con el servidor" };
     }

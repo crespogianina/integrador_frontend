@@ -12,5 +12,5 @@ export type LoginForm = {
 };
 
 export type LoginResult =
-  | { ok: true }
+  | { ok: true; user: AuthUser }
   | { ok: false; message: string };

@@ -10,12 +10,10 @@ type PrivateRouteProps = {
 export default function PrivateRoute({ children, roles }: PrivateRouteProps) {
   const { user, hasRol } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   if (roles !== undefined && !hasRol(roles)) {
-    return <Navigate to="/productos" replace />;
+    return <Navigate to="/sin-acceso" replace />;
   }
 
   return children;
