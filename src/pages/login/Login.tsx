@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import type { LoginForm } from "../types/auth";
+import type { LoginForm } from "../../types/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const initialStateLoginForm: LoginForm = {
   username: "",

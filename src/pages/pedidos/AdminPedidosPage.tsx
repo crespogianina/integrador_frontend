@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch, API_BASE } from "../config/api";
-import { EstadoBadge } from "../components/EstadoBadge";
-import { WSBadge } from "../components/WSBadge";
-import type { EstadoPedido, PedidoRead } from "../models/Pedido";
-import { ESTADO_LABEL, ESTADOS_FLUJO, TRANSICIONES } from "../models/Pedido";
-import { usePedidosWS } from "../hooks/usePedidosWS";
+import { apiFetch, API_BASE } from "../../config/api";
+import { EstadoBadge } from "../../components/EstadoBadge";
+import { WSBadge } from "../../components/WSBadge";
+import type { EstadoPedido, PedidoRead } from "../../models/Pedido";
+import { ESTADO_LABEL, ESTADOS_FLUJO, TRANSICIONES } from "../../models/Pedido";
+import { usePedidosWS } from "../../hooks/usePedidosWS";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 const LIMITE = 15;
@@ -113,7 +113,9 @@ export function AdminPedidosPage() {
       await cargarPedidos();
     } catch (error) {
       setErrorRequest(
-        error instanceof Error ? error.message : "No se pudo actualizar el estado",
+        error instanceof Error
+          ? error.message
+          : "No se pudo actualizar el estado",
       );
     } finally {
       setAvanzando(null);

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { apiFetch, API_BASE } from "../config/api";
-import { EstadoBadge } from "../components/EstadoBadge";
-import { WSBadge } from "../components/WSBadge";
-import { OrderTimeline } from "../components/OrderTimeLine";
-import type { PedidoDetail } from "../models/Pedido";
-import { usePedidosWS } from "../hooks/usePedidosWS";
+import { apiFetch, API_BASE } from "../../config/api";
+import { EstadoBadge } from "../../components/EstadoBadge";
+import { WSBadge } from "../../components/WSBadge";
+import { OrderTimeline } from "../../components/OrderTimeLine";
+import type { PedidoDetail } from "../../models/Pedido";
+import { usePedidosWS } from "../../hooks/usePedidosWS";
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 
 const precio = (n: number) =>
@@ -26,10 +26,10 @@ export function PedidoTrackingPage() {
 
   const cargarPedido = useCallback(async () => {
     try {
-      const res = await apiFetch(
-        `${PEDIDOS_PATH}${pedidoId}`,
-        { method: "GET", credentials: "include" },
-      );
+      const res = await apiFetch(`${PEDIDOS_PATH}${pedidoId}`, {
+        method: "GET",
+        credentials: "include",
+      });
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
         throw new Error(errorData?.detail || "Error al cargar el pedido");

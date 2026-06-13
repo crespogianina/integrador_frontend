@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { apiFetch, API_BASE } from "../config/api";
+import { apiFetch, API_BASE } from "../../config/api";
 
 export function PagoRetornoPage() {
   const navigate = useNavigate();
