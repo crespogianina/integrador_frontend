@@ -85,58 +85,59 @@ export default function Tabla<T>({
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {data.map((item) => (
-              <tr key={getRowId(item)} className="hover:bg-slate-50">
-                {columns.map((column) => (
-                  <td
-                    key={String(column.accessor)}
-                    className="px-4 py-3 text-slate-600"
-                  >
-                    {column.customLabelFn
-                      ? column.customLabelFn(item[column.accessor], data)
-                      : String(item[column.accessor])}
-                  </td>
-                ))}
+            {data &&
+              data.map((item) => (
+                <tr key={getRowId(item)} className="hover:bg-slate-50">
+                  {columns.map((column) => (
+                    <td
+                      key={String(column.accessor)}
+                      className="px-4 py-3 text-slate-600"
+                    >
+                      {column.customLabelFn
+                        ? column.customLabelFn(item[column.accessor], data)
+                        : String(item[column.accessor])}
+                    </td>
+                  ))}
 
-                {(onEdit || onDelete) && (
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      {onEdit && showEditButtonCondition(item) && (
-                        <button
-                          type="button"
-                          onClick={() => onEdit(item)}
-                          className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
-                        >
-                          Editar
-                        </button>
-                      )}
+                  {(onEdit || onDelete) && (
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        {onEdit && showEditButtonCondition(item) && (
+                          <button
+                            type="button"
+                            onClick={() => onEdit(item)}
+                            className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
+                          >
+                            Editar
+                          </button>
+                        )}
 
-                      {onDelete && (
-                        <button
-                          type="button"
-                          onClick={() => onDelete(item)}
-                          className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
-                        >
-                          Eliminar
-                        </button>
-                      )}
+                        {onDelete && (
+                          <button
+                            type="button"
+                            onClick={() => onDelete(item)}
+                            className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
+                          >
+                            Eliminar
+                          </button>
+                        )}
 
-                      {customAction && (
-                        <button
-                          type="button"
-                          onClick={() => customAction.actionCallback(item)}
-                          className="rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200"
-                        >
-                          {customAction.label(item)}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
+                        {customAction && (
+                          <button
+                            type="button"
+                            onClick={() => customAction.actionCallback(item)}
+                            className="rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200"
+                          >
+                            {customAction.label(item)}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
 
-            {data.length === 0 && (
+            {data?.length === 0 && (
               <tr>
                 <td
                   colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}

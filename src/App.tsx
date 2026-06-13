@@ -16,6 +16,11 @@ import { CheckoutPage } from "./pages/pagos/CheckoutPage";
 import { PagoRetornoPage } from "./pages/pagos/PagoRetornoPage";
 import { AdminPedidosPage } from "./pages/pedidos/AdminPedidosPage";
 import Login from "./pages/login/Login";
+import ClienteEditPage from "./pages/clientes/ClienteFormularioPage";
+import ProductoClientePage from "./pages/productos/ProductoClientePage";
+import DireccionesPage from "./pages/clientes/DireccionesPage";
+import DireccionFormulario from "./pages/clientes/DirreccionFormulario";
+import SinAccesoPage from "./pages/SinAccesoPage";
 
 function App() {
   return (
@@ -30,7 +35,117 @@ function App() {
           </PrivateRoute>
         }
       >
-        <Route path="/productos" element={<ProductoPage />} />
+        {/* ── CLIENT ── */}
+        <Route
+          path="/catalogo"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <ProductoClientePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/pedidos"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <MisPedidosPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/pedidos/:id"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <PedidoTrackingPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <CheckoutPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders/:pedidoId/:status"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <PagoRetornoPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/direcciones"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <DireccionesPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/direcciones/nueva"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <DireccionFormulario />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/direcciones/editar/:id"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <DireccionFormulario />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ── ADMIN + STOCK ── */}
+        <Route
+          path="/ingredientes"
+          element={
+            <PrivateRoute roles={["ADMIN", "STOCK"]}>
+              <IngredientePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ingredientes/nuevo"
+          element={
+            <PrivateRoute roles={["ADMIN", "STOCK"]}>
+              <IngredienteFormulario />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ingredientes/editar/:id"
+          element={
+            <PrivateRoute roles={["ADMIN", "STOCK"]}>
+              <IngredienteFormulario />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ── ADMIN + PEDIDOS ── */}
+        <Route
+          path="/admin/pedidos"
+          element={
+            <PrivateRoute roles={["ADMIN", "PEDIDOS"]}>
+              <AdminPedidosPage />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ── ADMIN only ── */}
+        <Route
+          path="/productos"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <ProductoPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/productos/nuevo"
           element={
@@ -47,26 +162,14 @@ function App() {
             </PrivateRoute>
           }
         />
-
-        <Route path="/ingredientes" element={<IngredientePage />} />
         <Route
-          path="/ingredientes/nuevo"
+          path="/categorias"
           element={
             <PrivateRoute roles="ADMIN">
-              <IngredienteFormulario />
+              <CategoriaPage />
             </PrivateRoute>
           }
         />
-        <Route
-          path="/ingredientes/editar/:id"
-          element={
-            <PrivateRoute roles="ADMIN">
-              <IngredienteFormulario />
-            </PrivateRoute>
-          }
-        />
-
-        <Route path="/categorias" element={<CategoriaPage />} />
         <Route
           path="/categorias/nuevo"
           element={
@@ -107,7 +210,24 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/admin/clientes/nuevo"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <ClienteEditPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/clientes/editar/:id"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <ClienteEditPage />
+            </PrivateRoute>
+          }
+        />
       </Route>
+      <Route path="/sin-acceso" element={<SinAccesoPage />} />
     </Routes>
   );
 }

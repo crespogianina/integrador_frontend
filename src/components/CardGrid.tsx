@@ -23,6 +23,7 @@ type CardGridProps<T> = {
   onPrevious: () => void;
   onNext: () => void;
   onPageChange: (page: number) => void;
+  onAddToCart?: (item: T) => void;
 };
 
 export default function CardGrid<T>({
@@ -43,6 +44,7 @@ export default function CardGrid<T>({
   onPrevious,
   onNext,
   onPageChange,
+  onAddToCart,
 }: CardGridProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -137,6 +139,16 @@ export default function CardGrid<T>({
                     </button>
                   )}
                 </div>
+              )}
+
+              {onAddToCart && (
+                <button
+                  type="button"
+                  onClick={() => onAddToCart(item)}
+                  className="mt-3 w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Agregar al carrito
+                </button>
               )}
             </div>
           ))}

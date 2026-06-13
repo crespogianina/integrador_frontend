@@ -5,8 +5,10 @@ import { useCart } from "../context/CartContext";
 import type { Rol } from "../types/auth";
 
 const LINKS: { to: string; label: string; roles?: Rol[] }[] = [
-  { to: "/productos", label: "Productos" },
+  { to: "/catalogo", label: "Catálogo", roles: ["CLIENT"] },
+  { to: "/productos", label: "Productos", roles: ["ADMIN"] },
   { to: "/pedidos", label: "Mis pedidos", roles: ["CLIENT"] },
+  { to: "/direcciones", label: "Mis direcciones", roles: ["CLIENT"] },
   { to: "/admin/clientes", label: "Clientes", roles: ["ADMIN"] },
   { to: "/ingredientes", label: "Ingredientes", roles: ["ADMIN", "STOCK"] },
   { to: "/categorias", label: "Categorías", roles: ["ADMIN"] },

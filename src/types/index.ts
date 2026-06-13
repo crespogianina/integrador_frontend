@@ -133,18 +133,6 @@ export interface TokenResponse {
     token_type: string;
     expires_in: number;
 }
-
-export interface Direccion {
-    id: number;
-    alias?: string | null;
-    linea1: string;
-    linea2?: string | null;
-    ciudad: string;
-    provincia?: string | null;
-    codigo_postal?: string | null;
-    es_principal: boolean;
-}
-
 export interface WSEvento {
     event: 'estado_cambiado' | 'pedido_cancelado' | 'pago_confirmado';
     pedido_id: number;

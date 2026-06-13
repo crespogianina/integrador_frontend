@@ -18,7 +18,7 @@ export default function Login() {
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
-  const { login } = useAuth();
+  const { login, hasRol } = useAuth();
 
   const handleChange = (
     evento: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -60,7 +60,17 @@ export default function Login() {
     setEnviando(false);
 
     if (resultado.ok) {
-      navigate("/productos", { replace: true });
+      const roles = resultado.user.roles;
+
+      if (roles.includes("CLIENT")) {
+        navigate("/catalogo", { replace: true });
+      } else if (roles.includes("ADMIN")) {
+        navigate("/productos", { replace: true });
+      } else if (roles.some((r) => r === "STOCK" || r === "PEDIDOS")) {
+        navigate("/admin/pedidos", { replace: true });
+      } else {
+        navigate("/catalogo", { replace: true });
+      }
     } else {
       setErrorServidor(resultado.message);
     }

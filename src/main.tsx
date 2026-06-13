@@ -9,6 +9,7 @@ import { IngredientesProvider } from "./context/IngredienteContext.tsx";
 import { CategoriasProvider } from "./context/CategoriaContext.tsx";
 import { ProductosProvider } from "./context/ProductoContext.tsx";
 import { CartProvider } from "./context/CartContext.tsx";
+import { DireccionesProvider } from "./context/DireccionesContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -16,11 +17,13 @@ createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <ProductosProvider>
           <IngredientesProvider>
-            <CategoriasProvider>
-              <CartProvider>
-                <App />
-              </CartProvider>
-            </CategoriasProvider>
+            <DireccionesProvider>
+              <CategoriasProvider>
+                <CartProvider>
+                  <App />
+                </CartProvider>
+              </CategoriasProvider>
+            </DireccionesProvider>
           </IngredientesProvider>
         </ProductosProvider>
       </AuthProvider>
