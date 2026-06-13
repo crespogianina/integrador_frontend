@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch, API_BASE } from "../config/api";
-import { EstadoBadge } from "../components/EstadoBadge";
-import type { EstadoPedido } from "../models/Pedido";
+import { apiFetch, API_BASE } from "../../config/api";
+import { EstadoBadge } from "../../components/EstadoBadge";
+import type { EstadoPedido } from "../../models/Pedido";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 const LIMITE = 10;

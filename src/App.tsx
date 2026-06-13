@@ -1,4 +1,3 @@
-import Login from "./pages/Login";
 import Layout from "./components/Layout";
 import { Route, Routes } from "react-router-dom";
 import IngredientePage from "./pages/ingredientes/IngredientePage";
@@ -9,12 +8,13 @@ import ProductoPage from "./pages/productos/ProductoPage";
 import ProductoFormulario from "./pages/productos/ProductoFormulario";
 import PrivateRoute from "./routes/PrivateRouter";
 import RootRedirect from "./routes/RootRedirect";
-import { PedidoTrackingPage } from "./pages/PedidoTrackingPage";
-import { MisPedidosPage } from "./pages/PedidosPage";
-import { ClientesPage } from "./pages/ClientesPage";
-import { CheckoutPage } from "./pages/CheckoutPage";
-import { PagoRetornoPage } from "./pages/PagoRetornoPage";
-import { AdminPedidosPage } from "./pages/AdminPedidosPage";
+import { PedidoTrackingPage } from "./pages/pedidos/PedidoTrackingPage";
+import { MisPedidosPage } from "./pages/pedidos/PedidosPage";
+import { ClientesPage } from "./pages/clientes/ClientesPage";
+import { CheckoutPage } from "./pages/pagos/CheckoutPage";
+import { PagoRetornoPage } from "./pages/pagos/PagoRetornoPage";
+import { AdminPedidosPage } from "./pages/pedidos/AdminPedidosPage";
+import Login from "./pages/login/Login";
 
 function App() {
   return (

@@ -22,7 +22,12 @@ export default function Filtros({ filters, onChange, onClear }: FilterProps) {
     <div className="rounded-2xl bg-white p-5 shadow">
       <h2 className="mb-4 text-xl font-semibold">Filtros</h2>
 
-      <div className="grid gap-3 md:grid-cols-4 ">
+      <div
+        className="grid gap-3"
+        style={{
+          gridTemplateColumns: `repeat(${filters.length}, minmax(220px, 1fr)) auto`,
+        }}
+      >
         {filters.map((f) => {
           if (f.type === "input") {
             return (
@@ -69,7 +74,7 @@ export default function Filtros({ filters, onChange, onClear }: FilterProps) {
         <div className="flex items-end pb-1.5">
           <button
             onClick={onClear}
-            className="w-fit h-fit rounded-lg border border-slate-300 px-6 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+            className="h-fit whitespace-nowrap rounded-lg border border-slate-300 px-6 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
           >
             Limpiar
           </button>

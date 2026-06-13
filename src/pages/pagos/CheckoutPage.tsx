@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiFetch, API_BASE } from "../config/api";
-import { useCart } from "../context/CartContext";
-import type { CrearPedidoRequest, PedidoRead } from "../models/Pedido";
+import { apiFetch, API_BASE } from "../../config/api";
+import { useCart } from "../../context/CartContext";
+import type { CrearPedidoRequest, PedidoRead } from "../../models/Pedido";
 
 interface Direccion {
   id: number;
