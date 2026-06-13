@@ -73,6 +73,18 @@ export interface PedidoRead {
     costo_envio: number;
     total: number;
     created_at: string;
+    cantidad_items?: number | null;
+    cliente_nombre?: string | null;
+    cliente_email?: string | null;
+}
+
+export interface DireccionSnapshot {
+    alias?: string | null;
+    ciudad: string;
+    linea1: string;
+    linea2?: string | null;
+    provincia?: string | null;
+    codigo_postal?: string | null;
 }
 
 export interface PedidoDetail extends PedidoRead {
@@ -84,6 +96,7 @@ export interface PedidoDetail extends PedidoRead {
     forma_pago: { codigo: string; descripcion: string };
     usuario: { id: number; nombre: string; apellido: string; email: string };
     direccion: { id: number; linea1: string; ciudad: string } | null;
+    direccion_snapshot?: DireccionSnapshot | null;
     detalles: DetallePedidoRead[];
     historial_estados: HistorialEstadoRead[];
     pagos: PagoRead[];

@@ -48,10 +48,30 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+function normalizarItem(raw: Partial<CartItem> & Pick<CartItem, "producto_id">): CartItem | null {
+  if (!raw.producto_id || !raw.nombre) return null;
+  const cantidad = Number(raw.cantidad) || 1;
+  const precio = Number(raw.precio) || 0;
+  return {
+    producto_id: raw.producto_id,
+    nombre: raw.nombre,
+    precio,
+    imagen: raw.imagen,
+    cantidad,
+    personalizacion: raw.personalizacion ?? [],
+    removidos_nombres: raw.removidos_nombres ?? [],
+  };
+}
+
 function leerCarrito(): CartItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Partial<CartItem>[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => normalizarItem(item as Partial<CartItem> & Pick<CartItem, "producto_id">))
+      .filter((item): item is CartItem => item !== null);
   } catch {
     return [];
   }
@@ -68,18 +88,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (item: Omit<CartItem, "cantidad">, cantidad = 1) => {
       setItems((prev) => {
-        const key = keyOf(item.producto_id, item.personalizacion);
+        const key = keyOf(item.producto_id, item.personalizacion ?? []);
         const existente = prev.find(
-          (i) => keyOf(i.producto_id, i.personalizacion) === key,
+          (i) => keyOf(i.producto_id, i.personalizacion ?? []) === key,
         );
         if (existente) {
           return prev.map((i) =>
-            keyOf(i.producto_id, i.personalizacion) === key
+            keyOf(i.producto_id, i.personalizacion ?? []) === key
               ? { ...i, cantidad: i.cantidad + cantidad }
               : i,
           );
         }
-        return [...prev, { ...item, cantidad }];
+        return [
+          ...prev,
+          {
+            ...item,
+            personalizacion: item.personalizacion ?? [],
+            removidos_nombres: item.removidos_nombres ?? [],
+            cantidad,
+          },
+        ];
       });
     },
     [],
