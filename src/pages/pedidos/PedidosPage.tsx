@@ -2,43 +2,24 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../config/api";
 import { EstadoBadge } from "../../components/EstadoBadge";
-import type { EstadoPedido } from "../../models/Pedido";
+import type { EstadoPedido, PedidoRead } from "../../models/Pedido";
+import { ESTADO_LABEL, ESTADOS_FLUJO } from "../../models/Pedido";
+import { fechaCorta, precio } from "../../lib/pedidosUtils";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 const LIMITE = 10;
 
-interface PedidoListItem {
-  id: number;
-  estado_codigo: EstadoPedido;
-  total: number;
-  created_at: string;
-}
-
-interface ListaPedidos {
-  items: PedidoListItem[];
-  total: number;
-}
-
-const precio = (n: number) =>
-  Number(n).toLocaleString("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  });
-
-const fecha = (iso: string) =>
-  new Date(iso).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const FILTRO_ESTADOS = [
+  { value: "", label: "Todos" },
+  ...ESTADOS_FLUJO.map((e) => ({ value: e, label: ESTADO_LABEL[e] })),
+  { value: "CANCELADO", label: ESTADO_LABEL.CANCELADO },
+];
 
 export function MisPedidosPage() {
-  const [pedidos, setPedidos] = useState<PedidoListItem[]>([]);
+  const [pedidos, setPedidos] = useState<PedidoRead[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [estadoFiltro, setEstadoFiltro] = useState("");
   const [cargando, setCargando] = useState(true);
   const [errorRequest, setErrorRequest] = useState("");
 
@@ -47,11 +28,13 @@ export function MisPedidosPage() {
   useEffect(() => {
     const cargarPedidos = async () => {
       setCargando(true);
+      setErrorRequest("");
       try {
         const params = new URLSearchParams({
           offset: String((page - 1) * LIMITE),
           limit: String(LIMITE),
         });
+        if (estadoFiltro) params.set("estado", estadoFiltro);
 
         const res = await apiFetch(`${PEDIDOS_PATH}?${params}`, {
           credentials: "include",
@@ -63,14 +46,12 @@ export function MisPedidosPage() {
         }
 
         const body = await res.json();
-
         if (Array.isArray(body)) {
           setPedidos(body);
           setTotal(body.length);
         } else {
-          const lista: ListaPedidos = body;
-          setPedidos(lista.items);
-          setTotal(lista.total);
+          setPedidos(body.items ?? []);
+          setTotal(body.total ?? 0);
         }
       } catch (error) {
         setErrorRequest(
@@ -83,8 +64,8 @@ export function MisPedidosPage() {
       }
     };
 
-    cargarPedidos();
-  }, [page]);
+    void cargarPedidos();
+  }, [page, estadoFiltro]);
 
   useEffect(() => {
     if (!errorRequest) return;
@@ -102,6 +83,26 @@ export function MisPedidosPage() {
           </p>
         </div>
 
+        <div className="flex flex-wrap gap-2">
+          {FILTRO_ESTADOS.map((op) => (
+            <button
+              key={op.value}
+              type="button"
+              onClick={() => {
+                setEstadoFiltro(op.value);
+                setPage(1);
+              }}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                estadoFiltro === op.value
+                  ? "bg-blue-600 text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+              }`}
+            >
+              {op.label}
+            </button>
+          ))}
+        </div>
+
         {cargando ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -111,15 +112,17 @@ export function MisPedidosPage() {
               />
             ))}
           </div>
-        ) : pedidos?.length === 0 ? (
+        ) : errorRequest && pedidos.length === 0 ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 py-12 text-center">
+            <p className="font-medium text-red-800">{errorRequest}</p>
+          </div>
+        ) : pedidos.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
             <span className="text-4xl">🛒</span>
             <p className="font-medium text-slate-700">
-              Todavía no hiciste ningún pedido
-            </p>
-            <p className="max-w-xs text-sm text-slate-500">
-              Explorá el catálogo y armá tu primer pedido — después vas a poder
-              seguirlo en vivo desde acá.
+              {estadoFiltro
+                ? `No tenés pedidos en estado "${ESTADO_LABEL[estadoFiltro as EstadoPedido]}"`
+                : "Todavía no hiciste ningún pedido"}
             </p>
             <Link
               to="/productos"
@@ -131,7 +134,7 @@ export function MisPedidosPage() {
         ) : (
           <>
             <div className="space-y-3">
-              {pedidos?.map((pedido) => (
+              {pedidos.map((pedido) => (
                 <Link
                   key={pedido.id}
                   to={`/pedidos/${pedido.id}`}
@@ -142,10 +145,16 @@ export function MisPedidosPage() {
                       Pedido #{pedido.id}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {fecha(pedido.created_at)} · {precio(pedido.total)}
+                      {fechaCorta(pedido.created_at)} · {precio(pedido.total)}
+                      {pedido.cantidad_items != null && (
+                        <span>
+                          {" "}
+                          · {pedido.cantidad_items} ítem
+                          {pedido.cantidad_items !== 1 ? "s" : ""}
+                        </span>
+                      )}
                     </p>
                   </div>
-
                   <div className="flex items-center gap-3">
                     <EstadoBadge estado={pedido.estado_codigo} />
                     <span className="text-slate-300">›</span>
@@ -181,7 +190,7 @@ export function MisPedidosPage() {
         )}
       </section>
 
-      {errorRequest && (
+      {errorRequest && pedidos.length > 0 && (
         <div className="fixed bottom-10 right-5 z-50">
           <div className="rounded-b-md bg-red-500 px-4 py-3 text-white shadow-lg">
             {errorRequest}

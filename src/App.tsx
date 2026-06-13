@@ -10,6 +10,7 @@ import PrivateRoute from "./routes/PrivateRouter";
 import RootRedirect from "./routes/RootRedirect";
 import { PedidoTrackingPage } from "./pages/pedidos/PedidoTrackingPage";
 import { MisPedidosPage } from "./pages/pedidos/PedidosPage";
+import { PedidoConfirmacionPage } from "./pages/pedidos/PedidoConfirmacionPage";
 import { ClientesPage } from "./pages/clientes/ClientesPage";
 import { CheckoutPage } from "./pages/pagos/CheckoutPage";
 import { PagoRetornoPage } from "./pages/pagos/PagoRetornoPage";
@@ -85,6 +86,10 @@ function App() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders/:pedidoId/:status" element={<PagoRetornoPage />} />
         <Route path="/pedidos" element={<MisPedidosPage />} />
+        <Route
+          path="/pedidos/confirmacion/:id"
+          element={<PedidoConfirmacionPage />}
+        />
         <Route path="/pedidos/:id" element={<PedidoTrackingPage />} />
         <Route
           path="/admin/pedidos"
