@@ -359,10 +359,6 @@ export default function StockControlPage() {
           <h1 className="text-2xl font-semibold text-slate-800">
             Control de Stock
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Gestioná disponibilidad y stock de productos. Ingredientes y
-            alérgenos en solo lectura.
-          </p>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span className="text-slate-500">Filtrar por nivel:</span>
             {STOCK_LEVEL_OPTIONS.map((opcion) => (
@@ -388,16 +384,6 @@ export default function StockControlPage() {
               </button>
             )}
           </div>
-          {filtroNivelActivo && (
-            <p className="mt-2 text-xs text-slate-500">
-              Mostrando solo ítems con nivel{" "}
-              <span className="font-semibold text-slate-700">
-                {STOCK_LEVEL_OPTIONS.find((o) => o.id === filtroNivelStock)
-                  ?.label}
-              </span>{" "}
-              en la pestaña activa.
-            </p>
-          )}
         </div>
 
         <div className="flex gap-2 rounded-2xl bg-white p-2 shadow">
