@@ -22,6 +22,7 @@ import DireccionesPage from "./pages/clientes/DireccionesPage";
 import DireccionFormulario from "./pages/clientes/DirreccionFormulario";
 import SinAccesoPage from "./pages/SinAccesoPage";
 import StockControlPage from "./pages/stock/StockControlPage";
+import { EstadisticasPage } from "./pages/estadisticas/EstadisticasPage";
 
 function App() {
   return (
@@ -147,6 +148,14 @@ function App() {
         />
 
         {/* ── ADMIN only ── */}
+        <Route
+          path="/admin/estadisticas"
+          element={
+            <PrivateRoute roles="ADMIN">
+              <EstadisticasPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/productos"
           element={
