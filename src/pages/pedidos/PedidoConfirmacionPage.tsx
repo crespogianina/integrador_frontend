@@ -3,7 +3,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../config/api";
 import type { PedidoDetail } from "../../models/Pedido";
 import { ESTADO_LABEL } from "../../models/Pedido";
-import { fechaCorta, iniciarPagoMercadoPago, precio } from "../../lib/pedidosUtils";
+import {
+  fechaCorta,
+  iniciarPagoMercadoPago,
+  precio,
+} from "../../lib/pedidosUtils";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 
@@ -67,7 +71,7 @@ export function PedidoConfirmacionPage() {
     );
   }
 
-  const esMp = pedido.forma_pago_codigo === "MP";
+  const esMp = pedido.forma_pago_codigo === "MERCADOPAGO";
 
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
@@ -118,7 +122,9 @@ export function PedidoConfirmacionPage() {
               onClick={() => void pagar()}
               className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {pagando ? "Redirigiendo a MercadoPago…" : "Pagar con MercadoPago"}
+              {pagando
+                ? "Redirigiendo a MercadoPago…"
+                : "Pagar con MercadoPago"}
             </button>
           )}
           <Link

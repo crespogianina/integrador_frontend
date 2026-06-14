@@ -12,7 +12,7 @@ import type {
   DireccionUpdate,
 } from "../models/Direccion";
 import { DireccionReducer } from "../reducers/direccionReducer";
-import { apiFetch } from "../config/api";
+import { API_BASE, apiFetch } from "../config/api";
 
 interface ContextType {
   direcciones: Direccion[];
@@ -27,7 +27,7 @@ interface ContextType {
   marcarPrincipal: (id: number) => Promise<Direccion>;
 }
 
-const API = "http://localhost:8000/api/v1/direcciones/";
+const API = `${API_BASE}/direcciones/`;
 
 const DireccionesContext = createContext<ContextType | null>(null);
 

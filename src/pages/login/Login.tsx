@@ -17,8 +17,9 @@ export default function Login() {
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [showPassword, setPasswordVisibility] = useState(false);
 
-  const { login, hasRol } = useAuth();
+  const { login } = useAuth();
 
   const handleChange = (
     evento: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -76,6 +77,10 @@ export default function Login() {
     }
   };
 
+  const togglePasswordVisibility = (): void => {
+    setPasswordVisibility(!showPassword);
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-700 via-indigo-700 to-purple-800 px-4">
       <section className="w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur">
@@ -117,15 +122,26 @@ export default function Login() {
               Contraseña
             </label>
 
-            <input
-              type="password"
-              placeholder="Ingresa tu contraseña"
-              name="password"
-              autoComplete="current-password"
-              value={formulario.password}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Ingresa tu contraseña"
+                name="password"
+                autoComplete="current-password"
+                value={formulario.password}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 outline-none cursor-pointer hover:bg-gray-200 h-8 w-8 flex items-center justify-center rounded-full pt-0.5 pl-0.5"
+                onClick={() => togglePasswordVisibility()}
+              >
+                <span className="material-symbols-outlined text-gray-600">
+                  {showPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
             {errores.password && (
               <p className="mt-1 text-sm text-red-500">{errores.password}</p>
             )}

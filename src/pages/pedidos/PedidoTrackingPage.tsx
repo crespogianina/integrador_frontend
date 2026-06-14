@@ -189,7 +189,7 @@ export function PedidoTrackingPage() {
   const pagoRechazado =
     ultimoPago?.mp_status === "rejected" ||
     ultimoPago?.mp_status === "cancelled";
-  const esMp = pedido.forma_pago_codigo === "MP";
+  const esMp = pedido.forma_pago_codigo === "MERCADOPAGO";
   const cancelableCliente =
     !staff &&
     (pedido.estado_codigo === "PENDIENTE" ||
@@ -201,8 +201,7 @@ export function PedidoTrackingPage() {
     pedido.estado_codigo !== "CANCELADO" &&
     (pedido.estado_codigo === "PENDIENTE" ||
       pedido.estado_codigo === "CONFIRMADO" ||
-      (pedido.estado_codigo === "EN_PREPARACION" &&
-        roles.includes("ADMIN")));
+      (pedido.estado_codigo === "EN_PREPARACION" && roles.includes("ADMIN")));
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-6">
@@ -211,7 +210,9 @@ export function PedidoTrackingPage() {
           <h1 className="text-2xl font-bold text-slate-800">
             Pedido #{pedido.id}
           </h1>
-          <p className="text-sm text-slate-500">{fechaCorta(pedido.created_at)}</p>
+          <p className="text-sm text-slate-500">
+            {fechaCorta(pedido.created_at)}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <EstadoBadge estado={pedido.estado_codigo} />
