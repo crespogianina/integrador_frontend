@@ -7,13 +7,13 @@ import type {
   ProductoIngredienteCreate,
   ProductoRead,
 } from "../../models/Producto";
-import { apiFetch } from "../../config/api";
+import { API_BASE, apiFetch } from "../../config/api";
 import ImageUploader from "../../components/ImageUploader";
 import ProductoIngredienteFormulario from "./ProductoIngredienteFormulario";
 import ProductoCategoriaFormulario from "../../components/ArbolCategoria";
 import type { CategoriaTreeRead } from "../../models/Categoria";
 
-const API_PRODUCTOS = "http://localhost:8000/api/v1/productos/";
+const API_PRODUCTOS = `${API_BASE}/productos/`;
 
 const initialState = {
   nombre: "",
@@ -38,7 +38,8 @@ export default function ProductoFormulario() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { agregar, editar, actualizarImagenes, unidadesMedida } = useProductos();
+  const { agregar, editar, actualizarImagenes, unidadesMedida } =
+    useProductos();
   const { cargarCategoriasArbol } = useCategorias();
   const { cargarIngredientes, ingredientes } = useIngredientes();
   const [categoriasArbol, setCategoriasArbol] = useState<CategoriaTreeRead[]>(
@@ -47,6 +48,7 @@ export default function ProductoFormulario() {
   const [formulario, setFormulario] = useState(initialState);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorRequest, setErrorRequest] = useState("");
+  const { obtenerUnidadesMedida } = useProductos();
 
   const precioSugerido =
     formulario.ingredientes.reduce((total, item) => {
@@ -58,6 +60,7 @@ export default function ProductoFormulario() {
   useEffect(() => {
     cargarCategoriaArbol();
     cargarIngredientes(1, 50, "");
+    obtenerUnidadesMedida();
   }, []);
 
   useEffect(() => {

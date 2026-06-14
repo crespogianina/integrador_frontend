@@ -4,7 +4,6 @@ import {
   useState,
   type ReactNode,
   useReducer,
-  useEffect,
 } from "react";
 import { ProductosReducer } from "../reducers/productoReducer";
 import type {
@@ -12,7 +11,7 @@ import type {
   ProductoRead,
   ProductoUpdate,
 } from "../models/Producto";
-import { apiFetch } from "../config/api";
+import { API_BASE, apiFetch } from "../config/api";
 import type { UnidadMedida } from "../models/UnidadMedida";
 export interface ListaProducto {
   data: ProductoRead[];
@@ -42,9 +41,10 @@ interface ContextType {
   setProductoEditar: (i: ProductoRead | null) => void;
   activar: (id: number) => void;
   desactivar: (id: number) => void;
+  obtenerUnidadesMedida: () => Promise<void>;
 }
 
-const API = "http://localhost:8000/api/v1/productos/";
+const API = `${API_BASE}/productos/`;
 
 const ProductoContext = createContext<ContextType | null>(null);
 
@@ -55,12 +55,6 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   );
   const [total, setTotal] = useState(0);
   const [unidadesMedida, setUnidadesMedida] = useState<UnidadMedida[]>([]);
-
-  useEffect(() => {
-    if (!unidadesMedida.length) {
-      obtenerUnidadesMedida();
-    }
-  }, []);
 
   async function agregar(data: ProductoCreate) {
     const res = await apiFetch(API, {
@@ -168,18 +162,20 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
   }
 
   async function obtenerUnidadesMedida(): Promise<void> {
-    const res = await apiFetch(`${API}unidades-medida`, {
-      method: "GET",
-      credentials: "include",
-    });
+    if (!unidadesMedida.length) {
+      const res = await apiFetch(`${API}unidades-medida`, {
+        method: "GET",
+        credentials: "include",
+      });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-      throw new Error(errorData?.detail || "Error al desactivar el producto");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.detail || "Error al desactivar el producto");
+      }
+
+      const unidades: UnidadMedida[] = await res.json();
+      setUnidadesMedida(unidades);
     }
-
-    const unidades: UnidadMedida[] = await res.json();
-    setUnidadesMedida(unidades);
   }
 
   async function cargarProductos(
@@ -238,6 +234,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
         activar,
         desactivar,
         unidadesMedida,
+        obtenerUnidadesMedida,
       }}
     >
       {children}

@@ -11,7 +11,7 @@ import type {
   CategoriaTreeRead,
 } from "../models/Categoria";
 import { CategoriasReducer } from "../reducers/categoriaReducer";
-import { apiFetch } from "../config/api";
+import { API_BASE, apiFetch } from "../config/api";
 export interface ListaCategoria {
   data: CategoriaRead[];
   total: number;
@@ -41,7 +41,7 @@ interface ContextType {
   desactivar: (id: number) => void;
 }
 
-const API = "http://localhost:8000/api/v1/categorias/";
+const API = `${API_BASE}/categorias/`;
 
 const CategoriaContext = createContext<ContextType | null>(null);
 

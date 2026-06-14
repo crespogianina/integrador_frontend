@@ -12,11 +12,6 @@ interface Direccion {
   es_principal: boolean;
 }
 
-interface DireccionListResponse {
-  data: Direccion[];
-  total: number;
-}
-
 const precio = (n: number) =>
   Number.isFinite(n)
     ? n.toLocaleString("es-AR", {
@@ -26,25 +21,29 @@ const precio = (n: number) =>
       })
     : "$0";
 
+const UMBRAL_ENVIO_GRATIS = 10000;
+const COSTO_ENVIO_FIJO = 500;
+const FORMAS_PAGO_CON_ENVIO = ["MERCADOPAGO"];
+
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const {
-    items,
-    subtotal,
-    costoEnvio,
-    total,
-    clear,
-    setCantidad,
-    removeItem,
-    itemKey,
-  } = useCart();
-
+  const { items, subtotal, clear, setCantidad, removeItem, itemKey } =
+    useCart();
   const [direcciones, setDirecciones] = useState<Direccion[]>([]);
   const [direccionId, setDireccionId] = useState<number | null>(null);
-  const [formaPago, setFormaPago] = useState<string>("MP");
+  const [formaPago, setFormaPago] = useState<string>("MERCADOPAGO");
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [errorRequest, setErrorRequest] = useState("");
+
+  const costoEnvioLocal =
+    direccionId === null
+      ? 0
+      : subtotal >= UMBRAL_ENVIO_GRATIS
+        ? 0
+        : COSTO_ENVIO_FIJO;
+
+  const totalLocal = subtotal + costoEnvioLocal;
 
   useEffect(() => {
     const cargar = async () => {
@@ -75,6 +74,11 @@ export function CheckoutPage() {
   }, [errorRequest]);
 
   const confirmarPedido = async () => {
+    if (FORMAS_PAGO_CON_ENVIO.includes(formaPago) && direccionId === null) {
+      setErrorRequest("MercadoPago requiere una dirección de entrega.");
+      return;
+    }
+
     setEnviando(true);
     try {
       const body: CrearPedidoRequest = {
@@ -187,7 +191,7 @@ export function CheckoutPage() {
             <div className="space-y-2">
               {[
                 {
-                  codigo: "MP",
+                  codigo: "MERCADOPAGO",
                   label: "MercadoPago — tarjeta, débito o dinero en cuenta",
                 },
                 { codigo: "EFECTIVO", label: "Efectivo al recibir" },
@@ -311,31 +315,43 @@ export function CheckoutPage() {
             <div className="flex justify-between text-slate-500">
               <dt>Envío</dt>
               <dd>
-                {costoEnvio === 0 ? (
+                {direccionId === null ? (
+                  <span className="text-slate-400 italic">sin dirección</span>
+                ) : costoEnvioLocal === 0 ? (
                   <span className="font-medium text-emerald-600">¡Gratis!</span>
                 ) : (
-                  precio(costoEnvio)
+                  precio(costoEnvioLocal)
                 )}
               </dd>
             </div>
             <div className="flex justify-between pt-1 text-base font-bold">
               <dt>Total</dt>
-              <dd>{precio(total)}</dd>
+              <dd>{precio(totalLocal)}</dd>
             </div>
           </dl>
 
           <button
             type="button"
             onClick={confirmarPedido}
-            disabled={enviando}
+            disabled={
+              enviando ||
+              (FORMAS_PAGO_CON_ENVIO.includes(formaPago) &&
+                direccionId === null)
+            }
             className="mt-4 w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
             {enviando
               ? "Procesando…"
-              : formaPago === "MP"
+              : formaPago === "MERCADOPAGO"
                 ? "Confirmar y pagar"
                 : "Confirmar pedido"}
           </button>
+          {FORMAS_PAGO_CON_ENVIO.includes(formaPago) &&
+            direccionId === null && (
+              <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                MercadoPago requiere una dirección de entrega.
+              </p>
+            )}
         </aside>
       </section>
 

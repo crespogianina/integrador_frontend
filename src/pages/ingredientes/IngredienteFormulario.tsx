@@ -42,7 +42,7 @@ export function IngredienteFormulario() {
 
   const { agregar, editar, getIngredienteById } = useIngredientes();
 
-  const { unidadesMedida } = useProductos();
+  const { unidadesMedida, obtenerUnidadesMedida } = useProductos();
 
   const [errorRequest, setErrorRequest] = useState<string>("");
   const [ingredienteEditar, setIngredienteEditar] =
@@ -51,6 +51,8 @@ export function IngredienteFormulario() {
   const esEdicion = Boolean(id);
 
   useEffect(() => {
+    obtenerUnidadesMedida();
+
     if (!id) {
       setIngredienteEditar(null);
       resetForm();
