@@ -7,7 +7,17 @@ import type { CardField } from "../../components/CardGrid";
 import type { ProductoRead } from "../../models/Producto";
 import { useCart } from "../../context/CartContext";
 
-const initialFiltros = { nombre: "", descripcion: "", disponible: "" };
+const initialFiltros = { nombre: "", descripcion: "", disponible: "true" };
+
+function puedeComprarProducto(producto: ProductoRead): boolean {
+  return producto.disponible && (producto.stock_cantidad ?? 0) > 0;
+}
+
+function etiquetaNoComprable(producto: ProductoRead): string {
+  if (!producto.disponible) return "No disponible";
+  if ((producto.stock_cantidad ?? 0) <= 0) return "Sin stock";
+  return "No disponible";
+}
 
 const fields: CardField<ProductoRead>[] = [
   {
@@ -74,6 +84,8 @@ export default function ProductoClientePage() {
   ]);
 
   const handleAddToCart = (producto: ProductoRead) => {
+    if (!puedeComprarProducto(producto)) return;
+
     addItem({
       producto_id: producto.id,
       nombre: producto.nombre,
@@ -117,6 +129,8 @@ export default function ProductoClientePage() {
           page={paginaActual}
           totalPages={totalPaginas}
           onAddToCart={handleAddToCart}
+          canAddToCart={puedeComprarProducto}
+          addToCartDisabledLabel={etiquetaNoComprable}
           onPrevious={() => setPaginaActual((p) => p - 1)}
           onNext={() => setPaginaActual((p) => p + 1)}
           onPageChange={setPaginaActual}

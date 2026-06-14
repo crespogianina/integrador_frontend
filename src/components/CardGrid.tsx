@@ -24,6 +24,8 @@ type CardGridProps<T> = {
   onNext: () => void;
   onPageChange: (page: number) => void;
   onAddToCart?: (item: T) => void;
+  canAddToCart?: (item: T) => boolean;
+  addToCartDisabledLabel?: (item: T) => string;
 };
 
 export default function CardGrid<T>({
@@ -45,6 +47,8 @@ export default function CardGrid<T>({
   onNext,
   onPageChange,
   onAddToCart,
+  canAddToCart,
+  addToCartDisabledLabel,
 }: CardGridProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -141,15 +145,26 @@ export default function CardGrid<T>({
                 </div>
               )}
 
-              {onAddToCart && (
-                <button
-                  type="button"
-                  onClick={() => onAddToCart(item)}
-                  className="mt-3 w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                >
-                  Agregar al carrito
-                </button>
-              )}
+              {onAddToCart && (() => {
+                const puedeAgregar = canAddToCart ? canAddToCart(item) : true;
+
+                return (
+                  <button
+                    type="button"
+                    onClick={() => puedeAgregar && onAddToCart(item)}
+                    disabled={!puedeAgregar}
+                    className={`mt-3 w-full rounded-lg py-2 text-sm font-semibold ${
+                      puedeAgregar
+                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        : "cursor-not-allowed bg-slate-200 text-slate-500"
+                    }`}
+                  >
+                    {puedeAgregar
+                      ? "Agregar al carrito"
+                      : (addToCartDisabledLabel?.(item) ?? "No disponible")}
+                  </button>
+                );
+              })()}
             </div>
           ))}
         </div>

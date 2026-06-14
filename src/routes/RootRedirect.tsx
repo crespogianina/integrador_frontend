@@ -8,8 +8,8 @@ export default function RootRedirect() {
 
   if (hasRol("CLIENT")) return <Navigate to="/catalogo" replace />;
   if (hasRol("ADMIN")) return <Navigate to="/productos" replace />;
-  if (hasRol(["STOCK", "PEDIDOS"]))
-    return <Navigate to="/admin/pedidos" replace />;
+  if (hasRol("STOCK")) return <Navigate to="/stock" replace />;
+  if (hasRol("PEDIDOS")) return <Navigate to="/admin/pedidos" replace />;
 
   return <Navigate to="/catalogo" replace />;
 }

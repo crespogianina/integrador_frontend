@@ -67,7 +67,9 @@ export default function Login() {
         navigate("/catalogo", { replace: true });
       } else if (roles.includes("ADMIN")) {
         navigate("/productos", { replace: true });
-      } else if (roles.some((r) => r === "STOCK" || r === "PEDIDOS")) {
+      } else if (roles.includes("STOCK")) {
+        navigate("/stock", { replace: true });
+      } else if (roles.includes("PEDIDOS")) {
         navigate("/admin/pedidos", { replace: true });
       } else {
         navigate("/catalogo", { replace: true });
