@@ -2,7 +2,7 @@ export type Filter = {
   name: string;
   label: string;
   value: string;
-  type: "input" | "select";
+  type: "input" | "select" | "date";
   placeholder?: string;
   options?: Option[];
 };
@@ -45,6 +45,21 @@ export default function Filtros({ filters, onChange, onClear }: FilterProps) {
               </div>
             );
           }
+          if (f.type === "date") {
+            return (
+              <div key={f.name} className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-500">
+                  {f.label}
+                </label>
+                <input
+                  type="date"
+                  value={f.value}
+                  onChange={(e) => onChange(f.name, e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+            );
+          }
 
           if (f.type === "select") {
             return (
@@ -68,6 +83,7 @@ export default function Filtros({ filters, onChange, onClear }: FilterProps) {
               </div>
             );
           }
+
           return null;
         })}
 

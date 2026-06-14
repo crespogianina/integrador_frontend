@@ -6,22 +6,27 @@ import CardGrid from "../../components/CardGrid";
 import type { CardField } from "../../components/CardGrid";
 import type { ProductoRead } from "../../models/Producto";
 import { useCart } from "../../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const initialFiltros = { nombre: "", descripcion: "", disponible: "" };
 
 const fields: CardField<ProductoRead>[] = [
   {
     label: "Precio",
-    render: (p) => `$${p.precio_base.toFixed(2)}`,
+    render: (p) => `$${p.precio_base.toLocaleString("es-AR")}`,
   },
   {
-    label: "Stock",
-    render: (p) => p.stock_cantidad,
+    label: "Categorías",
+    render: (p) =>
+      p.categorias.length > 0
+        ? p.categorias.map((c) => c.nombre).join(", ")
+        : "Sin categoría",
   },
 ];
 
 export default function ProductoClientePage() {
   const { productos, cargarProductos, total } = useProductos();
+  const navigate = useNavigate();
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
@@ -116,6 +121,7 @@ export default function ProductoClientePage() {
           )}
           page={paginaActual}
           totalPages={totalPaginas}
+          onCardClick={(p) => navigate(`/catalogo/${p.id}`)}
           onAddToCart={handleAddToCart}
           onPrevious={() => setPaginaActual((p) => p - 1)}
           onNext={() => setPaginaActual((p) => p + 1)}

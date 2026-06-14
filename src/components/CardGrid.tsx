@@ -24,6 +24,7 @@ type CardGridProps<T> = {
   onNext: () => void;
   onPageChange: (page: number) => void;
   onAddToCart?: (item: T) => void;
+  onCardClick?: (item: T) => void;
 };
 
 export default function CardGrid<T>({
@@ -45,6 +46,7 @@ export default function CardGrid<T>({
   onNext,
   onPageChange,
   onAddToCart,
+  onCardClick,
 }: CardGridProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -76,7 +78,8 @@ export default function CardGrid<T>({
           {data.map((item) => (
             <div
               key={getRowId(item)}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+              onClick={() => onCardClick?.(item)}
+              className={`rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md ${onCardClick ? "cursor-pointer" : ""}`}
             >
               {getImage && getImage(item) && (
                 <img
@@ -90,14 +93,12 @@ export default function CardGrid<T>({
                   <h3 className="text-lg font-semibold text-slate-800">
                     {getTitle(item)}
                   </h3>
-
                   {getDescription && (
                     <p className="mt-1 text-sm text-slate-500">
                       {getDescription(item) || "Sin descripción"}
                     </p>
                   )}
                 </div>
-
                 {badge && badge(item)}
               </div>
 
@@ -122,17 +123,22 @@ export default function CardGrid<T>({
                   {onEdit && (
                     <button
                       type="button"
-                      onClick={() => onEdit(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                      }}
                       className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
                     >
                       Editar
                     </button>
                   )}
-
                   {onDelete && (
                     <button
                       type="button"
-                      onClick={() => onDelete(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item);
+                      }}
                       className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
                     >
                       Eliminar
@@ -140,11 +146,22 @@ export default function CardGrid<T>({
                   )}
                 </div>
               )}
-
+              {onCardClick && (
+                <button
+                  type="button"
+                  onClick={() => onCardClick(item)}
+                  className="mt-2 w-full rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  Ver detalle
+                </button>
+              )}
               {onAddToCart && (
                 <button
                   type="button"
-                  onClick={() => onAddToCart(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCart(item);
+                  }}
                   className="mt-3 w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   Agregar al carrito

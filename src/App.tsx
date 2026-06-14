@@ -21,6 +21,7 @@ import ProductoClientePage from "./pages/productos/ProductoClientePage";
 import DireccionesPage from "./pages/clientes/DireccionesPage";
 import DireccionFormulario from "./pages/clientes/DirreccionFormulario";
 import SinAccesoPage from "./pages/SinAccesoPage";
+import ProductoDetallePage from "./pages/productos/ProductoDetalle";
 
 function App() {
   return (
@@ -45,18 +46,18 @@ function App() {
           }
         />
         <Route
-          path="/pedidos"
+          path="/catalogo/:id"
           element={
             <PrivateRoute roles="CLIENT">
-              <MisPedidosPage />
+              <ProductoDetallePage />
             </PrivateRoute>
           }
         />
         <Route
-          path="/pedidos/:id"
+          path="/pedidos"
           element={
             <PrivateRoute roles="CLIENT">
-              <PedidoTrackingPage />
+              <MisPedidosPage />
             </PrivateRoute>
           }
         />
@@ -193,7 +194,14 @@ function App() {
           path="/pedidos/confirmacion/:id"
           element={<PedidoConfirmacionPage />}
         />
-        <Route path="/pedidos/:id" element={<PedidoTrackingPage />} />
+        <Route
+          path="/pedidos/:id"
+          element={
+            <PrivateRoute roles={["CLIENT", "ADMIN", "PEDIDOS"]}>
+              <PedidoTrackingPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/admin/pedidos"
           element={
