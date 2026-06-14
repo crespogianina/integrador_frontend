@@ -172,10 +172,14 @@ export default function IngredientePage() {
               onPrevious={() => setPaginaActual((p) => p - 1)}
               onNext={() => setPaginaActual((p) => p + 1)}
               onPageChange={setPaginaActual}
-              customAction={{
-                label: getCustomActionLabel,
-                actionCallback: customAction,
-              }}
+              customAction={
+                puedeModificar
+                  ? {
+                      label: getCustomActionLabel,
+                      actionCallback: customAction,
+                    }
+                  : undefined
+              }
             />
           </section>
         </div>

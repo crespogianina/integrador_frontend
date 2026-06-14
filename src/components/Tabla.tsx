@@ -15,6 +15,7 @@ type TablaProps<T> = {
 
   onAdd?: () => void;
   onEdit?: (item: T) => void;
+  editLabel?: string;
   showEditButtonCondition?: (item: T) => boolean;
   onDelete?: (item: T) => void;
 
@@ -38,6 +39,7 @@ export default function Tabla<T>({
   emptyMessage = "No se encontraron datos.",
   onAdd,
   onEdit,
+  editLabel = "Editar",
   showEditButtonCondition = () => true,
   onDelete,
   page,
@@ -78,7 +80,7 @@ export default function Tabla<T>({
                 </th>
               ))}
 
-              {(onEdit || onDelete) && (
+              {(onEdit || onDelete || customAction) && (
                 <th className="px-4 py-3 text-right">Acciones</th>
               )}
             </tr>
@@ -99,7 +101,7 @@ export default function Tabla<T>({
                     </td>
                   ))}
 
-                  {(onEdit || onDelete) && (
+                  {(onEdit || onDelete || customAction) && (
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         {onEdit && showEditButtonCondition(item) && (
@@ -108,7 +110,7 @@ export default function Tabla<T>({
                             onClick={() => onEdit(item)}
                             className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
                           >
-                            Editar
+                            {editLabel}
                           </button>
                         )}
 
@@ -140,7 +142,7 @@ export default function Tabla<T>({
             {data?.length === 0 && (
               <tr>
                 <td
-                  colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                  colSpan={columns.length + (onEdit || onDelete || customAction ? 1 : 0)}
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   {emptyMessage}

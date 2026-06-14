@@ -34,6 +34,7 @@ interface ContextType {
   activar: (id: number) => void;
   desactivar: (id: number) => void;
   getIngredienteById: (id: number) => Promise<IngredienteRead>;
+  cargarAlergenos: (page: number, limit: number) => Promise<void>;
 }
 
 const INGREDIENTES_PATH = `${API_BASE}/ingredientes/`;
@@ -175,6 +176,29 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
     return ingrediente;
   }
 
+  async function cargarAlergenos(page: number, limit: number) {
+    const offset = (page - 1) * limit;
+
+    const params = new URLSearchParams({
+      offset: String(offset),
+      limit: String(limit),
+    });
+
+    const res = await apiFetch(
+      `${INGREDIENTES_PATH}alergenos?${params.toString()}`,
+      { credentials: "include" },
+    );
+
+    if (!res.ok) {
+      throw new Error("Error al cargar alérgenos");
+    }
+
+    const data: ListaIngrediente = await res.json();
+
+    dispatch({ type: "SET", payload: data.data });
+    setTotal(data.total);
+  }
+
   return (
     <IngredienteContext.Provider
       value={{
@@ -187,6 +211,7 @@ export function IngredientesProvider({ children }: { children: ReactNode }) {
         activar,
         desactivar,
         getIngredienteById,
+        cargarAlergenos,
       }}
     >
       {children}

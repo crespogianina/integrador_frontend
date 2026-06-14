@@ -41,6 +41,7 @@ interface ContextType {
   setProductoEditar: (i: ProductoRead | null) => void;
   activar: (id: number) => void;
   desactivar: (id: number) => void;
+  actualizarStock: (id: number, stock_cantidad: number) => Promise<ProductoRead>;
   obtenerUnidadesMedida: () => Promise<void>;
 }
 
@@ -161,6 +162,26 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "DESACTIVAR", payload: id });
   }
 
+  async function actualizarStock(id: number, stock_cantidad: number) {
+    const res = await apiFetch(`${API}${id}/stock`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stock_cantidad }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(
+        errorData?.detail || "Error al actualizar el stock del producto",
+      );
+    }
+
+    const actualizado: ProductoRead = await res.json();
+    dispatch({ type: "EDITAR", payload: actualizado });
+    return actualizado;
+  }
+
   async function obtenerUnidadesMedida(): Promise<void> {
     if (!unidadesMedida.length) {
       const res = await apiFetch(`${API}unidades-medida`, {
@@ -233,6 +254,7 @@ export function ProductosProvider({ children }: { children: ReactNode }) {
         total,
         activar,
         desactivar,
+        actualizarStock,
         unidadesMedida,
         obtenerUnidadesMedida,
       }}

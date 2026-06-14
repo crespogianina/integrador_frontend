@@ -21,6 +21,7 @@ import ProductoClientePage from "./pages/productos/ProductoClientePage";
 import DireccionesPage from "./pages/clientes/DireccionesPage";
 import DireccionFormulario from "./pages/clientes/DirreccionFormulario";
 import SinAccesoPage from "./pages/SinAccesoPage";
+import StockControlPage from "./pages/stock/StockControlPage";
 
 function App() {
   return (
@@ -103,9 +104,17 @@ function App() {
 
         {/* ── ADMIN + STOCK ── */}
         <Route
-          path="/ingredientes"
+          path="/stock"
           element={
             <PrivateRoute roles={["ADMIN", "STOCK"]}>
+              <StockControlPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ingredientes"
+          element={
+            <PrivateRoute roles="ADMIN">
               <IngredientePage />
             </PrivateRoute>
           }
@@ -113,7 +122,7 @@ function App() {
         <Route
           path="/ingredientes/nuevo"
           element={
-            <PrivateRoute roles={["ADMIN", "STOCK"]}>
+            <PrivateRoute roles="ADMIN">
               <IngredienteFormulario />
             </PrivateRoute>
           }
@@ -121,7 +130,7 @@ function App() {
         <Route
           path="/ingredientes/editar/:id"
           element={
-            <PrivateRoute roles={["ADMIN", "STOCK"]}>
+            <PrivateRoute roles="ADMIN">
               <IngredienteFormulario />
             </PrivateRoute>
           }

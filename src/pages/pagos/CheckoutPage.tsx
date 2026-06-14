@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../config/api";
 import { useCart } from "../../context/CartContext";
 import type { CrearPedidoRequest, PedidoRead } from "../../models/Pedido";
+import type { ProductoRead } from "../../models/Producto";
 
 interface Direccion {
   id: number;
@@ -81,6 +82,30 @@ export function CheckoutPage() {
 
     setEnviando(true);
     try {
+      for (const item of items) {
+        const res = await apiFetch(`${API_BASE}/productos/${item.producto_id}`, {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error(`El producto "${item.nombre}" ya no existe.`);
+        }
+
+        const producto: ProductoRead = await res.json();
+
+        if (!producto.disponible) {
+          throw new Error(
+            `"${producto.nombre}" ya no está disponible. Quitálo del carrito para continuar.`,
+          );
+        }
+
+        if ((producto.stock_cantidad ?? 0) < item.cantidad) {
+          throw new Error(
+            `Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock_cantidad ?? 0}.`,
+          );
+        }
+      }
+
       const body: CrearPedidoRequest = {
         items: items.map((i) => ({
           producto_id: i.producto_id,
