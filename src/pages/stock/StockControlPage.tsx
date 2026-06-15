@@ -12,6 +12,7 @@ import StockBadge, {
   type StockLevelFilter,
 } from "../../components/StockBadge";
 import { stockMaximoDeProducto } from "../../lib/stockUtils";
+import AlergenoBadge from "../../components/AlergenoBadge";
 
 type Tab = "productos" | "ingredientes" | "alergenos";
 
@@ -72,7 +73,9 @@ const ingredienteColumns: Column<IngredienteRead>[] = [
   {
     header: "Alérgeno",
     accessor: "es_alergeno",
-    customLabelFn: (esAlergeno: boolean) => (esAlergeno ? "Sí" : "No"),
+    customLabelFn: (esAlergeno: boolean) => (
+      <AlergenoBadge esAlergeno={esAlergeno} />
+    ),
   },
   {
     header: "Estado",
@@ -90,6 +93,11 @@ const alergenoColumns: Column<IngredienteRead>[] = [
     customLabelFn: (stock: string) => (
       <StockBadge stock={Number(stock) || 0} />
     ),
+  },
+  {
+    header: "Tipo",
+    accessor: "es_alergeno",
+    customLabelFn: () => <AlergenoBadge esAlergeno />,
   },
   {
     header: "Estado",
