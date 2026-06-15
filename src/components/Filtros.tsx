@@ -15,12 +15,25 @@ type FilterProps = {
   filters: Filter[];
   onChange: (name: string, value: string) => void;
   onClear: () => void;
+  title?: string;
+  titleClassName?: string;
+  inputFocusClassName?: string;
 };
 
-export default function Filtros({ filters, onChange, onClear }: FilterProps) {
+const defaultInputFocus =
+  "focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100";
+
+export default function Filtros({
+  filters,
+  onChange,
+  onClear,
+  title = "Filtros",
+  titleClassName = "text-xl font-semibold",
+  inputFocusClassName = defaultInputFocus,
+}: FilterProps) {
   return (
     <div className="rounded-2xl bg-white p-5 shadow">
-      <h2 className="mb-4 text-xl font-semibold">Filtros</h2>
+      <h2 className={`mb-4 ${titleClassName}`}>{title}</h2>
 
       <div
         className="grid gap-3"
@@ -32,15 +45,17 @@ export default function Filtros({ filters, onChange, onClear }: FilterProps) {
           if (f.type === "input") {
             return (
               <div key={f.name} className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-500">
-                  {f.label}
-                </label>
+                {f.label && (
+                  <label className="text-xs font-semibold text-slate-500">
+                    {f.label}
+                  </label>
+                )}
 
                 <input
                   value={f.value}
                   placeholder={f.placeholder}
                   onChange={(e) => onChange(f.name, e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  className={`w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition ${inputFocusClassName}`}
                 />
               </div>
             );
@@ -56,7 +71,7 @@ export default function Filtros({ filters, onChange, onClear }: FilterProps) {
                 <select
                   value={f.value}
                   onChange={(e) => onChange(f.name, e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  className={`w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition ${inputFocusClassName}`}
                 >
                   <option value="">Todos</option>
                   {f.options?.map((o) => (

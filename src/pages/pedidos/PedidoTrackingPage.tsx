@@ -18,6 +18,7 @@ import {
   precio,
 } from "../../lib/pedidosUtils";
 import { usePedidosWS } from "../../hooks/usePedidosWS";
+import { brand } from "../../lib/brand";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 
@@ -46,6 +47,7 @@ export function PedidoTrackingPage() {
   const { user } = useAuth();
   const roles = user?.roles ?? [];
   const staff = esStaff(roles);
+  const pageClass = `min-h-screen w-lvw p-6 ${staff ? "bg-slate-100" : brand.pageBg}`;
 
   const [pedido, setPedido] = useState<PedidoDetail | null>(null);
   const [mapaIngredientes, setMapaIngredientes] = useState<Map<number, string>>(
@@ -169,17 +171,21 @@ export function PedidoTrackingPage() {
 
   if (cargando) {
     return (
-      <main className="mx-auto max-w-4xl space-y-4 p-6">
+      <main className={pageClass}>
+        <div className="mx-auto max-w-4xl space-y-4">
         <div className="h-8 w-1/3 animate-pulse rounded-lg bg-slate-200" />
         <div className="h-64 animate-pulse rounded-lg bg-slate-200" />
+        </div>
       </main>
     );
   }
 
   if (!pedido) {
     return (
-      <main className="mx-auto max-w-3xl p-6 text-center text-slate-500">
+      <main className={pageClass}>
+        <p className="mx-auto max-w-3xl text-center text-slate-500">
         No encontramos el pedido #{pedidoId}.
+        </p>
       </main>
     );
   }
@@ -204,7 +210,8 @@ export function PedidoTrackingPage() {
       (pedido.estado_codigo === "EN_PREPARACION" && roles.includes("ADMIN")));
 
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-6">
+    <main className={pageClass}>
+      <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">
@@ -237,6 +244,7 @@ export function PedidoTrackingPage() {
             estadoActual={pedido.estado_codigo}
             historial={pedido.historial_estados}
             mostrarAuditoria={staff}
+            variant={staff ? "default" : "brand"}
           />
         </section>
 
@@ -321,7 +329,7 @@ export function PedidoTrackingPage() {
               type="button"
               disabled={pagando}
               onClick={() => void pagar()}
-              className="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              className={`w-full rounded-lg py-2.5 font-semibold ${brand.solid} disabled:opacity-50`}
             >
               {pagando ? "Redirigiendo…" : "Pagar con MercadoPago"}
             </button>
@@ -404,6 +412,7 @@ export function PedidoTrackingPage() {
           </div>
         </div>
       )}
+      </div>
     </main>
   );
 }

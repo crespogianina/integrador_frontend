@@ -5,6 +5,8 @@ import { EstadoBadge } from "../../components/EstadoBadge";
 import type { EstadoPedido, PedidoRead } from "../../models/Pedido";
 import { ESTADO_LABEL, ESTADOS_FLUJO } from "../../models/Pedido";
 import { fechaCorta, precio } from "../../lib/pedidosUtils";
+import { brand } from "../../lib/brand";
+import ClientPageHeader from "../../components/ClientPageHeader";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 const LIMITE = 10;
@@ -74,14 +76,12 @@ export function MisPedidosPage() {
   }, [errorRequest]);
 
   return (
-    <main className="min-h-screen w-lvw bg-slate-100 p-6">
+    <main className={`min-h-screen w-lvw p-6 ${brand.pageBg}`}>
       <section className="mx-auto max-w-3xl space-y-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Mis pedidos</h1>
-          <p className="text-sm text-slate-500">
-            Hacé click en un pedido para ver su seguimiento en vivo.
-          </p>
-        </div>
+        <ClientPageHeader
+          title="Mis pedidos"
+          description="Hacé click en un pedido para ver su seguimiento en vivo."
+        />
 
         <div className="flex flex-wrap gap-2">
           {FILTRO_ESTADOS.map((op) => (
@@ -94,7 +94,7 @@ export function MisPedidosPage() {
               }}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                 estadoFiltro === op.value
-                  ? "bg-blue-600 text-white"
+                  ? brand.solid
                   : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300"
               }`}
             >
@@ -118,15 +118,30 @@ export function MisPedidosPage() {
           </div>
         ) : pedidos.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-            <span className="text-4xl">🛒</span>
+            <span className="inline-flex rounded-full bg-amber-100 p-4 text-amber-700">
+              <svg
+                className="h-10 w-10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                />
+              </svg>
+            </span>
             <p className="font-medium text-slate-700">
               {estadoFiltro
                 ? `No tenés pedidos en estado "${ESTADO_LABEL[estadoFiltro as EstadoPedido]}"`
                 : "Todavía no hiciste ningún pedido"}
             </p>
             <Link
-              to="/productos"
-              className="mt-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              to="/catalogo"
+              className={`mt-2 rounded-lg px-5 py-2 text-sm font-semibold ${brand.solid}`}
             >
               Ver el catálogo
             </Link>

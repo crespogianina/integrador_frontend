@@ -6,6 +6,7 @@ import type { IngredienteRead } from "../../models/Ingrediente";
 import { useAuth } from "../../context/AuthContext";
 import type { Column } from "../../components/Tabla";
 import Tabla from "../../components/Tabla";
+import AlergenoBadge from "../../components/AlergenoBadge";
 
 const initialFiltros = {
   nombre: "",
@@ -16,7 +17,13 @@ const initialFiltros = {
 const columns: Column<IngredienteRead>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Descripción", accessor: "descripcion" },
-  { header: "Alérgeno", accessor: "es_alergeno" },
+  {
+    header: "Alérgeno",
+    accessor: "es_alergeno",
+    customLabelFn: (esAlergeno: boolean) => (
+      <AlergenoBadge esAlergeno={esAlergeno} />
+    ),
+  },
   {
     header: "Estado",
     accessor: "activo",

@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import type { Rol } from "../types/auth";
+import { brand } from "../lib/brand";
+import ConfirmarSalidaModal from "./ConfirmarSalidaModal";
 
 const LINKS: { to: string; label: string; roles?: Rol[] }[] = [
   { to: "/catalogo", label: "Catálogo", roles: ["CLIENT"] },
@@ -10,6 +12,7 @@ const LINKS: { to: string; label: string; roles?: Rol[] }[] = [
   { to: "/productos", label: "Productos", roles: ["ADMIN"] },
   { to: "/pedidos", label: "Mis pedidos", roles: ["CLIENT"] },
   { to: "/direcciones", label: "Mis direcciones", roles: ["CLIENT"] },
+  { to: "/cuenta", label: "Mi cuenta", roles: ["CLIENT"] },
   { to: "/admin/clientes", label: "Clientes", roles: ["ADMIN"] },
   { to: "/ingredientes", label: "Ingredientes", roles: ["ADMIN"] },
   { to: "/categorias", label: "Categorías", roles: ["ADMIN"] },
@@ -22,6 +25,7 @@ const LINKS: { to: string; label: string; roles?: Rol[] }[] = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [confirmarSalida, setConfirmarSalida] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user, rol, hasRol, isAuthenticated } = useAuth();
@@ -37,16 +41,60 @@ export default function Navbar() {
     logout();
     navigate("/login", { replace: true });
     setOpen(false);
+    setConfirmarSalida(false);
+  }
+
+  function solicitarSalida() {
+    setConfirmarSalida(true);
+  }
+
+  function linkClass(active: boolean, variant: "desktop" | "mobile") {
+    const base =
+      variant === "desktop"
+        ? "rounded-lg px-2.5 py-2 text-sm font-medium transition whitespace-nowrap lg:px-3"
+        : "block rounded-xl px-4 py-3 text-sm font-semibold transition";
+
+    if (active) {
+      return `${base} ${
+        esCliente ? brand.navActive : "bg-blue-100 text-blue-700"
+      }`;
+    }
+
+    return `${base} text-slate-600 hover:bg-slate-100 hover:text-slate-900`;
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
-      <nav className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
+      <nav className="relative flex h-16 w-full items-center gap-3 px-4 sm:px-6">
+        <Link to="/" className="flex shrink-0 items-center gap-2.5">
+          <svg
+            className="h-8 w-8 shrink-0 text-amber-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M5 8.5c0-2 3.13-3.5 7-3.5s7 1.5 7 3.5" />
+            <path d="M4 11h16" />
+            <path d="M4 14h16" />
+            <path d="M5 17.5c0 2 3.13 3.5 7 3.5s7-1.5 7-3.5" />
+            <circle cx="9" cy="8" r="0.75" fill="currentColor" stroke="none" />
+            <circle
+              cx="12"
+              cy="7.5"
+              r="0.75"
+              fill="currentColor"
+              stroke="none"
+            />
+            <circle cx="15" cy="8" r="0.75" fill="currentColor" stroke="none" />
+          </svg>
           <span className="text-lg font-bold text-slate-800">Food Store</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 md:gap-4">
           {esCliente && (
             <Link
               to="/checkout"
@@ -75,11 +123,18 @@ export default function Navbar() {
             </Link>
           )}
 
+          {esCliente && isAuthenticated && (
+            <span
+              className="hidden h-6 w-px shrink-0 bg-slate-200 md:block"
+              aria-hidden
+            />
+          )}
+
           <button
             type="button"
             onClick={() => setOpen(!open)}
             className="rounded-xl border border-slate-300 bg-white p-2 text-slate-700 hover:bg-slate-100"
-            aria-label="Abrir menú"
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
           >
             {open ? (
               <svg
@@ -112,13 +167,28 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
             />
 
-            <div className="absolute right-1 top-17 z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+            <div className="absolute right-4 top-[4.25rem] z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
               {user && (
                 <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                  <p className="font-semibold text-slate-800">
-                    {user.username}
-                  </p>
-                  <p>Rol: {rol}</p>
+                  {esCliente ? (
+                    <Link
+                      to="/cuenta"
+                      onClick={() => setOpen(false)}
+                      className="block hover:text-slate-900"
+                    >
+                      <p className="font-semibold text-slate-800">
+                        {user.username}
+                      </p>
+                      <p>Rol: {rol}</p>
+                    </Link>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-slate-800">
+                        {user.username}
+                      </p>
+                      <p>Rol: {rol}</p>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -131,11 +201,7 @@ export default function Navbar() {
                       key={link.to}
                       to={link.to}
                       onClick={() => setOpen(false)}
-                      className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                        active
-                          ? "bg-blue-100 text-blue-700"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                      }`}
+                      className={linkClass(active, "mobile")}
                     >
                       {link.label}
                     </Link>
@@ -147,7 +213,7 @@ export default function Navbar() {
                 {isAuthenticated ? (
                   <button
                     type="button"
-                    onClick={handleLogout}
+                    onClick={solicitarSalida}
                     className="w-full rounded-xl bg-red-100 px-4 py-3 text-left text-sm font-semibold text-red-700 hover:bg-red-200"
                   >
                     Cerrar sesión
@@ -166,6 +232,12 @@ export default function Navbar() {
           </>
         )}
       </nav>
+
+      <ConfirmarSalidaModal
+        abierto={confirmarSalida}
+        onCerrar={() => setConfirmarSalida(false)}
+        onConfirmar={handleLogout}
+      />
     </header>
   );
 }

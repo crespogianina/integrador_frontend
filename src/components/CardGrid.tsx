@@ -1,6 +1,8 @@
 export type CardField<T> = {
   label: string;
   render: (item: T) => React.ReactNode;
+  hideLabel?: boolean;
+  valueClassName?: string;
 };
 
 type CardGridProps<T> = {
@@ -26,6 +28,9 @@ type CardGridProps<T> = {
   onAddToCart?: (item: T) => void;
   canAddToCart?: (item: T) => boolean;
   addToCartDisabledLabel?: (item: T) => string;
+  addToCartActiveClassName?: string;
+  paginationActiveClassName?: string;
+  extraContent?: (item: T) => React.ReactNode;
 };
 
 export default function CardGrid<T>({
@@ -49,6 +54,9 @@ export default function CardGrid<T>({
   onAddToCart,
   canAddToCart,
   addToCartDisabledLabel,
+  addToCartActiveClassName = "bg-blue-600 text-white hover:bg-blue-700",
+  paginationActiveClassName = "bg-blue-600 text-white",
+  extraContent,
 }: CardGridProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -107,17 +115,39 @@ export default function CardGrid<T>({
 
               {fields.length > 0 && (
                 <div className="mt-4 space-y-2">
-                  {fields.map((field) => (
-                    <div
-                      key={field.label}
-                      className="flex justify-between gap-4 text-sm"
-                    >
-                      <span className="text-slate-500">{field.label}</span>
-                      <span className="font-medium text-slate-700">
-                        {field.render(item)}
-                      </span>
-                    </div>
-                  ))}
+                  {fields.map((field, index) => {
+                    const value = field.render(item);
+                    if (value == null || value === false) return null;
+
+                    return (
+                      <div
+                        key={`${field.label}-${index}`}
+                        className={
+                          field.hideLabel
+                            ? ""
+                            : "flex justify-between gap-4 text-sm"
+                        }
+                      >
+                        {!field.hideLabel && (
+                          <span className="text-slate-500">{field.label}</span>
+                        )}
+                        <span
+                          className={
+                            field.valueClassName ??
+                            "font-medium text-slate-700"
+                          }
+                        >
+                          {value}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {extraContent && (
+                <div className="mt-3 border-t border-slate-100 pt-3">
+                  {extraContent(item)}
                 </div>
               )}
 
@@ -155,7 +185,7 @@ export default function CardGrid<T>({
                     disabled={!puedeAgregar}
                     className={`mt-3 w-full rounded-lg py-2 text-sm font-semibold ${
                       puedeAgregar
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        ? addToCartActiveClassName
                         : "cursor-not-allowed bg-slate-200 text-slate-500"
                     }`}
                   >
@@ -192,7 +222,7 @@ export default function CardGrid<T>({
               onClick={() => onPageChange(pageNumber)}
               className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium ${
                 page === pageNumber
-                  ? "bg-blue-600 text-white"
+                  ? paginationActiveClassName
                   : "text-slate-700 hover:bg-slate-100"
               }`}
             >

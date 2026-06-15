@@ -8,6 +8,7 @@ import {
   iniciarPagoMercadoPago,
   precio,
 } from "../../lib/pedidosUtils";
+import { brand } from "../../lib/brand";
 
 const PEDIDOS_PATH = `${API_BASE}/pedidos/`;
 
@@ -58,7 +59,7 @@ export function PedidoConfirmacionPage() {
   if (cargando) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+        <div className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${brand.spinner}`} />
       </main>
     );
   }
@@ -120,7 +121,7 @@ export function PedidoConfirmacionPage() {
               type="button"
               disabled={pagando}
               onClick={() => void pagar()}
-              className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              className={`w-full rounded-lg py-3 font-semibold ${brand.solid} disabled:opacity-50`}
             >
               {pagando
                 ? "Redirigiendo a MercadoPago…"

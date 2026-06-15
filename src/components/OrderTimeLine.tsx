@@ -17,10 +17,12 @@ export function OrderTimeline({
   estadoActual,
   historial,
   mostrarAuditoria = false,
+  variant = "default",
 }: {
   estadoActual: EstadoPedido;
   historial: HistorialEstadoRead[];
   mostrarAuditoria?: boolean;
+  variant?: "default" | "brand";
 }) {
   if (estadoActual === "CANCELADO") {
     const cancelacion = historial.find((h) => h.estado_hacia === "CANCELADO");
@@ -45,6 +47,13 @@ export function OrderTimeline({
   const fechaDe = (estado: EstadoPedido) =>
     historial.find((h) => h.estado_hacia === estado)?.created_at;
 
+  const pasoActualClass =
+    variant === "brand"
+      ? "animate-pulse bg-amber-600 text-white ring-4 ring-amber-100"
+      : "animate-pulse bg-blue-600 text-white ring-4 ring-blue-100";
+  const pasoActualTextClass =
+    variant === "brand" ? "text-amber-700" : "text-blue-700";
+
   return (
     <>
       <ol className="relative space-y-0">
@@ -63,14 +72,14 @@ export function OrderTimeline({
               <span
                 className={`relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold
                 ${completado ? "bg-emerald-500 text-white" : ""}
-                ${actual ? "animate-pulse bg-blue-600 text-white ring-4 ring-blue-100" : ""}
+                ${actual ? pasoActualClass : ""}
                 ${!completado && !actual ? "border-2 border-neutral-300 bg-white text-neutral-300" : ""}`}
               >
                 {completado ? "✓" : i + 1}
               </span>
               <div>
                 <p
-                  className={`font-medium ${actual ? "text-blue-700" : completado ? "text-neutral-900" : "text-neutral-400"}`}
+                  className={`font-medium ${actual ? pasoActualTextClass : completado ? "text-neutral-900" : "text-neutral-400"}`}
                 >
                   {ESTADO_LABEL[estado]}
                 </p>
