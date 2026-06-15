@@ -67,7 +67,7 @@ export async function iniciarPagoMercadoPago(pedidoId: number): Promise<void> {
   }
 
   const pago = await res.json();
-  const url = pago.init_point ?? pago.sandbox_init_point;
+  const url = pago.sandbox_init_point ?? pago.init_point;
   if (!url) throw new Error("MercadoPago no devolvió URL de pago");
   window.location.href = url;
 }
