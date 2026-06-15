@@ -17,6 +17,7 @@ import { CheckoutPage } from "./pages/pagos/CheckoutPage";
 import { PagoRetornoPage } from "./pages/pagos/PagoRetornoPage";
 import { AdminPedidosPage } from "./pages/pedidos/AdminPedidosPage";
 import Login from "./pages/login/Login";
+import Register from "./pages/login/Register";
 import ClienteEditPage from "./pages/clientes/ClienteFormularioPage";
 import ProductoClientePage from "./pages/productos/ProductoClientePage";
 import DireccionesPage from "./pages/clientes/DireccionesPage";
@@ -30,6 +31,7 @@ function App() {
     <Routes>
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       <Route
         element={

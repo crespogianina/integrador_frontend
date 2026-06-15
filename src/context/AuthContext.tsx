@@ -8,7 +8,7 @@ import {
 } from "react";
 import { API_BASE, registerLogout } from "../config/api";
 import { parseUserFromJwt } from "../lib/jwtUser";
-import type { AuthUser, LoginForm, LoginResult, Rol } from "../types/auth";
+import type { AuthUser, LoginForm, LoginResult, RegisterForm, RegisterResult, Rol } from "../types/auth";
 
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
@@ -20,6 +20,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   hasRol: (roles: Rol | Rol[]) => boolean;
   login: (formularioLogin: LoginForm) => Promise<LoginResult>;
+  register: (formulario: RegisterForm) => Promise<RegisterResult>;
   logout: () => void;
 };
 
@@ -50,13 +51,14 @@ function normalizeApiUser(raw: unknown): AuthUser | null {
 
   const id = typeof data.id === "number" ? data.id : null;
   const username = typeof data.username === "string" ? data.username : null;
+  const nombre = typeof data.nombre === "string" ? data.nombre : undefined;
   const roles = Array.isArray(data.roles) ? data.roles.filter(isRol) : [];
 
   if (id === null || username === null || roles.length === 0) {
     return null;
   }
 
-  return { id, username, roles };
+  return { id, username, roles, ...(nombre ? { nombre } : {}) };
 }
 
 function saveAuth(token: string, user: AuthUser): void {
@@ -181,6 +183,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const register = useCallback(async (form: RegisterForm): Promise<RegisterResult> => {
+    try {
+      const body: Record<string, string> = {
+        nombre: form.nombre.trim(),
+        apellido: form.apellido.trim(),
+        username: form.username.trim(),
+        email: form.email.trim(),
+        password: form.password,
+      };
+
+      if (form.celular.trim()) {
+        body.celular = form.celular.trim();
+      }
+
+      const response = await fetch(`${API_BASE}/usuario/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        return { ok: false, message: await getErrorMessage(response) };
+      }
+
+      return { ok: true };
+    } catch {
+      return { ok: false, message: "No se pudo conectar con el servidor" };
+    }
+  }, []);
+
   const logout = useCallback((): void => {
     clearAuth();
     setToken(null);
@@ -212,9 +245,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated,
       hasRol,
       login,
+      register,
       logout,
     }),
-    [user, token, rol, isAuthenticated, hasRol, login, logout],
+    [user, token, rol, isAuthenticated, hasRol, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
