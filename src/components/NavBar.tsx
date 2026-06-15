@@ -94,22 +94,6 @@ export default function Navbar() {
           <span className="text-lg font-bold text-slate-800">Food Store</span>
         </Link>
 
-        <div className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-0.5 md:flex lg:gap-1">
-          {linksVisibles.map((link) => {
-            const active = location.pathname === link.to;
-
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={linkClass(active, "desktop")}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
-
         <div className="ml-auto flex shrink-0 items-center gap-2 md:gap-4">
           {esCliente && (
             <Link
@@ -146,27 +130,10 @@ export default function Navbar() {
             />
           )}
 
-          {isAuthenticated ? (
-            <button
-              type="button"
-              onClick={solicitarSalida}
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 md:block"
-            >
-              Salir
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="hidden rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 md:block"
-            >
-              Ingresar
-            </Link>
-          )}
-
           <button
             type="button"
             onClick={() => setOpen(!open)}
-            className="rounded-xl border border-slate-300 bg-white p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+            className="rounded-xl border border-slate-300 bg-white p-2 text-slate-700 hover:bg-slate-100"
             aria-label={open ? "Cerrar menú" : "Abrir menú"}
           >
             {open ? (
@@ -196,11 +163,11 @@ export default function Navbar() {
         {open && (
           <>
             <div
-              className="fixed inset-0 z-40 md:hidden"
+              className="fixed inset-0 z-40"
               onClick={() => setOpen(false)}
             />
 
-            <div className="absolute right-4 top-[4.25rem] z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl md:hidden">
+            <div className="absolute right-4 top-[4.25rem] z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
               {user && (
                 <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
                   {esCliente ? (
