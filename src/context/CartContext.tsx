@@ -22,16 +22,22 @@ export interface CartItem {
   removidos_nombres: string[];
 }
 
-// Espejo de _calcular_costo_envio del backend (solo para MOSTRAR un estimado;
-// el valor real lo calcula y guarda el backend al crear el pedido)
 export const UMBRAL_ENVIO_GRATIS = 10000;
 export const COSTO_ENVIO_FIJO = 500;
 
 const STORAGE_KEY = "foodstore-cart";
 
-/** Mismo producto + misma personalización (ordenada) = misma línea */
-const keyOf = (productoId: number, pers: number[]) =>
+export const keyOf = (productoId: number, pers: number[]) =>
   `${productoId}:${[...pers].sort((a, b) => a - b).join(",")}`;
+
+export function cantidadEnCarritoPorProducto(
+  items: CartItem[],
+  productoId: number,
+): number {
+  return items
+    .filter((i) => i.producto_id === productoId)
+    .reduce((acc, i) => acc + i.cantidad, 0);
+}
 
 interface CartContextType {
   items: CartItem[];
@@ -39,16 +45,27 @@ interface CartContextType {
   subtotal: number;
   costoEnvio: number;
   total: number;
+  stockPorProducto: Record<number, number>;
   itemKey: (item: CartItem) => string;
-  addItem: (item: Omit<CartItem, "cantidad">, cantidad?: number) => void;
-  setCantidad: (key: string, cantidad: number) => void;
+  cantidadEnCarrito: (productoId: number) => number;
+  puedeAgregarMas: (productoId: number) => boolean;
+  stockDisponible: (productoId: number) => number | null;
+  actualizarStocks: (stocks: Record<number, number>) => void;
+  addItem: (
+    item: Omit<CartItem, "cantidad">,
+    cantidad?: number,
+    stockDisponible?: number,
+  ) => boolean;
+  setCantidad: (key: string, cantidad: number) => boolean;
   removeItem: (key: string) => void;
   clear: () => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
 
-function normalizarItem(raw: Partial<CartItem> & Pick<CartItem, "producto_id">): CartItem | null {
+function normalizarItem(
+  raw: Partial<CartItem> & Pick<CartItem, "producto_id">,
+): CartItem | null {
   if (!raw.producto_id || !raw.nombre) return null;
   const cantidad = Number(raw.cantidad) || 1;
   const precio = Number(raw.precio) || 0;
@@ -70,68 +87,187 @@ function leerCarrito(): CartItem[] {
     const parsed = JSON.parse(raw) as Partial<CartItem>[];
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .map((item) => normalizarItem(item as Partial<CartItem> & Pick<CartItem, "producto_id">))
+      .map((item) =>
+        normalizarItem(
+          item as Partial<CartItem> & Pick<CartItem, "producto_id">,
+        ),
+      )
       .filter((item): item is CartItem => item !== null);
   } catch {
     return [];
   }
 }
 
+function maxCantidadLinea(
+  items: CartItem[],
+  productoId: number,
+  lineKey: string,
+  stock: number,
+): number {
+  const enOtrasLineas = items
+    .filter(
+      (i) =>
+        i.producto_id === productoId &&
+        keyOf(i.producto_id, i.personalizacion) !== lineKey,
+    )
+    .reduce((acc, i) => acc + i.cantidad, 0);
+
+  return Math.max(0, stock - enOtrasLineas);
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(leerCarrito);
+  const [stockPorProducto, setStockPorProducto] = useState<
+    Record<number, number>
+  >({});
 
-  // Persistencia: cada cambio se espeja a localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
+  const actualizarStocks = useCallback((stocks: Record<number, number>) => {
+    setStockPorProducto((prev) => ({ ...prev, ...stocks }));
+  }, []);
+
+  const cantidadEnCarrito = useCallback(
+    (productoId: number) => cantidadEnCarritoPorProducto(items, productoId),
+    [items],
+  );
+
+  const stockDisponible = useCallback(
+    (productoId: number) =>
+      stockPorProducto[productoId] !== undefined
+        ? stockPorProducto[productoId]
+        : null,
+    [stockPorProducto],
+  );
+
+  const puedeAgregarMas = useCallback(
+    (productoId: number) => {
+      const stock = stockPorProducto[productoId];
+      if (stock === undefined) return true;
+      return cantidadEnCarritoPorProducto(items, productoId) < stock;
+    },
+    [items, stockPorProducto],
+  );
+
   const addItem = useCallback(
-    (item: Omit<CartItem, "cantidad">, cantidad = 1) => {
+    (
+      item: Omit<CartItem, "cantidad">,
+      cantidad = 1,
+      stockDisponible?: number,
+    ): boolean => {
+      let agregado = false;
+
       setItems((prev) => {
-        const key = keyOf(item.producto_id, item.personalizacion ?? []);
+        const stock =
+          stockDisponible ?? stockPorProducto[item.producto_id] ?? null;
+
+        if (stock !== null && stock <= 0) return prev;
+
+        const totalActual = cantidadEnCarritoPorProducto(prev, item.producto_id);
+        const espacio =
+          stock === null ? cantidad : Math.max(0, stock - totalActual);
+
+        if (espacio <= 0) return prev;
+
+        const aAgregar = Math.min(cantidad, espacio);
+        agregado = aAgregar > 0;
+
+        const lineKey = keyOf(item.producto_id, item.personalizacion ?? []);
         const existente = prev.find(
-          (i) => keyOf(i.producto_id, i.personalizacion ?? []) === key,
+          (i) => keyOf(i.producto_id, i.personalizacion ?? []) === lineKey,
         );
+
         if (existente) {
           return prev.map((i) =>
-            keyOf(i.producto_id, i.personalizacion ?? []) === key
-              ? { ...i, cantidad: i.cantidad + cantidad }
+            keyOf(i.producto_id, i.personalizacion ?? []) === lineKey
+              ? { ...i, cantidad: i.cantidad + aAgregar }
               : i,
           );
         }
+
         return [
           ...prev,
           {
             ...item,
             personalizacion: item.personalizacion ?? [],
             removidos_nombres: item.removidos_nombres ?? [],
-            cantidad,
+            cantidad: aAgregar,
           },
         ];
       });
+
+      if (stockDisponible !== undefined) {
+        setStockPorProducto((prev) => ({
+          ...prev,
+          [item.producto_id]: stockDisponible,
+        }));
+      }
+
+      return agregado;
     },
-    [],
+    [stockPorProducto],
   );
 
-  const setCantidad = useCallback((key: string, cantidad: number) => {
+  const setCantidad = useCallback(
+    (lineKey: string, cantidad: number): boolean => {
+      let actualizado = false;
+
+      setItems((prev) => {
+        const item = prev.find(
+          (i) => keyOf(i.producto_id, i.personalizacion) === lineKey,
+        );
+
+        if (!item) return prev;
+
+        if (cantidad <= 0) {
+          actualizado = true;
+          return prev.filter(
+            (i) => keyOf(i.producto_id, i.personalizacion) !== lineKey,
+          );
+        }
+
+        const stock = stockPorProducto[item.producto_id];
+        const cantidadFinal =
+          stock === undefined
+            ? cantidad
+            : Math.min(
+                cantidad,
+                maxCantidadLinea(prev, item.producto_id, lineKey, stock),
+              );
+
+        if (cantidadFinal <= 0) {
+          actualizado = true;
+          return prev.filter(
+            (i) => keyOf(i.producto_id, i.personalizacion) !== lineKey,
+          );
+        }
+
+        actualizado = cantidadFinal === cantidad || cantidadFinal > 0;
+
+        return prev.map((i) =>
+          keyOf(i.producto_id, i.personalizacion) === lineKey
+            ? { ...i, cantidad: cantidadFinal }
+            : i,
+        );
+      });
+
+      return actualizado;
+    },
+    [stockPorProducto],
+  );
+
+  const removeItem = useCallback((lineKey: string) => {
     setItems((prev) =>
-      cantidad <= 0
-        ? prev.filter((i) => keyOf(i.producto_id, i.personalizacion) !== key)
-        : prev.map((i) =>
-            keyOf(i.producto_id, i.personalizacion) === key
-              ? { ...i, cantidad }
-              : i,
-          ),
+      prev.filter((i) => keyOf(i.producto_id, i.personalizacion) !== lineKey),
     );
   }, []);
 
-  const removeItem = useCallback((key: string) => {
-    setItems((prev) =>
-      prev.filter((i) => keyOf(i.producto_id, i.personalizacion) !== key),
-    );
+  const clear = useCallback(() => {
+    setItems([]);
+    setStockPorProducto({});
   }, []);
-
-  const clear = useCallback(() => setItems([]), []);
 
   const value = useMemo<CartContextType>(() => {
     const subtotal = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0);
@@ -146,13 +282,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal,
       costoEnvio,
       total: subtotal + costoEnvio,
+      stockPorProducto,
       itemKey: (item) => keyOf(item.producto_id, item.personalizacion),
+      cantidadEnCarrito,
+      puedeAgregarMas,
+      stockDisponible,
+      actualizarStocks,
       addItem,
       setCantidad,
       removeItem,
       clear,
     };
-  }, [items, addItem, setCantidad, removeItem, clear]);
+  }, [
+    items,
+    stockPorProducto,
+    cantidadEnCarrito,
+    puedeAgregarMas,
+    stockDisponible,
+    actualizarStocks,
+    addItem,
+    setCantidad,
+    removeItem,
+    clear,
+  ]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

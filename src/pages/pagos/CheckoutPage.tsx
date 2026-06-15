@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../config/api";
 import { useCart } from "../../context/CartContext";
@@ -28,8 +28,17 @@ const FORMAS_PAGO_CON_ENVIO = ["MERCADOPAGO"];
 
 export function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, subtotal, clear, setCantidad, removeItem, itemKey } =
-    useCart();
+  const {
+    items,
+    subtotal,
+    clear,
+    setCantidad,
+    removeItem,
+    itemKey,
+    actualizarStocks,
+    stockDisponible,
+    cantidadEnCarrito,
+  } = useCart();
   const [direcciones, setDirecciones] = useState<Direccion[]>([]);
   const [direccionId, setDireccionId] = useState<number | null>(null);
   const [formaPago, setFormaPago] = useState<string>("MERCADOPAGO");
@@ -45,6 +54,40 @@ export function CheckoutPage() {
         : COSTO_ENVIO_FIJO;
 
   const totalLocal = subtotal + costoEnvioLocal;
+
+  const productoIds = useMemo(
+    () => [...new Set(items.map((i) => i.producto_id))],
+    [items],
+  );
+
+  useEffect(() => {
+    if (productoIds.length === 0) return;
+
+    const cargarStocks = async () => {
+      const stocks: Record<number, number> = {};
+
+      await Promise.all(
+        productoIds.map(async (id) => {
+          try {
+            const res = await apiFetch(`${API_BASE}/productos/${id}`, {
+              credentials: "include",
+            });
+            if (!res.ok) return;
+            const producto: ProductoRead = await res.json();
+            stocks[id] = producto.stock_cantidad ?? 0;
+          } catch {
+            /* ignorar */
+          }
+        }),
+      );
+
+      if (Object.keys(stocks).length > 0) {
+        actualizarStocks(stocks);
+      }
+    };
+
+    cargarStocks();
+  }, [productoIds, actualizarStocks]);
 
   useEffect(() => {
     const cargar = async () => {
@@ -82,13 +125,23 @@ export function CheckoutPage() {
 
     setEnviando(true);
     try {
+      const cantidadPorProducto = new Map<number, number>();
+
       for (const item of items) {
-        const res = await apiFetch(`${API_BASE}/productos/${item.producto_id}`, {
+        cantidadPorProducto.set(
+          item.producto_id,
+          (cantidadPorProducto.get(item.producto_id) ?? 0) + item.cantidad,
+        );
+      }
+
+      for (const [productoId, cantidadTotal] of cantidadPorProducto) {
+        const res = await apiFetch(`${API_BASE}/productos/${productoId}`, {
           credentials: "include",
         });
 
         if (!res.ok) {
-          throw new Error(`El producto "${item.nombre}" ya no existe.`);
+          const item = items.find((i) => i.producto_id === productoId);
+          throw new Error(`El producto "${item?.nombre ?? productoId}" ya no existe.`);
         }
 
         const producto: ProductoRead = await res.json();
@@ -99,9 +152,9 @@ export function CheckoutPage() {
           );
         }
 
-        if ((producto.stock_cantidad ?? 0) < item.cantidad) {
+        if ((producto.stock_cantidad ?? 0) < cantidadTotal) {
           throw new Error(
-            `Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock_cantidad ?? 0}.`,
+            `Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock_cantidad ?? 0}, en carrito: ${cantidadTotal}.`,
           );
         }
       }
@@ -262,6 +315,10 @@ export function CheckoutPage() {
           <ul className="space-y-3">
             {items.map((i) => {
               const key = itemKey(i);
+              const stock = stockDisponible(i.producto_id);
+              const totalProducto = cantidadEnCarrito(i.producto_id);
+              const enTope = stock !== null && totalProducto >= stock;
+
               return (
                 <li
                   key={key}
@@ -282,8 +339,14 @@ export function CheckoutPage() {
                     </span>
                   )}
 
+                  {stock !== null && (
+                    <span className="text-xs text-slate-500">
+                      Stock disponible: {stock}
+                      {totalProducto > 0 && ` · En carrito: ${totalProducto}`}
+                    </span>
+                  )}
+
                   <div className="mt-1 flex items-center gap-2">
-                    {/* botón - */}
                     <button
                       type="button"
                       onClick={() => setCantidad(key, i.cantidad - 1)}
@@ -296,16 +359,18 @@ export function CheckoutPage() {
                       {i.cantidad}
                     </span>
 
-                    {/* botón + */}
                     <button
                       type="button"
                       onClick={() => setCantidad(key, i.cantidad + 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      disabled={enTope}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      title={
+                        enTope ? "Alcanzaste el stock disponible" : undefined
+                      }
                     >
                       +
                     </button>
 
-                    {/* basura */}
                     <button
                       type="button"
                       onClick={() => removeItem(key)}

@@ -11,6 +11,7 @@ import StockBadge, {
   stockLevelStyle,
   type StockLevelFilter,
 } from "../../components/StockBadge";
+import { stockMaximoDeProducto } from "../../lib/stockUtils";
 
 type Tab = "productos" | "ingredientes" | "alergenos";
 
@@ -105,6 +106,8 @@ export default function StockControlPage() {
     activar,
     desactivar,
     actualizarStock,
+    unidadesMedida,
+    obtenerUnidadesMedida,
   } = useProductos();
 
   const {
@@ -113,6 +116,10 @@ export default function StockControlPage() {
     cargarAlergenos,
     total,
   } = useIngredientes();
+
+  const [ingredientesStock, setIngredientesStock] = useState<IngredienteRead[]>(
+    [],
+  );
 
   const [tabActiva, setTabActiva] = useState<Tab>("productos");
   const [paginaActual, setPaginaActual] = useState(1);
@@ -205,6 +212,28 @@ export default function StockControlPage() {
   useEffect(() => {
     setPaginaActual(1);
   }, [tabActiva, filtroNivelStock]);
+
+  useEffect(() => {
+    if (tabActiva !== "productos") return;
+
+    obtenerUnidadesMedida();
+    cargarIngredientes(1, maxItemsConFiltroNivel);
+  }, [tabActiva]);
+
+  useEffect(() => {
+    if (tabActiva === "productos" && ingredientes.length > 0) {
+      setIngredientesStock(ingredientes);
+    }
+  }, [tabActiva, ingredientes]);
+
+  const stockMaximoModal = useMemo(() => {
+    if (!productoEditandoStock) return null;
+    return stockMaximoDeProducto(
+      productoEditandoStock,
+      ingredientesStock,
+      unidadesMedida,
+    );
+  }, [productoEditandoStock, ingredientesStock, unidadesMedida]);
 
   useEffect(() => {
     if (tabActiva !== "productos") return;
@@ -331,6 +360,13 @@ export default function StockControlPage() {
       stock < 0
     ) {
       setErrorRequest("Ingrese un stock válido (entero ≥ 0)");
+      return;
+    }
+
+    if (stockMaximoModal !== null && stock > stockMaximoModal) {
+      setErrorRequest(
+        `El stock no puede superar ${stockMaximoModal} unidades según los ingredientes disponibles.`,
+      );
       return;
     }
 
@@ -500,6 +536,15 @@ export default function StockControlPage() {
               {productoEditandoStock.nombre}
             </p>
 
+            {stockMaximoModal !== null && (
+              <p className="mt-2 text-sm text-slate-600">
+                Máximo según ingredientes:{" "}
+                <span className="font-semibold text-slate-800">
+                  {stockMaximoModal}
+                </span>
+              </p>
+            )}
+
             <label
               htmlFor="stock-cantidad"
               className="mt-4 block text-sm font-medium text-slate-700"
@@ -510,11 +555,17 @@ export default function StockControlPage() {
               id="stock-cantidad"
               type="number"
               min={0}
+              max={stockMaximoModal ?? undefined}
               step={1}
               value={nuevoStock}
               onChange={(e) => setNuevoStock(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none"
             />
+            {stockMaximoModal !== null && (
+              <p className="mt-1 text-xs text-slate-500">
+                Podés asignar menos por merma o reserva, pero no más del máximo.
+              </p>
+            )}
 
             <div className="mt-6 flex justify-end gap-2">
               <button

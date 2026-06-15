@@ -39,7 +39,8 @@ export default function ProductoClientePage() {
 
   const elementosPorPagina = 9;
   const totalPaginas = Math.ceil(total / elementosPorPagina);
-  const { addItem } = useCart();
+  const { addItem, cantidadEnCarrito } = useCart();
+  const [errorCarrito, setErrorCarrito] = useState("");
   const productosFiltros: Filter[] = [
     {
       name: "nombre",
@@ -83,17 +84,48 @@ export default function ProductoClientePage() {
     filtrosDebounced.disponible,
   ]);
 
+  useEffect(() => {
+    if (!errorCarrito) return;
+    const timer = setTimeout(() => setErrorCarrito(""), 3000);
+    return () => clearTimeout(timer);
+  }, [errorCarrito]);
+
   const handleAddToCart = (producto: ProductoRead) => {
     if (!puedeComprarProducto(producto)) return;
 
-    addItem({
-      producto_id: producto.id,
-      nombre: producto.nombre,
-      precio: producto.precio_base,
-      imagen: producto.imagenes_url[0] ?? undefined,
-      personalizacion: [],
-      removidos_nombres: [],
-    });
+    const stock = producto.stock_cantidad ?? 0;
+    const enCarrito = cantidadEnCarrito(producto.id);
+
+    if (enCarrito >= stock) {
+      setErrorCarrito(
+        `Ya tenés el máximo disponible de "${producto.nombre}" (${stock}).`,
+      );
+      return;
+    }
+
+    const agregado = addItem(
+      {
+        producto_id: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio_base,
+        imagen: producto.imagenes_url[0] ?? undefined,
+        personalizacion: [],
+        removidos_nombres: [],
+      },
+      1,
+      stock,
+    );
+
+    if (!agregado) {
+      setErrorCarrito(
+        `No hay más stock disponible para "${producto.nombre}".`,
+      );
+    }
+  };
+
+  const puedeAgregarAlCarrito = (producto: ProductoRead) => {
+    if (!puedeComprarProducto(producto)) return false;
+    return cantidadEnCarrito(producto.id) < (producto.stock_cantidad ?? 0);
   };
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
@@ -129,13 +161,27 @@ export default function ProductoClientePage() {
           page={paginaActual}
           totalPages={totalPaginas}
           onAddToCart={handleAddToCart}
-          canAddToCart={puedeComprarProducto}
-          addToCartDisabledLabel={etiquetaNoComprable}
+          canAddToCart={puedeAgregarAlCarrito}
+          addToCartDisabledLabel={(p) =>
+            cantidadEnCarrito(p.id) >= (p.stock_cantidad ?? 0) &&
+            p.disponible &&
+            (p.stock_cantidad ?? 0) > 0
+              ? "Máximo en carrito"
+              : etiquetaNoComprable(p)
+          }
           onPrevious={() => setPaginaActual((p) => p - 1)}
           onNext={() => setPaginaActual((p) => p + 1)}
           onPageChange={setPaginaActual}
         />
       </section>
+
+      {errorCarrito && (
+        <div className="fixed bottom-10 right-5 z-50">
+          <div className="rounded-b-md bg-red-500 px-4 py-3 text-white shadow-lg">
+            {errorCarrito}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
