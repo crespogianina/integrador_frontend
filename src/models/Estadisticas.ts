@@ -26,7 +26,13 @@ export type IngresoFormaPagoItem = {
 
 export type AgrupacionVentas = "day" | "week" | "month";
 
-export type PeriodoPreset = "hoy" | "semana" | "mes" | "anio" | "rango";
+export type PeriodoPreset =
+  | "hoy"
+  | "semana"
+  | "mes_actual"
+  | "mes_anterior"
+  | "anio"
+  | "rango";
 
 export type FiltrosEstadisticas = {
   periodo: PeriodoPreset;
@@ -37,7 +43,8 @@ export type FiltrosEstadisticas = {
 export const PERIODO_BOTONES: { label: string; value: PeriodoPreset }[] = [
   { label: "Hoy", value: "hoy" },
   { label: "Última semana", value: "semana" },
-  { label: "Último mes", value: "mes" },
+  { label: "Mes actual", value: "mes_actual" },
+  { label: "Mes anterior", value: "mes_anterior" },
   { label: "Último año", value: "anio" },
   { label: "Seleccionar rango", value: "rango" },
 ];
@@ -45,7 +52,8 @@ export const PERIODO_BOTONES: { label: string; value: PeriodoPreset }[] = [
 export const PERIODO_ETIQUETAS: Record<PeriodoPreset, string> = {
   hoy: "Hoy",
   semana: "Última semana",
-  mes: "Mes anterior (completo)",
+  mes_actual: "Mes actual",
+  mes_anterior: "Mes anterior",
   anio: "Último año",
   rango: "Rango personalizado",
 };
@@ -79,7 +87,12 @@ export function rangoDesdePreset(
     return { desde: toIsoLocal(desde), hasta };
   }
 
-  if (preset === "mes") {
+  if (preset === "mes_actual") {
+    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    return { desde: toIsoLocal(inicioMes), hasta };
+  }
+
+  if (preset === "mes_anterior") {
     const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
     const finMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
     return {
@@ -100,7 +113,8 @@ export function agrupacionAutomatica(
 ): AgrupacionVentas {
   if (preset === "hoy") return "day";
   if (preset === "semana") return "day";
-  if (preset === "mes") return "day";
+  if (preset === "mes_actual") return "day";
+  if (preset === "mes_anterior") return "day";
   if (preset === "anio") return "month";
 
   const inicio = new Date(`${desde}T00:00:00`);
@@ -114,9 +128,9 @@ export function agrupacionAutomatica(
 }
 
 export function initialFiltrosEstadisticas(): FiltrosEstadisticas {
-  const rango = rangoDesdePreset("mes")!;
+  const rango = rangoDesdePreset("mes_actual")!;
   return {
-    periodo: "mes",
+    periodo: "mes_actual",
     desde: rango.desde,
     hasta: rango.hasta,
   };
