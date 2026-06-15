@@ -12,6 +12,7 @@ const LINKS: { to: string; label: string; roles?: Rol[] }[] = [
   { to: "/productos", label: "Productos", roles: ["ADMIN"] },
   { to: "/pedidos", label: "Mis pedidos", roles: ["CLIENT"] },
   { to: "/direcciones", label: "Mis direcciones", roles: ["CLIENT"] },
+  { to: "/admin/estadisticas", label: "Estadísticas", roles: ["ADMIN"] },
   { to: "/cuenta", label: "Mi cuenta", roles: ["CLIENT"] },
   { to: "/admin/clientes", label: "Clientes", roles: ["ADMIN"] },
   { to: "/ingredientes", label: "Ingredientes", roles: ["ADMIN"] },
