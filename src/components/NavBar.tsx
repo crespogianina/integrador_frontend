@@ -96,6 +96,15 @@ export default function Navbar() {
         </Link>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 md:gap-4">
+          {esCliente && isAuthenticated && user && (
+            <p className="hidden text-base font-semibold text-slate-700 sm:block">
+              ¡Hola!{" "}
+              <span className="text-lg font-extrabold text-amber-600">
+                {user.nombre ?? user.username}
+              </span>
+            </p>
+          )}
+
           {esCliente && (
             <Link
               to="/checkout"
@@ -177,8 +186,11 @@ export default function Navbar() {
                       onClick={() => setOpen(false)}
                       className="block hover:text-slate-900"
                     >
-                      <p className="font-semibold text-slate-800">
-                        {user.username}
+                      <p className="text-sm font-semibold text-slate-700">
+                        ¡Hola!{" "}
+                        <span className="font-extrabold text-amber-600">
+                          {user.nombre ?? user.username}
+                        </span>
                       </p>
                       <p>Rol: {rol}</p>
                     </Link>

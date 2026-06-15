@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { LoginForm } from "../../types/auth";
 import { useAuth } from "../../context/AuthContext";
+import AuthPageShell from "../../components/auth/AuthPageShell";
+import { brand } from "../../lib/brand";
+import { loadNunitoFont } from "../../lib/loadNunitoFont";
 
 const initialStateLoginForm: LoginForm = {
   username: "",
@@ -10,16 +13,26 @@ const initialStateLoginForm: LoginForm = {
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const registroOk = (location.state as { registroOk?: boolean } | null)
+    ?.registroOk;
 
   const [formulario, setFormulario] = useState<LoginForm>(
     initialStateLoginForm,
   );
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [mensajeExito, setMensajeExito] = useState<string | null>(
+    registroOk ? "¡Cuenta creada! Ya podés iniciar sesión." : null,
+  );
   const [enviando, setEnviando] = useState(false);
   const [showPassword, setPasswordVisibility] = useState(false);
 
   const { login } = useAuth();
+
+  useEffect(() => {
+    loadNunitoFont();
+  }, []);
 
   const handleChange = (
     evento: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -28,17 +41,18 @@ export default function Login() {
     setFormulario((prev) => ({ ...prev, [name]: value }));
     setErrores((prev) => ({ ...prev, [name]: "" }));
     setErrorServidor(null);
+    setMensajeExito(null);
   };
 
   const validarErrores = () => {
     const nuevosErrores: Record<string, string> = {};
 
     if (!formulario.username?.length) {
-      nuevosErrores.username = "Debe ingresar un username";
+      nuevosErrores.username = "Debe ingresar tu usuario";
     }
 
     if (!formulario.password) {
-      nuevosErrores.password = "Debe ingresar una contraseña";
+      nuevosErrores.password = "Debe ingresar tu contraseña";
     }
 
     setErrores(nuevosErrores);
@@ -49,6 +63,7 @@ export default function Login() {
     event.preventDefault();
 
     setErrorServidor(null);
+    setMensajeExito(null);
     if (!validarErrores()) return;
 
     setEnviando(true);
@@ -79,18 +94,30 @@ export default function Login() {
     }
   };
 
-  const togglePasswordVisibility = (): void => {
-    setPasswordVisibility(!showPassword);
-  };
+  const inputClassName = `w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 ${brand.inputFocus}`;
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-700 via-indigo-700 to-purple-800 px-4">
-      <section className="w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur">
+    <AuthPageShell>
+      <section className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-800">Iniciar sesión</h1>
+          <h1 className="text-3xl font-bold text-slate-800">
+            ¡Bienvenido de nuevo!
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Inicia sesión para continuar
+          </p>
         </div>
 
         <form className="space-y-5" onSubmit={onSubmit}>
+          {mensajeExito && (
+            <p
+              className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700"
+              role="status"
+            >
+              {mensajeExito}
+            </p>
+          )}
+
           {errorServidor && (
             <p
               className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -107,12 +134,12 @@ export default function Login() {
 
             <input
               type="text"
-              placeholder="Ingresa tu usuario"
+              placeholder="ej: juanp"
               name="username"
               autoComplete="username"
               value={formulario.username}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+              className={inputClassName}
             />
             {errores.username && (
               <p className="mt-1 text-sm text-red-500">{errores.username}</p>
@@ -127,19 +154,22 @@ export default function Login() {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="Ingresa tu contraseña"
+                placeholder="Shhh"
                 name="password"
                 autoComplete="current-password"
                 value={formulario.password}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                className={`${inputClassName} hide-native-password-reveal pr-12`}
               />
               <button
                 type="button"
-                className="absolute right-2 top-2 outline-none cursor-pointer hover:bg-gray-200 h-8 w-8 flex items-center justify-center rounded-full pt-0.5 pl-0.5"
-                onClick={() => togglePasswordVisibility()}
+                className="absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full pt-0.5 pl-0.5 outline-none hover:bg-slate-200"
+                onClick={() => setPasswordVisibility(!showPassword)}
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
               >
-                <span className="material-symbols-outlined text-gray-600">
+                <span className="material-symbols-outlined text-slate-500">
                   {showPassword ? "visibility_off" : "visibility"}
                 </span>
               </button>
@@ -152,12 +182,22 @@ export default function Login() {
           <button
             type="submit"
             disabled={enviando}
-            className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-700 hover:shadow-blue-600/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+            className={`w-full rounded-xl py-3 font-semibold shadow-lg shadow-amber-500/25 transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 ${brand.solid}`}
           >
-            {enviando ? "Ingresando…" : "Ingresar"}
+            {enviando ? "Ingresando…" : "Iniciar sesión"}
           </button>
+
+          <p className="text-center text-sm text-slate-600">
+            ¿No tenés cuenta?{" "}
+            <Link
+              to="/register"
+              className="font-semibold text-amber-600 hover:text-amber-700"
+            >
+              Registrate aquí
+            </Link>
+          </p>
         </form>
       </section>
-    </main>
+    </AuthPageShell>
   );
 }

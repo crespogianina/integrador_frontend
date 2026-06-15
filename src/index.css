@@ -3,3 +3,17 @@
 @theme {
   --font-nunito: "Nunito", ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Oculta el ojo nativo del navegador cuando hay toggle propio */
+.hide-native-password-reveal::-ms-reveal,
+.hide-native-password-reveal::-ms-clear {
+  display: none;
+}
+
+.hide-native-password-reveal::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
+.hide-native-password-reveal::-webkit-textfield-decoration-container {
+  display: none;
+}
