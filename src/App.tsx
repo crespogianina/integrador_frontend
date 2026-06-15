@@ -24,6 +24,7 @@ import DireccionesPage from "./pages/clientes/DireccionesPage";
 import DireccionFormulario from "./pages/clientes/DirreccionFormulario";
 import MiCuentaPage from "./pages/cuenta/MiCuentaPage";
 import SinAccesoPage from "./pages/SinAccesoPage";
+import ProductoDetallePage from "./pages/productos/ProductoDetalle";
 import StockControlPage from "./pages/stock/StockControlPage";
 import { EstadisticasPage } from "./pages/estadisticas/EstadisticasPage";
 
@@ -36,101 +37,37 @@ function App() {
 
       <Route
         element={
-          <PrivateRoute>
+          <PrivateRoute roles="CLIENT">
             <ClientLayout />
           </PrivateRoute>
         }
       >
-        <Route
-          path="/catalogo"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <ProductoClientePage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/pedidos"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <MisPedidosPage />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/catalogo" element={<ProductoClientePage />} />
+        <Route path="/catalogo/:id" element={<ProductoDetallePage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders/:pedidoId/:status" element={<PagoRetornoPage />} />
+        <Route path="/mis-pedidos" element={<MisPedidosPage />} />
+        <Route path="/pedidos/:id" element={<PedidoTrackingPage />} />
         <Route
           path="/pedidos/confirmacion/:id"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <PedidoConfirmacionPage />
-            </PrivateRoute>
-          }
+          element={<PedidoConfirmacionPage />}
         />
-        <Route
-          path="/pedidos/:id"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <PedidoTrackingPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <CheckoutPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/orders/:pedidoId/:status"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <PagoRetornoPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/direcciones"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <DireccionesPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/direcciones/nueva"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <DireccionFormulario />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/direcciones" element={<DireccionesPage />} />
+        <Route path="/direcciones/nueva" element={<DireccionFormulario />} />
         <Route
           path="/direcciones/editar/:id"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <DireccionFormulario />
-            </PrivateRoute>
-          }
+          element={<DireccionFormulario />}
         />
-        <Route
-          path="/cuenta"
-          element={
-            <PrivateRoute roles="CLIENT">
-              <MiCuentaPage />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/cuenta" element={<MiCuentaPage />} />
       </Route>
 
       <Route
         element={
-          <PrivateRoute>
+          <PrivateRoute roles={["ADMIN", "STOCK", "PEDIDOS"]}>
             <Layout />
           </PrivateRoute>
         }
       >
-        {/* ── ADMIN + STOCK ── */}
         <Route
           path="/stock"
           element={
@@ -139,6 +76,16 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="/admin/pedidos"
+          element={
+            <PrivateRoute roles={["ADMIN", "PEDIDOS"]}>
+              <AdminPedidosPage />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/ingredientes"
           element={
@@ -163,18 +110,6 @@ function App() {
             </PrivateRoute>
           }
         />
-
-        {/* ── ADMIN + PEDIDOS ── */}
-        <Route
-          path="/admin/pedidos"
-          element={
-            <PrivateRoute roles={["ADMIN", "PEDIDOS"]}>
-              <AdminPedidosPage />
-            </PrivateRoute>
-          }
-        />
-
-        {/* ── ADMIN only ── */}
         <Route
           path="/admin/estadisticas"
           element={
@@ -232,10 +167,6 @@ function App() {
           }
         />
         <Route
-          path="/pedidos/:id"
-          element={<PedidoTrackingPage />}
-        />
-        <Route
           path="/admin/clientes"
           element={
             <PrivateRoute roles="ADMIN">
@@ -260,6 +191,7 @@ function App() {
           }
         />
       </Route>
+
       <Route path="/sin-acceso" element={<SinAccesoPage />} />
     </Routes>
   );

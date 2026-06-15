@@ -130,7 +130,7 @@ export default function Tabla<T>({
                           </button>
                         )}
 
-                        {customAction && (
+                        {customAction && customAction.label(item) && (
                           <button
                             type="button"
                             onClick={() => customAction.actionCallback(item)}

@@ -43,9 +43,11 @@ export function puedeCancelarStaff(
   if (estado === "PENDIENTE" || estado === "CONFIRMADO") {
     return roles.includes("ADMIN") || roles.includes("PEDIDOS");
   }
+
   if (estado === "EN_PREPARACION") {
     return roles.includes("ADMIN");
   }
+
   return false;
 }
 
@@ -68,6 +70,7 @@ export async function iniciarPagoMercadoPago(pedidoId: number): Promise<void> {
 
   const pago = await res.json();
   const url = pago.init_point ?? pago.sandbox_init_point;
+
   if (!url) throw new Error("MercadoPago no devolvió URL de pago");
   window.location.href = url;
 }
@@ -78,16 +81,18 @@ export async function cargarMapaIngredientes(): Promise<Map<number, string>> {
     const res = await apiFetch(`${API_BASE}/ingredientes/?offset=0&limit=100`, {
       credentials: "include",
     });
+
     if (!res.ok) return mapa;
+
     const body = await res.json();
     const items = Array.isArray(body) ? body : (body.items ?? []);
+
     for (const ing of items) {
       if (typeof ing.id === "number" && typeof ing.nombre === "string") {
         mapa.set(ing.id, ing.nombre);
       }
     }
   } catch {
-    /* listado opcional */
   }
   return mapa;
 }
@@ -97,6 +102,7 @@ export function nombresExclusion(
   mapa: Map<number, string>,
 ): string {
   if (!ids?.length) return "";
+
   return ids
     .map((id) => mapa.get(id) ?? `#${id}`)
     .join(", ");

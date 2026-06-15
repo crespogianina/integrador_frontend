@@ -6,21 +6,259 @@ import type { Rol } from "../types/auth";
 import { brand } from "../lib/brand";
 import ConfirmarSalidaModal from "./ConfirmarSalidaModal";
 
-const LINKS: { to: string; label: string; roles?: Rol[] }[] = [
-  { to: "/catalogo", label: "Catálogo", roles: ["CLIENT"] },
-  { to: "/stock", label: "Control de stock", roles: ["ADMIN", "STOCK"] },
-  { to: "/productos", label: "Productos", roles: ["ADMIN"] },
-  { to: "/pedidos", label: "Mis pedidos", roles: ["CLIENT"] },
-  { to: "/direcciones", label: "Mis direcciones", roles: ["CLIENT"] },
-  { to: "/admin/estadisticas", label: "Estadísticas", roles: ["ADMIN"] },
-  { to: "/cuenta", label: "Mi cuenta", roles: ["CLIENT"] },
-  { to: "/admin/clientes", label: "Clientes", roles: ["ADMIN"] },
-  { to: "/ingredientes", label: "Ingredientes", roles: ["ADMIN"] },
-  { to: "/categorias", label: "Categorías", roles: ["ADMIN"] },
+function IcoCatalogo() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+function IcoStock() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
+    </svg>
+  );
+}
+function IcoProductos() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </svg>
+  );
+}
+function IcoPedidos() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <line x1="9" y1="12" x2="15" y2="12" />
+      <line x1="9" y1="16" x2="12" y2="16" />
+    </svg>
+  );
+}
+function IcoDirecciones() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+function IcoCuenta() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+function IcoClientes() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IcoIngredientes() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+      <path d="M12 6v6l4 2" />
+    </svg>
+  );
+}
+function IcoCategorias() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  );
+}
+function IcoGestionPedidos() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <polyline points="9 11 12 14 22 4" />
+    </svg>
+  );
+}
+
+const LINKS: {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  roles?: Rol[];
+}[] = [
+  {
+    to: "/catalogo",
+    label: "Catálogo",
+    icon: <IcoCatalogo />,
+    roles: ["CLIENT"],
+  },
+  {
+    to: "/mis-pedidos",
+    label: "Mis pedidos",
+    icon: <IcoPedidos />,
+    roles: ["CLIENT"],
+  },
+  {
+    to: "/direcciones",
+    label: "Mis direcciones",
+    icon: <IcoDirecciones />,
+    roles: ["CLIENT"],
+  },
+  { to: "/cuenta", label: "Mi cuenta", icon: <IcoCuenta />, roles: ["CLIENT"] },
+  {
+    to: "/stock",
+    label: "Control de stock",
+    icon: <IcoStock />,
+    roles: ["ADMIN", "STOCK"],
+  },
   {
     to: "/admin/pedidos",
     label: "Gestión de pedidos",
+    icon: <IcoGestionPedidos />,
     roles: ["ADMIN", "PEDIDOS"],
+  },
+  {
+    to: "/productos",
+    label: "Productos",
+    icon: <IcoProductos />,
+    roles: ["ADMIN"],
+  },
+  {
+    to: "/ingredientes",
+    label: "Ingredientes",
+    icon: <IcoIngredientes />,
+    roles: ["ADMIN"],
+  },
+  {
+    to: "/categorias",
+    label: "Categorías",
+    icon: <IcoCategorias />,
+    roles: ["ADMIN"],
+  },
+  {
+    to: "/admin/clientes",
+    label: "Clientes",
+    icon: <IcoClientes />,
+    roles: ["ADMIN"],
   },
 ];
 
@@ -49,19 +287,18 @@ export default function Navbar() {
     setConfirmarSalida(true);
   }
 
-  function linkClass(active: boolean, variant: "desktop" | "mobile") {
+  function linkClass(active: boolean) {
     const base =
-      variant === "desktop"
-        ? "rounded-lg px-2.5 py-2 text-sm font-medium transition whitespace-nowrap lg:px-3"
-        : "block rounded-xl px-4 py-3 text-sm font-semibold transition";
-
+      "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors";
     if (active) {
-      return `${base} ${
-        esCliente ? brand.navActive : "bg-blue-100 text-blue-700"
-      }`;
+      return `${base} ${esCliente ? brand.navActive : "bg-blue-100 text-blue-700"}`;
     }
-
     return `${base} text-slate-600 hover:bg-slate-100 hover:text-slate-900`;
+  }
+
+  function iconClass(active: boolean) {
+    if (active) return "shrink-0";
+    return "shrink-0 text-slate-400";
   }
 
   return (
@@ -177,70 +414,101 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
             />
 
-            <div className="absolute right-4 top-[4.25rem] z-50 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+            <div className="absolute right-4 top-[4.25rem] z-50 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
               {user && (
-                <div className="mb-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                <div className="border-b border-slate-100 bg-amber-50 px-4 py-3">
                   {esCliente ? (
                     <Link
                       to="/cuenta"
                       onClick={() => setOpen(false)}
-                      className="block hover:text-slate-900"
+                      className="flex items-center gap-3 hover:opacity-80"
                     >
-                      <p className="text-sm font-semibold text-slate-700">
-                        ¡Hola!{" "}
-                        <span className="font-extrabold text-amber-600">
-                          {user.nombre ?? user.username}
-                        </span>
-                      </p>
-                      <p>Rol: {rol}</p>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">
+                        {user.username?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-800">
+                          {user.username}
+                        </p>
+                        {rol !== "CLIENT" && (
+                          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            {rol}
+                          </span>
+                        )}
+                      </div>
                     </Link>
                   ) : (
-                    <>
-                      <p className="font-semibold text-slate-800">
-                        {user.username}
-                      </p>
-                      <p>Rol: {rol}</p>
-                    </>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-700 text-sm font-bold text-white">
+                        {user.username?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-800">
+                          {user.username}
+                        </p>
+                        <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                          {rol}
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
 
-              <div className="space-y-1">
+              {/* Links con íconos */}
+              <nav className="flex flex-col p-2">
                 {linksVisibles.map((link) => {
                   const active = location.pathname === link.to;
-
                   return (
                     <Link
                       key={link.to}
                       to={link.to}
                       onClick={() => setOpen(false)}
-                      className={linkClass(active, "mobile")}
+                      className={linkClass(active)}
                     >
+                      <span className={iconClass(active)}>{link.icon}</span>
                       {link.label}
                     </Link>
                   );
                 })}
-              </div>
 
-              <div className="mt-3 border-t border-slate-200 pt-3">
+                <div className="my-2 border-t border-slate-100" />
+
                 {isAuthenticated ? (
                   <button
                     type="button"
                     onClick={solicitarSalida}
-                    className="w-full rounded-xl bg-red-100 px-4 py-3 text-left text-sm font-semibold text-red-700 hover:bg-red-200"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                   >
+                    <span className="shrink-0 text-red-400">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                    </span>
                     Cerrar sesión
                   </button>
                 ) : (
                   <Link
                     to="/login"
                     onClick={() => setOpen(false)}
-                    className="block w-full rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
+                    className="flex items-center gap-2.5 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
                   >
                     Ingresar
                   </Link>
                 )}
-              </div>
+              </nav>
             </div>
           </>
         )}
