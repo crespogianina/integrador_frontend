@@ -24,6 +24,9 @@ type TablaProps<T> = {
   onPrevious: () => void;
   onNext: () => void;
   onPageChange: (page: number) => void;
+  addButtonClassName?: string;
+  paginationActiveClassName?: string;
+  customActionClassName?: string;
   customAction?: {
     label: (tableElement: T) => string;
     actionCallback: (tableElement: T) => any;
@@ -47,6 +50,9 @@ export default function Tabla<T>({
   onPrevious,
   onNext,
   onPageChange,
+  addButtonClassName = "rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200",
+  paginationActiveClassName = "bg-blue-600 text-white",
+  customActionClassName = "rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200",
   customAction,
 }: TablaProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
@@ -63,7 +69,7 @@ export default function Tabla<T>({
           <button
             type="button"
             onClick={onAdd}
-            className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200"
+            className={addButtonClassName}
           >
             Agregar
           </button>
@@ -128,7 +134,7 @@ export default function Tabla<T>({
                           <button
                             type="button"
                             onClick={() => customAction.actionCallback(item)}
-                            className="rounded-lg bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-200"
+                            className={customActionClassName}
                           >
                             {customAction.label(item)}
                           </button>
@@ -175,7 +181,7 @@ export default function Tabla<T>({
               onClick={() => onPageChange(pageNumber)}
               className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium ${
                 page === pageNumber
-                  ? "bg-blue-600 text-white"
+                  ? paginationActiveClassName
                   : "text-slate-700 hover:bg-slate-100"
               }`}
             >

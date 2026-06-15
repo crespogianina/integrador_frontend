@@ -3,41 +3,33 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+import { PeriodoSelector } from "../../components/estadisticas/PeriodoSelector";
 import { apiFetch, API_BASE } from "../../config/api";
 import {
-  ESTADOS_COLORES,
+  agrupacionAutomatica,
+  calcularKpisPeriodo,
+  etiquetaFormaPago,
   formatearMoneda,
+  initialFiltrosEstadisticas,
+  rangoDesdePreset,
   truncarNombre,
-  type AgrupacionVentas,
+  type FiltrosEstadisticas,
   type IngresoFormaPagoItem,
-  type PedidosEstadoItem,
+  type PeriodoPreset,
   type ProductoTopItem,
   type ResumenEstadisticas,
   type VentasPeriodoItem,
 } from "../../models/Estadisticas";
 
 const BASE = `${API_BASE}/estadisticas`;
-
-function hace30Dias(): string {
-  const fecha = new Date();
-  fecha.setDate(fecha.getDate() - 30);
-  return fecha.toISOString().slice(0, 10);
-}
-
-function hoyIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 type KpiCardProps = {
   titulo: string;
@@ -56,18 +48,34 @@ function KpiCard({ titulo, valor, detalle }: KpiCardProps) {
 }
 
 export function EstadisticasPage() {
-  const [desde, setDesde] = useState(hace30Dias());
-  const [hasta, setHasta] = useState(hoyIso());
-  const [agrupacion, setAgrupacion] = useState<AgrupacionVentas>("day");
+  const [filtros, setFiltros] = useState<FiltrosEstadisticas>(
+    initialFiltrosEstadisticas,
+  );
 
   const [resumen, setResumen] = useState<ResumenEstadisticas | null>(null);
   const [ventas, setVentas] = useState<VentasPeriodoItem[]>([]);
   const [productosTop, setProductosTop] = useState<ProductoTopItem[]>([]);
-  const [pedidosEstado, setPedidosEstado] = useState<PedidosEstadoItem[]>([]);
   const [ingresos, setIngresos] = useState<IngresoFormaPagoItem[]>([]);
 
   const [cargando, setCargando] = useState(true);
   const [errorRequest, setErrorRequest] = useState("");
+
+  const { desde, hasta, periodo } = filtros;
+  const agrupacion = useMemo(
+    () => agrupacionAutomatica(periodo, desde, hasta),
+    [periodo, desde, hasta],
+  );
+
+  const kpisPeriodo = useMemo(() => calcularKpisPeriodo(ventas), [ventas]);
+
+  const ingresosGrafico = useMemo(
+    () =>
+      ingresos.map((item) => ({
+        ...item,
+        etiqueta: etiquetaFormaPago(item.forma_pago_codigo),
+      })),
+    [ingresos],
+  );
 
   const productosGrafico = useMemo(
     () =>
@@ -78,42 +86,58 @@ export function EstadisticasPage() {
     [productosTop],
   );
 
+  const handleSelectPreset = (preset: PeriodoPreset) => {
+    const rango = rangoDesdePreset(preset);
+    setFiltros((prev) =>
+      rango
+        ? { periodo: preset, desde: rango.desde, hasta: rango.hasta }
+        : { ...prev, periodo: preset },
+    );
+  };
+
+  const handleChangeFecha = (campo: "desde" | "hasta", valor: string) => {
+    setFiltros((prev) => ({
+      ...prev,
+      periodo: "rango",
+      [campo]: valor,
+    }));
+  };
+
   const cargarDatos = useCallback(async () => {
     setCargando(true);
     setErrorRequest("");
 
     try {
+      const params = new URLSearchParams({ desde, hasta });
       const paramsVentas = new URLSearchParams({
         desde,
         hasta,
         agrupacion,
       });
-      const paramsIngresos = new URLSearchParams({ desde, hasta });
+      const paramsTop = new URLSearchParams({ desde, hasta, limit: "8" });
 
-      const [resResumen, resVentas, resTop, resEstados, resIngresos] =
-        await Promise.all([
-          apiFetch(`${BASE}/resumen`),
-          apiFetch(`${BASE}/ventas?${paramsVentas}`),
-          apiFetch(`${BASE}/productos-top?limit=8`),
-          apiFetch(`${BASE}/pedidos-por-estado`),
-          apiFetch(`${BASE}/ingresos?${paramsIngresos}`),
-        ]);
+      const [resResumen, resVentas, resTop, resIngresos] = await Promise.all([
+        apiFetch(`${BASE}/resumen`),
+        apiFetch(`${BASE}/ventas?${paramsVentas}`),
+        apiFetch(`${BASE}/productos-top?${paramsTop}`),
+        apiFetch(`${BASE}/ingresos?${params}`),
+      ]);
 
       if (
         !resResumen.ok ||
         !resVentas.ok ||
         !resTop.ok ||
-        !resEstados.ok ||
         !resIngresos.ok
       ) {
         const errorBody = await resResumen.json().catch(() => null);
-        throw new Error(errorBody?.detail || "No se pudieron cargar las estadísticas");
+        throw new Error(
+          errorBody?.detail || "No se pudieron cargar las estadísticas",
+        );
       }
 
       setResumen(await resResumen.json());
       setVentas(await resVentas.json());
       setProductosTop(await resTop.json());
-      setPedidosEstado(await resEstados.json());
       setIngresos(await resIngresos.json());
     } catch (error) {
       setErrorRequest(
@@ -130,65 +154,36 @@ export function EstadisticasPage() {
 
   useEffect(() => {
     if (!errorRequest) return;
-    const timeout = setTimeout(() => setErrorRequest(""), 3000);
+    const timeout = setTimeout(() => setErrorRequest(""), 4000);
     return () => clearTimeout(timeout);
   }, [errorRequest]);
+
+  const mostrarLineaVentas = periodo !== "hoy" || ventas.length > 1;
 
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
       <section className="mx-auto max-w-6xl space-y-6">
-        <header className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Panel de estadísticas
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Métricas del negocio para administración
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="text-sm text-slate-600">
-              Desde
-              <input
-                type="date"
-                value={desde}
-                onChange={(e) => setDesde(e.target.value)}
-                className="mt-1 block rounded-lg border border-slate-200 px-3 py-2"
-              />
-            </label>
-            <label className="text-sm text-slate-600">
-              Hasta
-              <input
-                type="date"
-                value={hasta}
-                onChange={(e) => setHasta(e.target.value)}
-                className="mt-1 block rounded-lg border border-slate-200 px-3 py-2"
-              />
-            </label>
-            <label className="text-sm text-slate-600">
-              Agrupación
-              <select
-                value={agrupacion}
-                onChange={(e) =>
-                  setAgrupacion(e.target.value as AgrupacionVentas)
-                }
-                className="mt-1 block rounded-lg border border-slate-200 px-3 py-2"
-              >
-                <option value="day">Día</option>
-                <option value="week">Semana</option>
-                <option value="month">Mes</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              onClick={cargarDatos}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Actualizar
-            </button>
-          </div>
+        <header className="rounded-2xl bg-white p-6 shadow">
+          <h1 className="text-2xl font-bold text-slate-800">
+            Panel de estadísticas
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Métricas del negocio según el período seleccionado
+          </p>
         </header>
+
+        <PeriodoSelector
+          filtros={filtros}
+          onSelectPreset={handleSelectPreset}
+          onChangeFecha={handleChangeFecha}
+          onLimpiar={() => setFiltros(initialFiltrosEstadisticas())}
+        />
+
+        <p className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          Los montos incluyen pedidos <strong>confirmados o en curso</strong>{" "}
+          (confirmado, en preparación, en camino, entregado). No cuentan pedidos{" "}
+          <strong>pendientes de pago</strong> ni cancelados.
+        </p>
 
         {errorRequest && (
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -196,7 +191,7 @@ export function EstadisticasPage() {
           </p>
         )}
 
-        {cargando || !resumen ? (
+        {cargando ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
@@ -208,80 +203,136 @@ export function EstadisticasPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <KpiCard
-              titulo="Ventas hoy"
-              valor={formatearMoneda(Number(resumen.ventas_hoy))}
+              titulo="Ventas del período"
+              valor={formatearMoneda(kpisPeriodo.totalVentas)}
+              detalle="Pedidos confirmados o posteriores"
+            />
+            <KpiCard
+              titulo="Pedidos del período"
+              valor={String(kpisPeriodo.cantidadPedidos)}
+              detalle="Confirmados o posteriores"
             />
             <KpiCard
               titulo="Ticket promedio"
-              valor={formatearMoneda(Number(resumen.ticket_promedio))}
+              valor={formatearMoneda(kpisPeriodo.ticketPromedio)}
             />
             <KpiCard
-              titulo="Pedidos activos"
-              valor={String(resumen.pedidos_activos)}
-            />
-            <KpiCard
-              titulo="Ventas del mes"
-              valor={formatearMoneda(Number(resumen.ventas_mes_actual))}
+              titulo="Pedidos activos ahora"
+              valor={String(resumen?.pedidos_activos ?? 0)}
+              detalle="Operación en curso (sin filtro de fecha)"
             />
           </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
+          {mostrarLineaVentas && (
+            <article className="rounded-2xl bg-white p-5 shadow lg:col-span-2">
+              <h2 className="mb-1 text-lg font-semibold text-slate-800">
+                Evolución de ventas
+              </h2>
+              <p className="mb-4 text-sm text-slate-500">
+                Pedidos confirmados o posteriores, agrupados por fecha
+              </p>
+              <div className="h-80">
+                {cargando ? (
+                  <div className="h-full animate-pulse rounded-xl bg-slate-100" />
+                ) : ventas.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                    No hay ventas en este período
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={ventas}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="monto" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        yAxisId="cantidad"
+                        orientation="right"
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip
+                        formatter={(valor, nombre) =>
+                          nombre === "total_ventas"
+                            ? formatearMoneda(Number(valor))
+                            : valor
+                        }
+                      />
+                      <Legend />
+                      <Line
+                        yAxisId="monto"
+                        type="monotone"
+                        dataKey="total_ventas"
+                        name="Total ventas"
+                        stroke="#2563eb"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                      />
+                      <Line
+                        yAxisId="cantidad"
+                        type="monotone"
+                        dataKey="cantidad_pedidos"
+                        name="Cantidad pedidos"
+                        stroke="#16a34a"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </article>
+          )}
+
           <article className="rounded-2xl bg-white p-5 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">
-              Ventas por período
+            <h2 className="mb-1 text-lg font-semibold text-slate-800">
+              Ingresos por forma de pago
             </h2>
+            <p className="mb-4 text-sm text-slate-500">
+              Total cobrado o confirmado, según forma de pago
+            </p>
             <div className="h-72">
               {cargando ? (
                 <div className="h-full animate-pulse rounded-xl bg-slate-100" />
+              ) : ingresos.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                  Sin ingresos confirmados en este período
+                </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={ventas}>
+                  <BarChart data={ingresosGrafico} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="periodo" tick={{ fontSize: 12 }} />
-                    <YAxis yAxisId="monto" tick={{ fontSize: 12 }} />
+                    <XAxis type="number" tick={{ fontSize: 12 }} />
                     <YAxis
-                      yAxisId="cantidad"
-                      orientation="right"
+                      type="category"
+                      dataKey="etiqueta"
+                      width={120}
                       tick={{ fontSize: 12 }}
                     />
                     <Tooltip
-                      formatter={(valor, nombre) =>
-                        nombre === "total_ventas"
-                          ? formatearMoneda(Number(valor))
-                          : valor
-                      }
+                      formatter={(valor) => formatearMoneda(Number(valor))}
                     />
-                    <Legend />
-                    <Line
-                      yAxisId="monto"
-                      type="monotone"
-                      dataKey="total_ventas"
-                      name="Total ventas"
-                      stroke="#2563eb"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      yAxisId="cantidad"
-                      type="monotone"
-                      dataKey="cantidad_pedidos"
-                      name="Cantidad pedidos"
-                      stroke="#16a34a"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
+                    <Bar dataKey="total" name="Total" fill="#0ea5e9" radius={[0, 6, 6, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
           </article>
 
           <article className="rounded-2xl bg-white p-5 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">
-              Top productos
+            <h2 className="mb-1 text-lg font-semibold text-slate-800">
+              Productos más vendidos
             </h2>
+            <p className="mb-4 text-sm text-slate-500">
+              Unidades e ingresos de pedidos confirmados o posteriores
+            </p>
             <div className="h-72">
               {cargando ? (
                 <div className="h-full animate-pulse rounded-xl bg-slate-100" />
+              ) : productosTop.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                  No hay productos vendidos en este período
+                </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={productosGrafico}>
@@ -289,7 +340,7 @@ export function EstadisticasPage() {
                     <XAxis dataKey="nombreCorto" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip
-                      formatter={(valor, nombre, item) => {
+                      formatter={(valor, nombre) => {
                         if (nombre === "ingresos") {
                           return formatearMoneda(Number(valor));
                         }
@@ -302,77 +353,12 @@ export function EstadisticasPage() {
                         payload?.[0]?.payload?.nombre ?? ""
                       }
                     />
-                    <Bar dataKey="ingresos" name="Ingresos" fill="#2563eb" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </article>
-
-          <article className="rounded-2xl bg-white p-5 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">
-              Pedidos por estado
-            </h2>
-            <div className="h-72">
-              {cargando ? (
-                <div className="h-full animate-pulse rounded-xl bg-slate-100" />
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pedidosEstado}
-                      dataKey="cantidad"
-                      nameKey="estado_codigo"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      label={({ estado_codigo, cantidad }) =>
-                        `${estado_codigo}: ${cantidad}`
-                      }
-                    >
-                      {pedidosEstado.map((item) => (
-                        <Cell
-                          key={item.estado_codigo}
-                          fill={
-                            ESTADOS_COLORES[item.estado_codigo] ?? "#94a3b8"
-                          }
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </article>
-
-          <article className="rounded-2xl bg-white p-5 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">
-              Ingresos por forma de pago
-            </h2>
-            <div className="h-72">
-              {cargando ? (
-                <div className="h-full animate-pulse rounded-xl bg-slate-100" />
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={ingresos} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tick={{ fontSize: 12 }} />
-                    <YAxis
-                      type="category"
-                      dataKey="forma_pago_codigo"
-                      width={110}
-                      tick={{ fontSize: 12 }}
+                    <Bar
+                      dataKey="ingresos"
+                      name="Ingresos"
+                      fill="#2563eb"
+                      radius={[6, 6, 0, 0]}
                     />
-                    <Tooltip
-                      formatter={(valor, nombre, item) => {
-                        if (nombre === "total") {
-                          return formatearMoneda(Number(valor));
-                        }
-                        return valor;
-                      }}
-                    />
-                    <Bar dataKey="total" name="Total" fill="#0ea5e9" />
                   </BarChart>
                 </ResponsiveContainer>
               )}

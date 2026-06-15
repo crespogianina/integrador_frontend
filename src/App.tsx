@@ -1,4 +1,5 @@
 import Layout from "./components/Layout";
+import ClientLayout from "./components/ClientLayout";
 import { Route, Routes } from "react-router-dom";
 import IngredientePage from "./pages/ingredientes/IngredientePage";
 import CategoriaPage from "./pages/categorias/CategoriaPage";
@@ -20,6 +21,7 @@ import ClienteEditPage from "./pages/clientes/ClienteFormularioPage";
 import ProductoClientePage from "./pages/productos/ProductoClientePage";
 import DireccionesPage from "./pages/clientes/DireccionesPage";
 import DireccionFormulario from "./pages/clientes/DirreccionFormulario";
+import MiCuentaPage from "./pages/cuenta/MiCuentaPage";
 import SinAccesoPage from "./pages/SinAccesoPage";
 import StockControlPage from "./pages/stock/StockControlPage";
 import { EstadisticasPage } from "./pages/estadisticas/EstadisticasPage";
@@ -33,11 +35,10 @@ function App() {
       <Route
         element={
           <PrivateRoute>
-            <Layout />
+            <ClientLayout />
           </PrivateRoute>
         }
       >
-        {/* ── CLIENT ── */}
         <Route
           path="/catalogo"
           element={
@@ -51,6 +52,14 @@ function App() {
           element={
             <PrivateRoute roles="CLIENT">
               <MisPedidosPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/pedidos/confirmacion/:id"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <PedidoConfirmacionPage />
             </PrivateRoute>
           }
         />
@@ -102,7 +111,23 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/cuenta"
+          element={
+            <PrivateRoute roles="CLIENT">
+              <MiCuentaPage />
+            </PrivateRoute>
+          }
+        />
+      </Route>
 
+      <Route
+        element={
+          <PrivateRoute>
+            <Layout />
+          </PrivateRoute>
+        }
+      >
         {/* ── ADMIN + STOCK ── */}
         <Route
           path="/stock"
@@ -204,21 +229,9 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders/:pedidoId/:status" element={<PagoRetornoPage />} />
-        <Route path="/pedidos" element={<MisPedidosPage />} />
         <Route
-          path="/pedidos/confirmacion/:id"
-          element={<PedidoConfirmacionPage />}
-        />
-        <Route path="/pedidos/:id" element={<PedidoTrackingPage />} />
-        <Route
-          path="/admin/pedidos"
-          element={
-            <PrivateRoute roles={["ADMIN", "PEDIDOS"]}>
-              <AdminPedidosPage />
-            </PrivateRoute>
-          }
+          path="/pedidos/:id"
+          element={<PedidoTrackingPage />}
         />
         <Route
           path="/admin/clientes"
