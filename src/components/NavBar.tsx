@@ -42,7 +42,25 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
       <nav className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2.5">
+          <svg
+            className="h-8 w-8 shrink-0 text-amber-600"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M5 8.5c0-2 3.13-3.5 7-3.5s7 1.5 7 3.5" />
+            <path d="M4 11h16" />
+            <path d="M4 14h16" />
+            <path d="M5 17.5c0 2 3.13 3.5 7 3.5s7-1.5 7-3.5" />
+            <circle cx="9" cy="8" r="0.75" fill="currentColor" stroke="none" />
+            <circle cx="12" cy="7.5" r="0.75" fill="currentColor" stroke="none" />
+            <circle cx="15" cy="8" r="0.75" fill="currentColor" stroke="none" />
+          </svg>
           <span className="text-lg font-bold text-slate-800">Food Store</span>
         </Link>
 
