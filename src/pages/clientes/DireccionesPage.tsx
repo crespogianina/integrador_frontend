@@ -5,6 +5,8 @@ import type { Direccion } from "../../models/Direccion";
 import type { Column } from "../../components/Tabla";
 import { useDirecciones } from "../../context/DireccionesContext";
 import Tabla from "../../components/Tabla";
+import { brand } from "../../lib/brand";
+import ClientPageHeader from "../../components/ClientPageHeader";
 
 const ELEMENTOS_POR_PAGINA = 10;
 
@@ -113,26 +115,21 @@ export default function DireccionesPage() {
   };
 
   return (
-    <main className="min-h-screen w-lvw bg-slate-100 p-6">
+    <main className={`min-h-screen w-lvw p-6 ${brand.pageBg}`}>
       <section className="mx-auto max-w-6xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Mis Direcciones
-            </h1>
-
-            <p className="text-sm text-slate-500">
-              Administrá tus direcciones de entrega.
-            </p>
-          </div>
-
-          <button
-            onClick={() => navigate("/direcciones/nueva")}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Nueva dirección
-          </button>
-        </div>
+        <ClientPageHeader
+          title="Mis direcciones"
+          description="Administrá tus direcciones de entrega."
+          action={
+            <button
+              type="button"
+              onClick={() => navigate("/direcciones/nueva")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${brand.solid}`}
+            >
+              Nueva dirección
+            </button>
+          }
+        />
 
         {cargando ? (
           <div className="space-y-3">
@@ -155,6 +152,8 @@ export default function DireccionesPage() {
             onPrevious={() => setPaginaActual((p) => p - 1)}
             onNext={() => setPaginaActual((p) => p + 1)}
             onPageChange={setPaginaActual}
+            paginationActiveClassName={brand.paginationActive}
+            customActionClassName={`rounded-lg px-3 py-1 text-sm font-medium ${brand.soft} ${brand.softHover}`}
             emptyMessage="No hay direcciones registradas."
             onEdit={(direccion: Direccion) =>
               navigate(`/direcciones/editar/${direccion.id}`)

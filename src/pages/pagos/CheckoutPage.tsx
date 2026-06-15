@@ -4,6 +4,7 @@ import { apiFetch, API_BASE } from "../../config/api";
 import { useCart } from "../../context/CartContext";
 import type { CrearPedidoRequest, PedidoRead } from "../../models/Pedido";
 import type { ProductoRead } from "../../models/Producto";
+import { brand } from "../../lib/brand";
 
 interface Direccion {
   id: number;
@@ -195,12 +196,12 @@ export function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <main className="min-h-screen w-lvw bg-slate-100 p-6">
+      <main className={`min-h-screen w-lvw p-6 ${brand.pageBg}`}>
         <div className="mx-auto max-w-md rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <p className="font-medium text-slate-700">Tu carrito está vacío</p>
           <Link
             to="/catalogo"
-            className="mt-3 inline-block rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white"
+            className={`mt-3 inline-block rounded-lg px-5 py-2 text-sm font-semibold ${brand.solid}`}
           >
             Ir al catálogo
           </Link>
@@ -210,7 +211,7 @@ export function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen w-lvw bg-slate-100 p-6">
+    <main className={`min-h-screen w-lvw p-6 ${brand.pageBg}`}>
       <section className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <h1 className="text-2xl font-bold text-slate-800">Checkout</h1>
@@ -232,7 +233,7 @@ export function CheckoutPage() {
                       key={d.id}
                       className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm ${
                         direccionId === d.id
-                          ? "border-blue-500 bg-blue-50"
+                          ? brand.selectedOption
                           : "border-slate-200"
                       }`}
                     >
@@ -241,7 +242,7 @@ export function CheckoutPage() {
                         name="direccion"
                         checked={direccionId === d.id}
                         onChange={() => setDireccionId(d.id)}
-                        className="accent-blue-600"
+                        className={brand.accent}
                       />
                       <span>
                         <span className="font-medium">
@@ -278,7 +279,7 @@ export function CheckoutPage() {
                   key={f.codigo}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm ${
                     formaPago === f.codigo
-                      ? "border-blue-500 bg-blue-50"
+                      ? brand.selectedOption
                       : "border-slate-200"
                   }`}
                 >
@@ -287,7 +288,7 @@ export function CheckoutPage() {
                     name="forma_pago"
                     checked={formaPago === f.codigo}
                     onChange={() => setFormaPago(f.codigo)}
-                    className="accent-blue-600"
+                    className={brand.accent}
                   />
                   {f.label}
                 </label>
@@ -304,7 +305,7 @@ export function CheckoutPage() {
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Ej: tocar timbre del fondo"
               rows={2}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              className={`w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none ${brand.inputFocusSm}`}
             />
           </div>
         </div>
@@ -428,7 +429,7 @@ export function CheckoutPage() {
               (FORMAS_PAGO_CON_ENVIO.includes(formaPago) &&
                 direccionId === null)
             }
-            className="mt-4 w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className={`mt-4 w-full rounded-lg py-2.5 font-semibold ${brand.solid} disabled:opacity-60`}
           >
             {enviando
               ? "Procesando…"

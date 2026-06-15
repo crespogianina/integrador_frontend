@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { IngredienteResumen, ProductoRead } from "../models/Producto";
+import { brand } from "../lib/brand";
 
 type AgregarCarritoModalProps = {
   producto: ProductoRead | null;
@@ -131,7 +132,7 @@ export default function AgregarCarritoModal({
                       type="checkbox"
                       checked={sinIngredientes.has(ing.id)}
                       onChange={() => toggleRemovible(ing.id)}
-                      className="accent-blue-600"
+                      className={brand.accent}
                     />
                     <span className="text-slate-700">Sin {ing.nombre}</span>
                     {ing.es_alergeno && <AlergenoInline />}
@@ -153,7 +154,7 @@ export default function AgregarCarritoModal({
           <button
             type="button"
             onClick={confirmar}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className={`rounded-lg px-4 py-2 text-sm font-medium ${brand.solid}`}
           >
             Agregar al carrito
           </button>

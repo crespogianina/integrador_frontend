@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../config/api";
 import { iniciarPagoMercadoPago } from "../../lib/pedidosUtils";
+import { brand } from "../../lib/brand";
 
 type StatusRetorno = "success" | "failure" | "pending";
 
@@ -78,7 +79,7 @@ export function PagoRetornoPage() {
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white px-8 py-10 text-center shadow">
         {cargando ? (
           <>
-            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+            <div className={`mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${brand.spinner}`} />
             <p className="font-medium text-slate-700">Confirmando tu pago…</p>
           </>
         ) : (
@@ -105,7 +106,7 @@ export function PagoRetornoPage() {
                   type="button"
                   disabled={pagando}
                   onClick={() => void reintentar()}
-                  className="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  className={`w-full rounded-lg py-2.5 font-semibold ${brand.solid} disabled:opacity-50`}
                 >
                   {pagando ? "Redirigiendo…" : "Reintentar pago"}
                 </button>

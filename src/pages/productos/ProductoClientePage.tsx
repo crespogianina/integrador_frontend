@@ -8,6 +8,7 @@ import type { IngredienteResumen, ProductoRead } from "../../models/Producto";
 import { useCart } from "../../context/CartContext";
 import AgregarCarritoModal from "../../components/AgregarCarritoModal";
 import IngredientesDesplegable from "../../components/IngredientesDesplegable";
+import { brand } from "../../lib/brand";
 
 const initialFiltros = { nombre: "", descripcion: "", disponible: "true" };
 
@@ -21,14 +22,24 @@ function etiquetaNoComprable(producto: ProductoRead): string {
   return "No disponible";
 }
 
+function mensajeStockBajo(stock: number): string | null {
+  if (stock <= 0 || stock > 2) return null;
+  if (stock === 1) return "¡Último disponible!";
+  return `¡Últimos ${stock} disponibles!`;
+}
+
 const fields: CardField<ProductoRead>[] = [
   {
     label: "Precio",
+    hideLabel: true,
+    valueClassName: "text-xl font-bold text-slate-900",
     render: (p) => `$${p.precio_base.toFixed(2)}`,
   },
   {
     label: "Stock",
-    render: (p) => p.stock_cantidad,
+    hideLabel: true,
+    valueClassName: "text-xs font-semibold text-amber-600",
+    render: (p) => mensajeStockBajo(p.stock_cantidad ?? 0),
   },
 ];
 
@@ -50,18 +61,8 @@ export default function ProductoClientePage() {
       name: "nombre",
       value: filtros.nombre,
       type: "input",
-      placeholder: "Buscar por nombre",
-      label: "Nombre",
-    },
-    {
-      name: "disponible",
-      value: filtros.disponible,
-      type: "select",
-      label: "Disponible",
-      options: [
-        { label: "Disponible", value: "true" },
-        { label: "No disponible", value: "false" },
-      ],
+      placeholder: "Buscar hamburguesas, postres...",
+      label: "",
     },
   ];
 
@@ -145,9 +146,20 @@ export default function ProductoClientePage() {
   };
 
   return (
-    <main className="min-h-screen w-lvw bg-slate-100 p-6">
-      <section className="mx-auto max-w-6xl space-y-6">
+    <main className={`relative min-h-screen w-lvw p-6 ${brand.pageBg}`}>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage: brand.catalogPattern,
+          backgroundSize: "72px 72px",
+        }}
+        aria-hidden
+      />
+      <section className="relative mx-auto max-w-6xl space-y-6">
         <Filtros
+          title="¡Hola! ¿Qué se te antoja hoy?"
+          titleClassName="text-2xl font-bold text-slate-800 md:text-3xl"
+          inputFocusClassName={brand.inputFocus}
           filters={productosFiltros}
           onChange={(name, value) =>
             setFiltros((prev) => ({ ...prev, [name]: value }))
@@ -165,17 +177,8 @@ export default function ProductoClientePage() {
           getDescription={(p) => p.descripcion}
           fields={fields}
           extraContent={(p) => <IngredientesDesplegable producto={p} />}
-          badge={(p) => (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                p.disponible
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {p.disponible ? "Disponible" : "No disponible"}
-            </span>
-          )}
+          addToCartActiveClassName={brand.solid}
+          paginationActiveClassName={brand.paginationActive}
           page={paginaActual}
           totalPages={totalPaginas}
           onAddToCart={abrirModal}
