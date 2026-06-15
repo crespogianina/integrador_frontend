@@ -35,6 +35,7 @@ export interface IngredienteResumen {
     id: number;
     nombre: string;
     es_removible: boolean;
+    es_alergeno?: boolean;
     cantidad: number;
     unidad_medida_id: number
 }

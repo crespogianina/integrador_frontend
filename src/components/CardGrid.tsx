@@ -26,6 +26,7 @@ type CardGridProps<T> = {
   onAddToCart?: (item: T) => void;
   canAddToCart?: (item: T) => boolean;
   addToCartDisabledLabel?: (item: T) => string;
+  extraContent?: (item: T) => React.ReactNode;
 };
 
 export default function CardGrid<T>({
@@ -49,6 +50,7 @@ export default function CardGrid<T>({
   onAddToCart,
   canAddToCart,
   addToCartDisabledLabel,
+  extraContent,
 }: CardGridProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -118,6 +120,12 @@ export default function CardGrid<T>({
                       </span>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {extraContent && (
+                <div className="mt-3 border-t border-slate-100 pt-3">
+                  {extraContent(item)}
                 </div>
               )}
 

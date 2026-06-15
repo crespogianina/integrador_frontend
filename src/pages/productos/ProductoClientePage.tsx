@@ -4,8 +4,10 @@ import Filtros from "../../components/Filtros";
 import type { Filter } from "../../components/Filtros";
 import CardGrid from "../../components/CardGrid";
 import type { CardField } from "../../components/CardGrid";
-import type { ProductoRead } from "../../models/Producto";
+import type { IngredienteResumen, ProductoRead } from "../../models/Producto";
 import { useCart } from "../../context/CartContext";
+import AgregarCarritoModal from "../../components/AgregarCarritoModal";
+import IngredientesDesplegable from "../../components/IngredientesDesplegable";
 
 const initialFiltros = { nombre: "", descripcion: "", disponible: "true" };
 
@@ -36,11 +38,13 @@ export default function ProductoClientePage() {
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
   const [paginaActual, setPaginaActual] = useState(1);
+  const [productoModal, setProductoModal] = useState<ProductoRead | null>(null);
+  const [errorCarrito, setErrorCarrito] = useState("");
 
   const elementosPorPagina = 9;
   const totalPaginas = Math.ceil(total / elementosPorPagina);
   const { addItem, cantidadEnCarrito } = useCart();
-  const [errorCarrito, setErrorCarrito] = useState("");
+
   const productosFiltros: Filter[] = [
     {
       name: "nombre",
@@ -90,9 +94,10 @@ export default function ProductoClientePage() {
     return () => clearTimeout(timer);
   }, [errorCarrito]);
 
-  const handleAddToCart = (producto: ProductoRead) => {
-    if (!puedeComprarProducto(producto)) return;
-
+  const confirmarAgregar = (
+    producto: ProductoRead,
+    removidos: IngredienteResumen[],
+  ) => {
     const stock = producto.stock_cantidad ?? 0;
     const enCarrito = cantidadEnCarrito(producto.id);
 
@@ -109,8 +114,8 @@ export default function ProductoClientePage() {
         nombre: producto.nombre,
         precio: producto.precio_base,
         imagen: producto.imagenes_url[0] ?? undefined,
-        personalizacion: [],
-        removidos_nombres: [],
+        personalizacion: removidos.map((i) => i.id),
+        removidos_nombres: removidos.map((i) => i.nombre),
       },
       1,
       stock,
@@ -123,10 +128,22 @@ export default function ProductoClientePage() {
     }
   };
 
+  const abrirModal = (producto: ProductoRead) => {
+    if (!puedeComprarProducto(producto)) return;
+    if (cantidadEnCarrito(producto.id) >= (producto.stock_cantidad ?? 0)) {
+      setErrorCarrito(
+        `Ya tenés el máximo disponible de "${producto.nombre}".`,
+      );
+      return;
+    }
+    setProductoModal(producto);
+  };
+
   const puedeAgregarAlCarrito = (producto: ProductoRead) => {
     if (!puedeComprarProducto(producto)) return false;
     return cantidadEnCarrito(producto.id) < (producto.stock_cantidad ?? 0);
   };
+
   return (
     <main className="min-h-screen w-lvw bg-slate-100 p-6">
       <section className="mx-auto max-w-6xl space-y-6">
@@ -147,6 +164,7 @@ export default function ProductoClientePage() {
           getImage={(p) => p.imagenes_url[0] ?? null}
           getDescription={(p) => p.descripcion}
           fields={fields}
+          extraContent={(p) => <IngredientesDesplegable producto={p} />}
           badge={(p) => (
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -160,7 +178,7 @@ export default function ProductoClientePage() {
           )}
           page={paginaActual}
           totalPages={totalPaginas}
-          onAddToCart={handleAddToCart}
+          onAddToCart={abrirModal}
           canAddToCart={puedeAgregarAlCarrito}
           addToCartDisabledLabel={(p) =>
             cantidadEnCarrito(p.id) >= (p.stock_cantidad ?? 0) &&
@@ -174,6 +192,12 @@ export default function ProductoClientePage() {
           onPageChange={setPaginaActual}
         />
       </section>
+
+      <AgregarCarritoModal
+        producto={productoModal}
+        onClose={() => setProductoModal(null)}
+        onConfirm={confirmarAgregar}
+      />
 
       {errorCarrito && (
         <div className="fixed bottom-10 right-5 z-50">

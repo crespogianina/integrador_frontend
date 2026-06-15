@@ -125,7 +125,7 @@ export function MisPedidosPage() {
                 : "Todavía no hiciste ningún pedido"}
             </p>
             <Link
-              to="/productos"
+              to="/catalogo"
               className="mt-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
               Ver el catálogo
