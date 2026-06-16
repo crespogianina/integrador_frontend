@@ -23,7 +23,6 @@ const precio = (n: number) =>
       })
     : "$0";
 
-const UMBRAL_ENVIO_GRATIS = 10000;
 const COSTO_ENVIO_FIJO = 500;
 const FORMAS_PAGO_CON_ENVIO = ["MERCADOPAGO"];
 
@@ -50,9 +49,7 @@ export function CheckoutPage() {
   const costoEnvioLocal =
     !FORMAS_PAGO_CON_ENVIO.includes(formaPago) || direccionId === null
       ? 0
-      : subtotal >= UMBRAL_ENVIO_GRATIS
-        ? 0
-        : COSTO_ENVIO_FIJO;
+      : COSTO_ENVIO_FIJO;
 
   const totalLocal = subtotal + costoEnvioLocal;
 
@@ -419,8 +416,6 @@ export function CheckoutPage() {
                 <dd>
                   {direccionId === null ? (
                     <span className="text-slate-400 italic">sin dirección</span>
-                  ) : costoEnvioLocal === 0 ? (
-                    <span className="font-medium text-emerald-600">¡Gratis!</span>
                   ) : (
                     precio(costoEnvioLocal)
                   )}
