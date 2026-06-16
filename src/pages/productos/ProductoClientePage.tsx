@@ -9,6 +9,8 @@ import { useCart } from "../../context/CartContext";
 import AgregarCarritoModal from "../../components/AgregarCarritoModal";
 import IngredientesDesplegable from "../../components/IngredientesDesplegable";
 import { brand } from "../../lib/brand";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const initialFiltros = { nombre: "", descripcion: "", disponible: "true" };
 
@@ -45,6 +47,8 @@ const fields: CardField<ProductoRead>[] = [
 
 export default function ProductoClientePage() {
   const { productos, cargarProductos, total } = useProductos();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [filtros, setFiltros] = useState(initialFiltros);
   const [filtrosDebounced, setFiltrosDebounced] = useState(initialFiltros);
@@ -123,18 +127,14 @@ export default function ProductoClientePage() {
     );
 
     if (!agregado) {
-      setErrorCarrito(
-        `No hay más stock disponible para "${producto.nombre}".`,
-      );
+      setErrorCarrito(`No hay más stock disponible para "${producto.nombre}".`);
     }
   };
 
   const abrirModal = (producto: ProductoRead) => {
     if (!puedeComprarProducto(producto)) return;
     if (cantidadEnCarrito(producto.id) >= (producto.stock_cantidad ?? 0)) {
-      setErrorCarrito(
-        `Ya tenés el máximo disponible de "${producto.nombre}".`,
-      );
+      setErrorCarrito(`Ya tenés el máximo disponible de "${producto.nombre}".`);
       return;
     }
     setProductoModal(producto);
@@ -157,7 +157,7 @@ export default function ProductoClientePage() {
       />
       <section className="relative mx-auto max-w-6xl space-y-6">
         <Filtros
-          title="¡Hola! ¿Qué se te antoja hoy?"
+          title={`¿Qué querés comer${user?.username ? `, ${user.username}` : ""}?`}
           titleClassName="text-2xl font-bold text-slate-800 md:text-3xl"
           inputFocusClassName={brand.inputFocus}
           filters={productosFiltros}

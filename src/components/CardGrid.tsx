@@ -31,6 +31,7 @@ type CardGridProps<T> = {
   addToCartActiveClassName?: string;
   paginationActiveClassName?: string;
   extraContent?: (item: T) => React.ReactNode;
+  onCardClick?: (item: T) => void;
 };
 
 export default function CardGrid<T>({
@@ -57,6 +58,7 @@ export default function CardGrid<T>({
   addToCartActiveClassName = "bg-blue-600 text-white hover:bg-blue-700",
   paginationActiveClassName = "bg-blue-600 text-white",
   extraContent,
+  onCardClick,
 }: CardGridProps<T>) {
   const pages = Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
 
@@ -88,7 +90,8 @@ export default function CardGrid<T>({
           {data.map((item) => (
             <div
               key={getRowId(item)}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+              onClick={() => onCardClick?.(item)}
+              className={`rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md ${onCardClick ? "cursor-pointer" : ""}`}
             >
               {getImage && getImage(item) && (
                 <img
@@ -102,14 +105,12 @@ export default function CardGrid<T>({
                   <h3 className="text-lg font-semibold text-slate-800">
                     {getTitle(item)}
                   </h3>
-
                   {getDescription && (
                     <p className="mt-1 text-sm text-slate-500">
                       {getDescription(item) || "Sin descripción"}
                     </p>
                   )}
                 </div>
-
                 {badge && badge(item)}
               </div>
 
@@ -133,8 +134,7 @@ export default function CardGrid<T>({
                         )}
                         <span
                           className={
-                            field.valueClassName ??
-                            "font-medium text-slate-700"
+                            field.valueClassName ?? "font-medium text-slate-700"
                           }
                         >
                           {value}
@@ -156,17 +156,22 @@ export default function CardGrid<T>({
                   {onEdit && (
                     <button
                       type="button"
-                      onClick={() => onEdit(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                      }}
                       className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
                     >
                       Editar
                     </button>
                   )}
-
                   {onDelete && (
                     <button
                       type="button"
-                      onClick={() => onDelete(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item);
+                      }}
                       className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
                     >
                       Eliminar
@@ -175,26 +180,27 @@ export default function CardGrid<T>({
                 </div>
               )}
 
-              {onAddToCart && (() => {
-                const puedeAgregar = canAddToCart ? canAddToCart(item) : true;
+              {onAddToCart &&
+                (() => {
+                  const puedeAgregar = canAddToCart ? canAddToCart(item) : true;
 
-                return (
-                  <button
-                    type="button"
-                    onClick={() => puedeAgregar && onAddToCart(item)}
-                    disabled={!puedeAgregar}
-                    className={`mt-3 w-full rounded-lg py-2 text-sm font-semibold ${
-                      puedeAgregar
-                        ? addToCartActiveClassName
-                        : "cursor-not-allowed bg-slate-200 text-slate-500"
-                    }`}
-                  >
-                    {puedeAgregar
-                      ? "Agregar al carrito"
-                      : (addToCartDisabledLabel?.(item) ?? "No disponible")}
-                  </button>
-                );
-              })()}
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => puedeAgregar && onAddToCart(item)}
+                      disabled={!puedeAgregar}
+                      className={`mt-3 w-full rounded-lg py-2 text-sm font-semibold ${
+                        puedeAgregar
+                          ? addToCartActiveClassName
+                          : "cursor-not-allowed bg-slate-200 text-slate-500"
+                      }`}
+                    >
+                      {puedeAgregar
+                        ? "Agregar al carrito"
+                        : (addToCartDisabledLabel?.(item) ?? "No disponible")}
+                    </button>
+                  );
+                })()}
             </div>
           ))}
         </div>

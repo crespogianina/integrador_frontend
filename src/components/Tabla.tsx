@@ -18,6 +18,7 @@ type TablaProps<T> = {
   editLabel?: string;
   showEditButtonCondition?: (item: T) => boolean;
   onDelete?: (item: T) => void;
+  showDeleteButtonCondition?: (item: T) => boolean;
 
   page: number;
   totalPages: number;
@@ -45,6 +46,7 @@ export default function Tabla<T>({
   editLabel = "Editar",
   showEditButtonCondition = () => true,
   onDelete,
+  showDeleteButtonCondition = () => true,
   page,
   totalPages,
   onPrevious,
@@ -66,11 +68,7 @@ export default function Tabla<T>({
         </div>
 
         {onAdd && (
-          <button
-            type="button"
-            onClick={onAdd}
-            className={addButtonClassName}
-          >
+          <button type="button" onClick={onAdd} className={addButtonClassName}>
             Agregar
           </button>
         )}
@@ -120,7 +118,7 @@ export default function Tabla<T>({
                           </button>
                         )}
 
-                        {onDelete && (
+                        {onDelete && showDeleteButtonCondition(item) && (
                           <button
                             type="button"
                             onClick={() => onDelete(item)}
@@ -130,7 +128,7 @@ export default function Tabla<T>({
                           </button>
                         )}
 
-                        {customAction && (
+                        {customAction && customAction.label(item) && (
                           <button
                             type="button"
                             onClick={() => customAction.actionCallback(item)}
@@ -148,7 +146,10 @@ export default function Tabla<T>({
             {data?.length === 0 && (
               <tr>
                 <td
-                  colSpan={columns.length + (onEdit || onDelete || customAction ? 1 : 0)}
+                  colSpan={
+                    columns.length +
+                    (onEdit || onDelete || customAction ? 1 : 0)
+                  }
                   className="px-4 py-8 text-center text-slate-500"
                 >
                   {emptyMessage}

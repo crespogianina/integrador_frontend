@@ -4,4 +4,5 @@ export interface UnidadMedida {
     nombre: string;
     simbolo: string;
     factor?: number
+    tipo: string;
 }

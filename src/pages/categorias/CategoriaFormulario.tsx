@@ -207,42 +207,6 @@ export default function CategoriaFormulario() {
                   </p>
                 )}
               </div>
-
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Categoría padre
-                </label>
-
-                <p className="mb-3 text-xs text-slate-400">
-                  {formulario.parent_id
-                    ? `Seleccionada: ID ${formulario.parent_id}`
-                    : "Sin categoría padre"}
-                </p>
-
-                <div className="max-h-64 overflow-y-auto  p-3">
-                  {categoriasArbol.length === 0 ? (
-                    <p className="text-sm text-slate-400">
-                      Cargando categorías...
-                    </p>
-                  ) : categoriasArbol.every(
-                      (c) => c.id === categoriaEditar?.id,
-                    ) ? (
-                    <p className="text-sm text-slate-400">
-                      No hay otras categorías disponibles para asignar como
-                      padre.
-                    </p>
-                  ) : (
-                    <CategoriaSelectorArbol
-                      categorias={categoriasArbol}
-                      selectedId={formulario.parent_id}
-                      excludeId={categoriaEditar?.id}
-                      onSelect={(id) =>
-                        setFormulario((prev) => ({ ...prev, parent_id: id }))
-                      }
-                    />
-                  )}
-                </div>
-              </div>
             </div>
 
             <div className="rounded-2xl border border-slate-200 p-5">
@@ -254,6 +218,41 @@ export default function CategoriaFormulario() {
                 value={imagenUrl ? [imagenUrl] : []}
                 onChange={(urls) => setImagenUrl(urls[0] ?? null)}
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Categoría padre
+              </label>
+
+              <p className="mb-3 text-xs text-slate-400">
+                {formulario.parent_id
+                  ? `Seleccionada: ID ${formulario.parent_id}`
+                  : "Sin categoría padre"}
+              </p>
+
+              <div className="max-h-64 overflow-y-auto  p-3">
+                {categoriasArbol.length === 0 ? (
+                  <p className="text-sm text-slate-400">
+                    Cargando categorías...
+                  </p>
+                ) : categoriasArbol.every(
+                    (c) => c.id === categoriaEditar?.id,
+                  ) ? (
+                  <p className="text-sm text-slate-400">
+                    No hay otras categorías disponibles para asignar como padre.
+                  </p>
+                ) : (
+                  <CategoriaSelectorArbol
+                    categorias={categoriasArbol}
+                    selectedId={formulario.parent_id}
+                    excludeId={categoriaEditar?.id}
+                    onSelect={(id) =>
+                      setFormulario((prev) => ({ ...prev, parent_id: id }))
+                    }
+                  />
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">

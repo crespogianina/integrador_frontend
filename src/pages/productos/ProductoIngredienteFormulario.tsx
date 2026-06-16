@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import IngredienteSelectorModal from "../../components/IngredienteSelectorModal";
 import { useProductos } from "../../context/ProductoContext";
 import { useIngredientes } from "../../context/IngredienteContext";
@@ -15,17 +15,31 @@ export default function ProductoIngredienteFormulario({
 }: Props) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const { unidadesMedida } = useProductos();
-  const { ingredientes } = useIngredientes();
+  const { ingredientes, cargarIngredientes } = useIngredientes();
 
   const datosDe = (id: number) => ingredientes?.find((i) => i.id === id);
 
+  const unidadesCompatibles = (ingId: number) => {
+    const ing = datosDe(ingId);
+    if (!ing) return unidadesMedida;
+    const unidadBase = unidadesMedida.find(
+      (u) => u.id === ing.unidad_medida_id,
+    );
+    if (!unidadBase?.tipo) return unidadesMedida;
+    return unidadesMedida.filter((u) => u.tipo === unidadBase.tipo);
+  };
+
   const agregarIngredientes = (ids: number[]) => {
-    const nuevos: ProductoIngredienteCreate[] = ids.map((id) => ({
-      ingrediente_id: id,
-      unidad_medida_id: datosDe(id)?.unidad_medida_id ?? 0,
-      es_removible: false,
-      cantidad: 0,
-    }));
+    const nuevos: ProductoIngredienteCreate[] = ids.map((id) => {
+      const ing = datosDe(id);
+      const compatibles = unidadesCompatibles(id);
+      return {
+        ingrediente_id: id,
+        unidad_medida_id: compatibles[0]?.id ?? ing?.unidad_medida_id ?? 0,
+        es_removible: false,
+        cantidad: 0,
+      };
+    });
     onChange([...value, ...nuevos]);
   };
 
@@ -37,33 +51,27 @@ export default function ProductoIngredienteFormulario({
     campo: keyof ProductoIngredienteCreate,
     valor: any,
   ) => {
-    const nuevosIngredientes = value.map((item) => {
-      if (item.ingrediente_id !== ingredienteId) {
-        return item;
-      }
+    onChange(
+      value.map((item) => {
+        if (item.ingrediente_id !== ingredienteId) return item;
 
-      if (campo === "cantidad") {
-        const permiteDecimales =
-          item.unidad_medida_id === 1 || item.unidad_medida_id === 3;
+        if (campo === "cantidad") {
+          const unidad = unidadesMedida.find(
+            (u) => u.id === item.unidad_medida_id,
+          );
+          const permiteDecimales =
+            unidad?.tipo === "peso" || unidad?.tipo === "volumen";
 
-        if (permiteDecimales) {
-          if (!/^\d*\.?\d*$/.test(valor)) {
-            return item;
-          }
-        } else {
-          if (!/^\d*$/.test(valor)) {
-            return item;
+          if (permiteDecimales) {
+            if (!/^\d*\.?\d*$/.test(valor)) return item;
+          } else {
+            if (!/^\d*$/.test(valor)) return item;
           }
         }
-      }
 
-      return {
-        ...item,
-        [campo]: valor,
-      };
-    });
-
-    onChange(nuevosIngredientes);
+        return { ...item, [campo]: valor };
+      }),
+    );
   };
 
   const factorDe = (unidadId: number) =>
@@ -72,20 +80,12 @@ export default function ProductoIngredienteFormulario({
   const costoEstimado = value.reduce((total, item) => {
     const ing = datosDe(item.ingrediente_id);
     if (!ing || !item.cantidad) return total;
-
     const precioPorBase =
       Number(ing.precio_base) / factorDe(ing.unidad_medida_id);
     const cantidadEnBase =
       Number(item.cantidad) * factorDe(item.unidad_medida_id);
-
     return total + precioPorBase * cantidadEnBase;
   }, 0);
-
-  const obtenerUnidadMedidaNombre = (id: number): string => {
-    const medidaEncontrada = unidadesMedida.find((unidad) => unidad.id === id);
-
-    return medidaEncontrada?.nombre || "g";
-  };
 
   return (
     <section className="rounded-2xl border border-slate-200 p-5">
@@ -98,7 +98,6 @@ export default function ProductoIngredienteFormulario({
             Configurá la cantidad y si el cliente puede removerlos.
           </p>
         </div>
-
         <button
           type="button"
           onClick={() => setModalAbierto(true)}
@@ -129,15 +128,19 @@ export default function ProductoIngredienteFormulario({
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-
             <tbody className="divide-y divide-slate-100">
               {value.map((item) => {
                 const ing = datosDe(item.ingrediente_id);
+                const compatibles = unidadesCompatibles(item.ingrediente_id);
 
                 return (
                   <tr key={item.ingrediente_id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium text-slate-700">
-                      {ing?.nombre ?? `Ingrediente #${item.ingrediente_id}`}
+                      {ing?.nombre ?? (
+                        <span className="text-slate-400 italic">
+                          Cargando...
+                        </span>
+                      )}
                       {ing?.es_alergeno && (
                         <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
                           ⚠
@@ -149,22 +152,41 @@ export default function ProductoIngredienteFormulario({
                       <input
                         type="text"
                         value={item.cantidad}
-                        onChange={(e) => {
-                          const value = e.target.value;
+                        onChange={(e) =>
                           actualizarCampo(
                             item.ingrediente_id,
                             "cantidad",
-                            value,
-                          );
-                        }}
+                            e.target.value,
+                          )
+                        }
                         className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                       />
                     </td>
 
-                    <td className="px-4 py-3 text-slate-500">
-                      {ing
-                        ? obtenerUnidadMedidaNombre(ing.unidad_medida_id)
-                        : "—"}
+                    <td className="px-4 py-3">
+                      {compatibles.length > 1 ? (
+                        <select
+                          value={item.unidad_medida_id}
+                          onChange={(e) =>
+                            actualizarCampo(
+                              item.ingrediente_id,
+                              "unidad_medida_id",
+                              Number(e.target.value),
+                            )
+                          }
+                          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                        >
+                          {compatibles.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-slate-500">
+                          {compatibles[0]?.nombre ?? "—"}
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-4 py-3">
