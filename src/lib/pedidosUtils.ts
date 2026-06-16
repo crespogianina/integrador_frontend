@@ -21,6 +21,7 @@ export const fechaCorta = (iso: string) =>
 const AVANCE_STAFF: Partial<
   Record<EstadoPedido, { destino: EstadoPedido; roles: Rol[] }[]>
 > = {
+  PENDIENTE: [{ destino: "CONFIRMADO", roles: ["ADMIN", "PEDIDOS"] }],
   CONFIRMADO: [{ destino: "EN_PREPARACION", roles: ["ADMIN", "PEDIDOS"] }],
   EN_PREPARACION: [{ destino: "EN_CAMINO", roles: ["ADMIN", "PEDIDOS"] }],
   EN_CAMINO: [{ destino: "ENTREGADO", roles: ["ADMIN", "PEDIDOS"] }],

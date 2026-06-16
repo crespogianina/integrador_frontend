@@ -1,5 +1,3 @@
-// context/CartContext.tsx — el carrito vive 100% en el front (tu backend no
-// tiene endpoints de carrito: recién se entera en POST /pedidos/)
 import {
   createContext,
   useCallback,
@@ -16,13 +14,11 @@ export interface CartItem {
   precio: number;
   imagen?: string;
   cantidad: number;
-  /** IDs de ingredientes removidos ("sin cebolla") */
   personalizacion: number[];
-  /** Nombres para mostrar en el carrito */
   removidos_nombres: string[];
 }
 
-export const UMBRAL_ENVIO_GRATIS = 10000;
+export const UMBRAL_ENVIO_GRATIS = 30000;
 export const COSTO_ENVIO_FIJO = 500;
 
 const STORAGE_KEY = "foodstore-cart";
@@ -165,7 +161,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         if (stock !== null && stock <= 0) return prev;
 
-        const totalActual = cantidadEnCarritoPorProducto(prev, item.producto_id);
+        const totalActual = cantidadEnCarritoPorProducto(
+          prev,
+          item.producto_id,
+        );
         const espacio =
           stock === null ? cantidad : Math.max(0, stock - totalActual);
 

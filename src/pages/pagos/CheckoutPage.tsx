@@ -48,7 +48,7 @@ export function CheckoutPage() {
   const [errorRequest, setErrorRequest] = useState("");
 
   const costoEnvioLocal =
-    direccionId === null
+    !FORMAS_PAGO_CON_ENVIO.includes(formaPago) || direccionId === null
       ? 0
       : subtotal >= UMBRAL_ENVIO_GRATIS
         ? 0
@@ -167,7 +167,7 @@ export function CheckoutPage() {
           personalizacion: i.personalizacion,
         })),
         forma_pago_codigo: formaPago,
-        direccion_id: direccionId,
+        direccion_id: FORMAS_PAGO_CON_ENVIO.includes(formaPago) ? direccionId : null,
         notas: notas.trim() || null,
       };
 
@@ -216,19 +216,19 @@ export function CheckoutPage() {
         <div className="space-y-5 lg:col-span-2">
           <h1 className="text-2xl font-bold text-slate-800">Checkout</h1>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="mb-3 font-semibold text-slate-800">
-              ¿Dónde entregamos?
-            </h2>
-            {direcciones.length === 0 ? (
-              <p className="text-sm text-slate-500">
-                No tenés direcciones guardadas — podés continuar igual y
-                coordinar la entrega.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {direcciones &&
-                  direcciones?.map((d) => (
+          {FORMAS_PAGO_CON_ENVIO.includes(formaPago) ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <h2 className="mb-3 font-semibold text-slate-800">
+                ¿Dónde entregamos?
+              </h2>
+              {direcciones.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  No tenés direcciones guardadas — podés continuar igual y
+                  coordinar la entrega.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {direcciones.map((d) => (
                     <label
                       key={d.id}
                       className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm ${
@@ -259,9 +259,17 @@ export function CheckoutPage() {
                       </span>
                     </label>
                   ))}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <h2 className="mb-3 font-semibold text-slate-800">Retiro</h2>
+              <p className="text-sm text-slate-600">
+                El pedido se retira en el local. Te avisamos cuando esté listo.
+              </p>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 font-semibold text-slate-800">
@@ -399,22 +407,26 @@ export function CheckoutPage() {
           </ul>
 
           <dl className="mt-3 space-y-1 border-t pt-3">
-            <div className="flex justify-between">
-              <dt>Subtotal</dt>
-              <dd>{precio(subtotal)}</dd>
-            </div>
-            <div className="flex justify-between text-slate-500">
-              <dt>Envío</dt>
-              <dd>
-                {direccionId === null ? (
-                  <span className="text-slate-400 italic">sin dirección</span>
-                ) : costoEnvioLocal === 0 ? (
-                  <span className="font-medium text-emerald-600">¡Gratis!</span>
-                ) : (
-                  precio(costoEnvioLocal)
-                )}
-              </dd>
-            </div>
+            {FORMAS_PAGO_CON_ENVIO.includes(formaPago) && (
+              <div className="flex justify-between">
+                <dt>Subtotal</dt>
+                <dd>{precio(subtotal)}</dd>
+              </div>
+            )}
+            {FORMAS_PAGO_CON_ENVIO.includes(formaPago) && (
+              <div className="flex justify-between text-slate-500">
+                <dt>Envío</dt>
+                <dd>
+                  {direccionId === null ? (
+                    <span className="text-slate-400 italic">sin dirección</span>
+                  ) : costoEnvioLocal === 0 ? (
+                    <span className="font-medium text-emerald-600">¡Gratis!</span>
+                  ) : (
+                    precio(costoEnvioLocal)
+                  )}
+                </dd>
+              </div>
+            )}
             <div className="flex justify-between pt-1 text-base font-bold">
               <dt>Total</dt>
               <dd>{precio(totalLocal)}</dd>
