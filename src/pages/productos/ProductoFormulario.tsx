@@ -176,43 +176,41 @@ export default function ProductoFormulario() {
   const validarErrores = () => {
     const nuevosErrores: Record<string, string> = {};
 
-    if (!formulario.nombre.trim()) {
+    if (!formulario.nombre.trim())
       nuevosErrores.nombre = "El nombre es obligatorio";
-    }
 
-    if (!formulario.descripcion.trim()) {
+    if (!formulario.descripcion.trim())
       nuevosErrores.descripcion = "La descripción es obligatoria";
-    }
 
-    if (!formulario.precio_base || Number(formulario.precio_base) <= 0) {
+    if (!formulario.precio_base || Number(formulario.precio_base) <= 0)
       nuevosErrores.precio_base = "El precio debe ser mayor a 0";
-    }
 
-    if (formulario.categorias.length === 0) {
+    if (formulario.categorias.length === 0)
       nuevosErrores.categorias = "Debe seleccionar al menos una categoría";
-    }
 
-    if (formulario.categorias.length > 0 && !formulario.categoriaPrincipal) {
+    if (formulario.categorias.length > 0 && !formulario.categoriaPrincipal)
       nuevosErrores.categoriaPrincipal =
         "Debe marcar una categoría como principal";
-    }
-
-    const ingredienteInvalido = formulario.ingredientes.some((item) => {
-      const num = Number(item.cantidad);
-      return isNaN(num) || num <= 0;
-    });
-
-    if (ingredienteInvalido) {
-      nuevosErrores.ingredientes = "Todas las cantidades deben ser mayores a 0";
-    }
 
     if (formulario.ingredientes.length === 0) {
       nuevosErrores.ingredientes = "Debe agregar al menos un ingrediente";
+    } else if (
+      formulario.ingredientes.some((item) => {
+        const num = Number(item.cantidad);
+        return isNaN(num) || num <= 0;
+      })
+    ) {
+      nuevosErrores.ingredientes = "Todas las cantidades deben ser mayores a 0";
     }
 
-    setErrorRequest("Tiene errores en el formulario");
     setErrores(nuevosErrores);
-    return Object.keys(nuevosErrores).length === 0;
+
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrorRequest("Tiene errores en el formulario");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
