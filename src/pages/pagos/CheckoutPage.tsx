@@ -139,7 +139,9 @@ export function CheckoutPage() {
 
         if (!res.ok) {
           const item = items.find((i) => i.producto_id === productoId);
-          throw new Error(`El producto "${item?.nombre ?? productoId}" ya no existe.`);
+          throw new Error(
+            `El producto "${item?.nombre ?? productoId}" ya no existe.`,
+          );
         }
 
         const producto: ProductoRead = await res.json();
@@ -164,7 +166,9 @@ export function CheckoutPage() {
           personalizacion: i.personalizacion,
         })),
         forma_pago_codigo: formaPago,
-        direccion_id: FORMAS_PAGO_CON_ENVIO.includes(formaPago) ? direccionId : null,
+        direccion_id: FORMAS_PAGO_CON_ENVIO.includes(formaPago)
+          ? direccionId
+          : null,
         notas: notas.trim() || null,
       };
 
