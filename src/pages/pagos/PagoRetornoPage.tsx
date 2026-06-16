@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { apiFetch, API_BASE } from "../../config/api";
 import { iniciarPagoMercadoPago } from "../../lib/pedidosUtils";
 import { brand } from "../../lib/brand";
@@ -69,7 +74,8 @@ export function PagoRetornoPage() {
     pending: {
       icon: "⏳",
       titulo: "Pago en proceso",
-      texto: "Estamos esperando la confirmación. Te avisamos en el seguimiento.",
+      texto:
+        "Estamos esperando la confirmación. Te avisamos en el seguimiento.",
       color: "amber",
     },
   }[tipo];
@@ -79,7 +85,9 @@ export function PagoRetornoPage() {
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white px-8 py-10 text-center shadow">
         {cargando ? (
           <>
-            <div className={`mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${brand.spinner}`} />
+            <div
+              className={`mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${brand.spinner}`}
+            />
             <p className="font-medium text-slate-700">Confirmando tu pago…</p>
           </>
         ) : (
@@ -119,7 +127,7 @@ export function PagoRetornoPage() {
               </Link>
               <button
                 type="button"
-                onClick={() => navigate("/pedidos")}
+                onClick={() => navigate("/mis-pedidos")}
                 className="text-sm text-slate-500 hover:text-slate-700"
               >
                 Ir a mis pedidos

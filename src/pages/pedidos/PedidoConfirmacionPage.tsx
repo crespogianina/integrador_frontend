@@ -59,7 +59,9 @@ export function PedidoConfirmacionPage() {
   if (cargando) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-        <div className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${brand.spinner}`} />
+        <div
+          className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${brand.spinner}`}
+        />
       </main>
     );
   }
@@ -136,7 +138,7 @@ export function PedidoConfirmacionPage() {
           </Link>
           <button
             type="button"
-            onClick={() => navigate("/pedidos")}
+            onClick={() => navigate("/mis-pedidos")}
             className="text-sm text-slate-500 hover:text-slate-700"
           >
             Ir a mis pedidos
