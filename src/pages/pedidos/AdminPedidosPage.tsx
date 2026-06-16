@@ -8,7 +8,6 @@ import type { EstadoPedido, PedidoRead } from "../../models/Pedido";
 import { ESTADO_LABEL, ESTADOS_FLUJO } from "../../models/Pedido";
 import {
   accionesAvanceStaff,
-  fechaCorta,
   precio,
 } from "../../lib/pedidosUtils";
 import { usePedidosWS } from "../../hooks/usePedidosWS";
@@ -36,6 +35,14 @@ const initialFiltros = {
   fechaHasta: "",
 };
 
+const fechaPedidoTabla = (iso: string) =>
+  new Date(iso).toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
 export function AdminPedidosPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -56,13 +63,15 @@ export function AdminPedidosPage() {
   const columns: Column<PedidoRead>[] = [
     { header: "N°", accessor: "id" },
     {
-      header: "Cliente",
-      accessor: "cliente_nombre",
-      customLabelFn: (v) => v ?? "-",
+      header: "Fecha",
+      accessor: "created_at",
+      className: "whitespace-nowrap text-xs sm:text-sm",
+      customLabelFn: (v) => fechaPedidoTabla(String(v)),
     },
     {
-      header: "Email",
-      accessor: "cliente_email",
+      header: "Cliente",
+      accessor: "cliente_nombre",
+      className: "hidden md:table-cell",
       customLabelFn: (v) => v ?? "-",
     },
     {
@@ -76,14 +85,16 @@ export function AdminPedidosPage() {
       customLabelFn: (v) => precio(Number(v)),
     },
     {
-      header: "Items",
-      accessor: "cantidad_items",
+      header: "Email",
+      accessor: "cliente_email",
+      className: "hidden lg:table-cell",
       customLabelFn: (v) => v ?? "-",
     },
     {
-      header: "Fecha",
-      accessor: "created_at",
-      customLabelFn: (v) => fechaCorta(String(v)),
+      header: "Items",
+      accessor: "cantidad_items",
+      className: "hidden xl:table-cell",
+      customLabelFn: (v) => v ?? "-",
     },
   ];
 
@@ -230,11 +241,11 @@ export function AdminPedidosPage() {
   };
 
   return (
-    <main className="min-h-screen w-lvw bg-slate-100 p-6">
+    <main className="min-h-screen w-full bg-slate-100 p-3 sm:p-4 lg:p-6">
       <section className="mx-auto max-w-6xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-xl font-bold text-slate-800 sm:text-2xl">
               Tablero de pedidos
             </h1>
             <p className="text-sm text-slate-500">
@@ -278,6 +289,7 @@ export function AdminPedidosPage() {
             onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
             onPageChange={setPage}
             editLabel="Detalle"
+            deleteLabel="Cancelar"
             onEdit={(p) => navigate(`/admin/pedidos/${p.id}`)}
             onDelete={(p) => setCancelarId(p.id)}
             showDeleteButtonCondition={(p) => esCancelable(p.estado_codigo)}

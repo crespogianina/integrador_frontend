@@ -3,6 +3,8 @@ export type Column<T> = {
   accessor: keyof T;
   customLabelFn?: (columnValue: any, tableData: T[]) => any;
   children?: Column<T>[];
+  /** Clases extra para th/td (ej. hidden lg:table-cell) */
+  className?: string;
 };
 
 type TablaProps<T> = {
@@ -18,6 +20,7 @@ type TablaProps<T> = {
   editLabel?: string;
   showEditButtonCondition?: (item: T) => boolean;
   onDelete?: (item: T) => void;
+  deleteLabel?: string;
   showDeleteButtonCondition?: (item: T) => boolean;
 
   page: number;
@@ -46,6 +49,7 @@ export default function Tabla<T>({
   editLabel = "Editar",
   showEditButtonCondition = () => true,
   onDelete,
+  deleteLabel = "Eliminar",
   showDeleteButtonCondition = () => true,
   page,
   totalPages,
@@ -79,7 +83,10 @@ export default function Tabla<T>({
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               {columns.map((column) => (
-                <th key={String(column.accessor)} className="px-4 py-3">
+                <th
+                  key={String(column.accessor)}
+                  className={`whitespace-nowrap px-3 py-3 sm:px-4 ${column.className ?? ""}`}
+                >
                   {column.header}
                 </th>
               ))}
@@ -97,7 +104,7 @@ export default function Tabla<T>({
                   {columns.map((column) => (
                     <td
                       key={String(column.accessor)}
-                      className="px-4 py-3 text-slate-600"
+                      className={`px-3 py-3 text-slate-600 sm:px-4 ${column.className ?? ""}`}
                     >
                       {column.customLabelFn
                         ? column.customLabelFn(item[column.accessor], data)
@@ -106,13 +113,13 @@ export default function Tabla<T>({
                   ))}
 
                   {(onEdit || onDelete || customAction) && (
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-2 py-3 sm:px-4">
+                      <div className="flex flex-wrap justify-end gap-1 sm:gap-2">
                         {onEdit && showEditButtonCondition(item) && (
                           <button
                             type="button"
                             onClick={() => onEdit(item)}
-                            className="rounded-lg bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200"
+                            className="rounded-lg bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-200 sm:px-3 sm:text-sm"
                           >
                             {editLabel}
                           </button>
@@ -122,9 +129,9 @@ export default function Tabla<T>({
                           <button
                             type="button"
                             onClick={() => onDelete(item)}
-                            className="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200"
+                            className="rounded-lg bg-red-100 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-200 sm:px-3 sm:text-sm"
                           >
-                            Eliminar
+                            {deleteLabel}
                           </button>
                         )}
 
@@ -132,7 +139,7 @@ export default function Tabla<T>({
                           <button
                             type="button"
                             onClick={() => customAction.actionCallback(item)}
-                            className={customActionClassName}
+                            className={`${customActionClassName} px-2 py-1 text-xs sm:px-3 sm:text-sm`}
                           >
                             {customAction.label(item)}
                           </button>
@@ -160,9 +167,9 @@ export default function Tabla<T>({
         </table>
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-200 p-4">
+      <div className="flex flex-col gap-3 border-t border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
-          Page {page} of {totalPages || 1} ({total} items)
+          Pág. {page} de {totalPages || 1} ({total} items)
         </p>
 
         <div className="flex items-center gap-1">

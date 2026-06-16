@@ -37,12 +37,7 @@ export default function Filtros({
     <div className="rounded-2xl bg-white p-5 shadow">
       <h2 className={`mb-4 ${titleClassName}`}>{title}</h2>
 
-      <div
-        className="grid gap-3"
-        style={{
-          gridTemplateColumns: `repeat(${filters.length}, minmax(220px, 1fr)) auto`,
-        }}
-      >
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {filters.map((f) => {
           if (f.type === "input") {
             return (
@@ -78,24 +73,6 @@ export default function Filtros({
             );
           }
 
-          if (f.type === "date") {
-            return (
-              <div key={f.name} className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-500">
-                  {f.label}
-                </label>
-
-                <input
-                  type="date"
-                  value={f.value}
-                  disabled={f.disabled}
-                  onChange={(e) => onChange(f.name, e.target.value)}
-                  className={`w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition disabled:cursor-not-allowed disabled:opacity-60 ${inputFocusClassName}`}
-                />
-              </div>
-            );
-          }
-
           if (f.type === "select") {
             return (
               <div key={f.name} className="flex flex-col gap-1">
@@ -121,15 +98,16 @@ export default function Filtros({
 
           return null;
         })}
+      </div>
 
-        <div className="flex items-end pb-1.5">
-          <button
-            onClick={onClear}
-            className="h-fit whitespace-nowrap rounded-lg border border-slate-300 px-6 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
-          >
-            Limpiar
-          </button>
-        </div>
+      <div className="mt-3 flex justify-end">
+        <button
+          type="button"
+          onClick={onClear}
+          className="whitespace-nowrap rounded-lg border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+        >
+          Limpiar
+        </button>
       </div>
     </div>
   );
