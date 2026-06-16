@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useIngredientes } from "../context/IngredienteContext";
+import { useEffect, useMemo, useState } from "react";
 import { useProductos } from "../context/ProductoContext";
 import type { IngredienteRead } from "../models/Ingrediente";
+import { API_BASE, apiFetch } from "../config/api";
 
 type Props = {
   open: boolean;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 const LIMITE = 10;
-const DEBOUNCE_MS = 400;
+const LIMITE_FETCH = 50;
 
 function stockBadge(stock: number) {
   if (stock > 10) return "bg-green-100 text-green-700";
@@ -25,40 +25,48 @@ export default function IngredienteSelectorModal({
   yaAgregados,
   onConfirm,
 }: Props) {
-  const { ingredientes, total, cargarIngredientes } = useIngredientes();
   const { unidadesMedida } = useProductos();
 
+  const [todos, setTodos] = useState<IngredienteRead[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const [cargando, setCargando] = useState(false);
   const [errorCarga, setErrorCarga] = useState("");
   const [seleccion, setSeleccion] = useState<number[]>([]);
 
-  const totalPaginas = Math.ceil(total / LIMITE);
-
   const simboloDeIng = (ing: IngredienteRead) =>
     unidadesMedida.find((u) => u.id === ing.unidad_medida_id)?.simbolo ?? "—";
 
+  // Fetch único al abrir el modal
   useEffect(() => {
     if (!open) return;
     setCargando(true);
     setErrorCarga("");
 
-    const timer = setTimeout(
-      async () => {
-        try {
-          await cargarIngredientes(pagina, LIMITE, undefined, busqueda);
-        } catch {
-          setErrorCarga("No se pudieron cargar los ingredientes");
-        } finally {
-          setCargando(false);
-        }
-      },
-      busqueda ? DEBOUNCE_MS : 0,
-    );
+    apiFetch(`${API_BASE}/ingredientes/?offset=0&limit=${LIMITE_FETCH}`)
+      .then((res) => res.json())
+      .then((data) => setTodos(data.data ?? []))
+      .catch(() => setErrorCarga("No se pudieron cargar los ingredientes"))
+      .finally(() => setCargando(false));
+  }, [open]);
 
-    return () => clearTimeout(timer);
-  }, [open, busqueda, pagina]);
+  // Filtrado y paginado en cliente
+  const disponibles = useMemo(
+    () =>
+      todos.filter(
+        (ing) =>
+          !yaAgregados.includes(ing.id) &&
+          ing.nombre.toLowerCase().includes(busqueda.toLowerCase().trim()),
+      ),
+    [todos, yaAgregados, busqueda],
+  );
+
+  const totalPaginas = Math.ceil(disponibles.length / LIMITE);
+  const paginaActual = Math.min(pagina, totalPaginas || 1);
+  const enPagina = disponibles.slice(
+    (paginaActual - 1) * LIMITE,
+    paginaActual * LIMITE,
+  );
 
   useEffect(() => {
     setPagina(1);
@@ -66,9 +74,6 @@ export default function IngredienteSelectorModal({
 
   if (!open) return null;
 
-  const disponibles = ingredientes.filter(
-    (ing) => !yaAgregados.includes(ing.id),
-  );
   const seleccionados = seleccion.length;
 
   const toggle = (id: number) =>
@@ -154,72 +159,72 @@ export default function IngredienteSelectorModal({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {disponibles.length === 0 && (
+                {enPagina.length === 0 ? (
                   <tr>
                     <td
                       colSpan={4}
                       className="px-4 py-10 text-center text-slate-400"
                     >
-                      {ingredientes.length > 0
-                        ? "Todos los ingredientes de esta búsqueda ya están agregados."
-                        : "No se encontraron ingredientes."}
+                      {busqueda
+                        ? "No hay ingredientes que coincidan con la búsqueda."
+                        : "No hay ingredientes disponibles para agregar."}
                     </td>
                   </tr>
+                ) : (
+                  enPagina.map((ing) => {
+                    const marcado = seleccion.includes(ing.id);
+
+                    return (
+                      <tr
+                        key={ing.id}
+                        onClick={() => toggle(ing.id)}
+                        className={
+                          marcado
+                            ? "cursor-pointer bg-blue-50"
+                            : "cursor-pointer hover:bg-slate-50"
+                        }
+                      >
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 accent-blue-600"
+                            checked={marcado}
+                            onChange={() => toggle(ing.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </td>
+
+                        <td className="px-4 py-3 font-medium text-slate-700">
+                          {ing.nombre}
+                          <span className="ml-1.5 text-xs text-slate-400">
+                            ({simboloDeIng(ing)})
+                          </span>
+                          {ing.es_alergeno && (
+                            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                              ⚠
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${stockBadge(Number(ing.stock_cantidad))}`}
+                          >
+                            {ing.stock_cantidad} {simboloDeIng(ing)}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {ing.es_alergeno && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                              ⚠ alérgeno
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
-
-                {disponibles.map((ing) => {
-                  const marcado = seleccion.includes(ing.id);
-
-                  return (
-                    <tr
-                      key={ing.id}
-                      onClick={() => toggle(ing.id)}
-                      className={
-                        marcado
-                          ? "cursor-pointer bg-blue-50"
-                          : "cursor-pointer hover:bg-slate-50"
-                      }
-                    >
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 accent-blue-600"
-                          checked={marcado}
-                          onChange={() => toggle(ing.id)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </td>
-
-                      <td className="px-4 py-3 font-medium text-slate-700">
-                        {ing.nombre}
-                        <span className="ml-1.5 text-xs text-slate-400">
-                          ({simboloDeIng(ing)})
-                        </span>
-                        {ing.es_alergeno && (
-                          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                            ⚠
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${stockBadge(Number(ing.stock_cantidad))}`}
-                        >
-                          {ing.stock_cantidad} {simboloDeIng(ing)}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {ing.es_alergeno && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                            ⚠ alérgeno
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
               </tbody>
             </table>
           )}
@@ -229,8 +234,8 @@ export default function IngredienteSelectorModal({
           <div className="flex items-center justify-center gap-1 border-t border-slate-100 px-4 py-3">
             <button
               type="button"
-              onClick={() => setPagina((p) => p - 1)}
-              disabled={pagina === 1}
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              disabled={paginaActual === 1}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
             >
               ←
@@ -241,7 +246,7 @@ export default function IngredienteSelectorModal({
                 type="button"
                 onClick={() => setPagina(p)}
                 className={`h-8 w-8 rounded-lg text-xs font-semibold transition ${
-                  p === pagina
+                  p === paginaActual
                     ? "bg-blue-600 text-white"
                     : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
@@ -251,8 +256,8 @@ export default function IngredienteSelectorModal({
             ))}
             <button
               type="button"
-              onClick={() => setPagina((p) => p + 1)}
-              disabled={pagina === totalPaginas}
+              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+              disabled={paginaActual === totalPaginas}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
             >
               →

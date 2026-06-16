@@ -26,6 +26,9 @@ const FILTRO_ESTADOS = [
   { value: "CANCELADO", label: ESTADO_LABEL.CANCELADO },
 ];
 
+const esCancelable = (estado: string) =>
+  ["PENDIENTE", "CONFIRMADO", "EN_PREPARACION"].includes(estado);
+
 const initialFiltros = {
   busquedaId: "",
   estadoFiltro: "",
@@ -274,8 +277,10 @@ export function AdminPedidosPage() {
             onPrevious={() => setPage((p) => Math.max(1, p - 1))}
             onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
             onPageChange={setPage}
-            onEdit={(p) => navigate(`/pedidos/${p.id}`)}
+            editLabel="Detalle"
+            onEdit={(p) => navigate(`/admin/pedidos/${p.id}`)}
             onDelete={(p) => setCancelarId(p.id)}
+            showDeleteButtonCondition={(p) => esCancelable(p.estado_codigo)}
             customAction={{
               label: (p) => {
                 const sig = accionesAvanceStaff(p.estado_codigo, roles)[0];

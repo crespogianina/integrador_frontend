@@ -17,12 +17,6 @@ export default function ProductoIngredienteFormulario({
   const { unidadesMedida } = useProductos();
   const { ingredientes, cargarIngredientes } = useIngredientes();
 
-  useEffect(() => {
-    if (ingredientes.length === 0) {
-      cargarIngredientes(1, 100, "");
-    }
-  }, []);
-
   const datosDe = (id: number) => ingredientes?.find((i) => i.id === id);
 
   const unidadesCompatibles = (ingId: number) => {

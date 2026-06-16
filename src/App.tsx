@@ -68,6 +68,8 @@ function App() {
           </PrivateRoute>
         }
       >
+        <Route path="/admin/pedidos/:id" element={<PedidoTrackingPage />} />
+
         <Route
           path="/stock"
           element={
