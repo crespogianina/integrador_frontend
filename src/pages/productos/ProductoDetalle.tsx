@@ -34,7 +34,7 @@ export default function ProductoDetallePage() {
       producto_id: producto.id,
       nombre: producto.nombre,
       precio: producto.precio_base,
-      imagen: producto.imagenes_url[0] ?? undefined,
+      imagen: producto.imagenes_url?.[0] ?? undefined,
       personalizacion: [],
       removidos_nombres: [],
     });
