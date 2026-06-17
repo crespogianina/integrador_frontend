@@ -10,7 +10,7 @@ import type { EstadoPedido, PedidoDetail } from "../../models/Pedido";
 import { ESTADO_LABEL } from "../../models/Pedido";
 import {
   accionesAvanceStaff,
-  cargarMapaIngredientes,
+  cargarMapaIngredientesDePedido,
   esStaff,
   fechaCorta,
   iniciarPagoMercadoPago,
@@ -84,8 +84,14 @@ export function PedidoTrackingPage() {
     if (!pedidoId) return;
     setCargando(true);
     void cargarPedido();
-    void cargarMapaIngredientes().then(setMapaIngredientes);
   }, [pedidoId, cargarPedido]);
+
+  useEffect(() => {
+    if (!pedido?.detalles?.length) return;
+    void cargarMapaIngredientesDePedido(pedido.detalles).then(
+      setMapaIngredientes,
+    );
+  }, [pedido]);
 
   usePedidosWS((evento) => {
     if (evento.pedido_id === pedidoId) void cargarPedido();
@@ -208,7 +214,6 @@ export function PedidoTrackingPage() {
     (pedido.estado_codigo === "PENDIENTE" ||
       pedido.estado_codigo === "CONFIRMADO" ||
       (pedido.estado_codigo === "EN_PREPARACION" && roles.includes("ADMIN")));
-
   return (
     <main className={pageClass}>
       <div className="mx-auto max-w-4xl space-y-6">

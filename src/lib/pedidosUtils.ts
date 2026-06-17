@@ -76,25 +76,25 @@ export async function iniciarPagoMercadoPago(pedidoId: number): Promise<void> {
   window.location.href = url;
 }
 
-export async function cargarMapaIngredientes(): Promise<Map<number, string>> {
+export async function cargarMapaIngredientesDePedido(
+  detalles: { producto_id: number }[]
+): Promise<Map<number, string>> {
   const mapa = new Map<number, string>();
-  try {
-    const res = await apiFetch(`${API_BASE}/ingredientes/?offset=0&limit=100`, {
-      credentials: "include",
-    });
 
-    if (!res.ok) return mapa;
-
-    const body = await res.json();
-    const items = Array.isArray(body) ? body : (body.items ?? []);
-
-    for (const ing of items) {
-      if (typeof ing.id === "number" && typeof ing.nombre === "string") {
+  await Promise.all(
+    detalles.map(async (detalle) => {
+      const res = await apiFetch(
+        `${API_BASE}/productos/${detalle.producto_id}/ingredientes`,
+        { credentials: "include" }
+      );
+      if (!res.ok) return;
+      const items: { id: number; nombre: string }[] = await res.json();
+      for (const ing of items) {
         mapa.set(ing.id, ing.nombre);
       }
-    }
-  } catch {
-  }
+    })
+  );
+
   return mapa;
 }
 
