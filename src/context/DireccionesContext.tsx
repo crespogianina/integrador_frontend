@@ -137,10 +137,7 @@ export function DireccionesProvider({ children }: { children: ReactNode }) {
       throw new Error(error?.detail || "Error al eliminar dirección");
     }
 
-    dispatch({
-      type: "ELIMINAR",
-      payload: id,
-    });
+    await cargarDirecciones(1, 10);
   }
 
   async function marcarPrincipal(id: number) {
